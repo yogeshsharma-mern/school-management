@@ -1,120 +1,141 @@
-import React from "react";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  flexRender,
-} from "@tanstack/react-table";
+// import React from "react";
+// import {
+//   useReactTable,
+//   getCoreRowModel,
+//   getSortedRowModel,
+//   getFilteredRowModel,
+//   getPaginationRowModel,
+//   flexRender,
+// } from "@tanstack/react-table";
 
-export default function ReusableTable({
-  columns,
-  data,
-  paginationState,
-  setPaginationState,
-  sortingState,
-  setSortingState,
-  globalFilter,
-  setGlobalFilter,
-  columnFilters,
-  setColumnFilters,
-  totalCount
-}) {
- const table = useReactTable({
-  data,
-  columns,
-  pageCount: Math.ceil(totalCount), // total pages
-  manualPagination: true, // backend controls pagination
-  state: {
-    pagination: paginationState,
-    sorting: sortingState,
-    columnFilters: columnFilters,
-    globalFilter: globalFilter,
-  },
-  onPaginationChange: setPaginationState,
-  onSortingChange: setSortingState,
-  onColumnFiltersChange: setColumnFilters,
-  onGlobalFilterChange: setGlobalFilter,
-  getCoreRowModel: getCoreRowModel(),
-  getSortedRowModel: getSortedRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
-  getPaginationRowModel: getPaginationRowModel(),
-});
+// export default function ReusableTable({
+//   columns,
+//   data,
+//   paginationState,
+//   setPaginationState,
+//   sortingState,
+//   setSortingState,
+//   globalFilter,
+//   setGlobalFilter,
+//   columnFilters,
+//   setColumnFilters,
+//   totalCount
+// }) {
+//  const table = useReactTable({
+//   data,
+//   columns,
+//   pageCount: Math.ceil(totalCount), // total pages
+//   manualPagination: true, // backend controls pagination
+//   state: {
+//     pagination: paginationState,
+//     sorting: sortingState,
+//     columnFilters: columnFilters,
+//     globalFilter: globalFilter,
+//   },
+//   onPaginationChange: setPaginationState,
+//   onSortingChange: setSortingState,
+//   onColumnFiltersChange: setColumnFilters,
+//   onGlobalFilterChange: setGlobalFilter,
+//   getCoreRowModel: getCoreRowModel(),
+//   getSortedRowModel: getSortedRowModel(),
+//   getFilteredRowModel: getFilteredRowModel(),
+//   getPaginationRowModel: getPaginationRowModel(),
+// });
 
 
-  return (
-    <div>
-      {/* Global Search */}
-      <input
-        value={globalFilter || ""}
-        onChange={(e) => setGlobalFilter(e.target.value)}
-        placeholder="Search..."
-        className="mb-4 p-2 border border-gray-300 rounded"
-      />
+//   return (
+//     <div>
+//       {/* Global Search */}
+//       <input
+//         value={globalFilter || ""}
+//         onChange={(e) => setGlobalFilter(e.target.value)}
+//         placeholder="Search..."
+//         className="mb-4 p-2 border border-gray-300 rounded"
+//       />
 
-      {/* Table */}
-      <table className="border-collapse border border-gray-300 w-full">
-        <thead>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th
-                  key={header.id}
-                  onClick={header.column.getToggleSortingHandler()}
-                  className="border p-2 cursor-pointer"
-                >
-                  {flexRender(header.column.columnDef.header, header.getContext())}
-                  {{
-                    asc: " 🔼",
-                    desc: " 🔽",
-                  }[header.column.getIsSorted()] ?? null}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="hover:bg-gray-100">
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="border p-2">
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+//       {/* Table */}
+//       <table className="border-collapse border border-gray-300 w-full">
+//         <thead>
+//           {table.getHeaderGroups().map((headerGroup) => (
+//             <tr key={headerGroup.id}>
+//               {headerGroup.headers.map((header) => (
+//                 <th
+//                   key={header.id}
+//                   onClick={header.column.getToggleSortingHandler()}
+//                   className="border p-2 cursor-pointer"
+//                 >
+//                   {flexRender(header.column.columnDef.header, header.getContext())}
+//                   {{
+//                     asc: " 🔼",
+//                     desc: " 🔽",
+//                   }[header.column.getIsSorted()] ?? null}
+//                 </th>
+//               ))}
+//             </tr>
+//           ))}
+//         </thead>
+//         <tbody>
+//           {table.getRowModel().rows.map((row) => (
+//             <tr key={row.id} className="hover:bg-gray-100">
+//               {row.getVisibleCells().map((cell) => (
+//                 <td key={cell.id} className="border p-2">
+//                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
+//                 </td>
+//               ))}
+//             </tr>
+//           ))}
+//         </tbody>
+//       </table>
 
-      {/* Pagination */}
-      <div className="mt-4 flex items-center gap-2">
-      <button className="border border-gray-500 p-2 rounded"
-  onClick={() => setPaginationState((old) => ({ ...old, pageIndex: old.pageIndex - 1 }))}
-  disabled={!table.getCanPreviousPage()}
->Previous</button>
-        <span>
-          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-        </span>
-       <button className="border border-gray-500 p-2 rounded"
-  onClick={() => setPaginationState((old) => ({ ...old, pageIndex: old.pageIndex + 1 }))}
-  disabled={!table.getCanNextPage()}
->Next</button>
-        <select
-          value={table.getState().pagination.pageSize}
-          onChange={(e) => table.setPageSize(Number(e.target.value))}
-          className="p-2 border rounded ml-4"
-        >
-          {[5, 10, 20, 50].map((size) => (
-            <option key={size} value={size}>
-              Show {size}
-            </option>
-          ))}
-        </select>
-      </div>
-    </div>
-  );
-}
+//       {/* Pagination */}
+// {/* Pagination */}
+// <div className="mt-4 flex justify-end items-center gap-2">
+//   <button
+//     className="border border-gray-500 p-2 rounded"
+//     onClick={() =>
+//       setPaginationState((old) => ({
+//         ...old,
+//         pageIndex: old.pageIndex - 1,
+//       }))
+//     }
+//     disabled={!table.getCanPreviousPage()}
+//   >
+//     Previous
+//   </button>
+
+//   <span>
+//     Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+//   </span>
+
+//   <button
+//     className="border border-gray-500 p-2 rounded"
+//     onClick={() =>
+//       setPaginationState((old) => ({
+//         ...old,
+//         pageIndex: old.pageIndex + 1,
+//       }))
+//     }
+//     disabled={!table.getCanNextPage()}
+//   >
+//     Next
+//   </button>
+
+//   <select
+//     value={table.getState().pagination.pageSize}
+//     onChange={(e) => table.setPageSize(Number(e.target.value))}
+//     className="p-2 border rounded ml-4"
+//   >
+//     {[5, 10, 20, 50].map((size) => (
+//       <option key={size} value={size}>
+//         Show {size}
+//       </option>
+//     ))}
+//   </select>
+// </div>
+
+//     </div>
+//   );
+// }
 
 
 
@@ -177,3 +198,144 @@ export default function ReusableTable({
 //     </div>
 //   );
 // }
+
+import React from "react";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  flexRender,
+} from "@tanstack/react-table";
+
+export default function ReusableTable({
+  columns,
+  data,
+  paginationState,
+  setPaginationState,
+  sortingState,
+  setSortingState,
+  globalFilter,
+  setGlobalFilter,
+  columnFilters,
+  setColumnFilters,
+  totalCount,
+  tablePlaceholder
+}) {
+  const table = useReactTable({
+    data,
+    columns,
+    pageCount: Math.ceil(totalCount),
+    manualPagination: true,
+    state: {
+      pagination: paginationState,
+      sorting: sortingState,
+      columnFilters,
+      globalFilter,
+    },
+    onPaginationChange: setPaginationState,
+    onSortingChange: setSortingState,
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  });
+
+  return (
+    <div className="bg-white shadow w-full rounded-lg p-4 overflow-x-auto">
+      {/* Header with search */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
+        <input
+          value={globalFilter || ""}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          placeholder={tablePlaceholder}
+          className="p-2 border border-gray-300 rounded w-full md:w-1/3"
+        />
+      </div>
+
+      {/* Scrollable table */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full border border-gray-200 table-auto">
+          <thead className="bg-gray-100 text-gray-700 text-left  top-0 z-10">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th
+                    key={header.id}
+                    onClick={header.column.getToggleSortingHandler()}
+                    className="px-4 py-2 cursor-pointer text-sm font-semibold border-b border-gray-200 whitespace-nowrap"
+                  >
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    {{
+                      asc: " 🔼",
+                      desc: " 🔽",
+                    }[header.column.getIsSorted()] ?? null}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+
+          <tbody>
+            {table.getRowModel().rows.map((row) => (
+              <tr
+                key={row.id}
+                className="hover:bg-gray-50 transition duration-200 text-sm"
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <td
+                    key={cell.id}
+                    className="px-4 py-2 border-b border-gray-200 whitespace-nowrap"
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="mt-4 flex flex-col md:flex-row justify-between items-start md:items-center text-sm gap-2">
+        <span>
+          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            className="px-3 py-1 border rounded disabled:opacity-50"
+            onClick={() =>
+              setPaginationState((old) => ({ ...old, pageIndex: old.pageIndex - 1 }))
+            }
+            disabled={!table.getCanPreviousPage()}
+          >
+            Prev
+          </button>
+          <button
+            className="px-3 py-1 border rounded disabled:opacity-50"
+            onClick={() =>
+              setPaginationState((old) => ({ ...old, pageIndex: old.pageIndex + 1 }))
+            }
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </button>
+          <select
+            value={table.getState().pagination.pageSize}
+            onChange={(e) => table.setPageSize(Number(e.target.value))}
+            className="p-1 border rounded"
+          >
+            {[5, 10, 20, 50].map((size) => (
+              <option key={size} value={size}>
+                {size} / page
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+}

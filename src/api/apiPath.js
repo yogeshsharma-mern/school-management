@@ -2,7 +2,11 @@ const apiPath = Object.freeze({
   loginadmin: "/admins/auth/login",
   students:"/studetns",
   classes:"/admins/classes/get/all",
-  createClassess:"/admins/classes/reg"
+  createClassess:"/admins/classes/reg",
+  updateClass:"/admins/classes/update/class",
+  getSubjects:"/admins/classes/get/subjects",
+  createSubject:"/admins/classes/subjects/reg",
+  updateSubject:"/admins/classes/update/subject"
 //   getUsers: "/v1/admin/user",
 //   getUserDetails: "/v1/admin/user/details",
 //   acceptRewardRequest: "v1/admin/rewardRequest/accept",

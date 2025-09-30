@@ -12,6 +12,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
 import Class from "./pages/Class";
 import  { Toaster } from 'react-hot-toast';
+import Subject from "./pages/Subject";
 
 export default function App() {
   const queryClient = new QueryClient();
@@ -35,6 +36,8 @@ export default function App() {
             <Route path="students" element={<Students />} />
             <Route path="teachers" element={<Teachers />} />
             <Route path="fees" element={<Fees />} />
+            <Route path="subjects" element={<Subject />} />
+
           </Route>
         </Route>
       </Routes>
