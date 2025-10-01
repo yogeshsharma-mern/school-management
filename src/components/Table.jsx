@@ -208,6 +208,7 @@ import {
   getPaginationRowModel,
   flexRender,
 } from "@tanstack/react-table";
+import Loader from "./Loading";
 
 export default function ReusableTable({
   columns,
@@ -221,7 +222,11 @@ export default function ReusableTable({
   columnFilters,
   setColumnFilters,
   totalCount,
-  tablePlaceholder
+  tablePlaceholder,
+  error,
+  isError,
+  fetching,
+  loading
 }) {
   const table = useReactTable({
     data,
@@ -243,9 +248,10 @@ export default function ReusableTable({
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
-
+console.log("error",isError);
+console.log("isfetching,loading",fetching,loading);
   return (
-    <div className="bg-white shadow w-full rounded-lg p-4 overflow-x-auto">
+    <div className="bg-[var(--color-neutral)] shadow w-full rounded-lg p-4 overflow-x-auto">
       {/* Header with search */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
         <input
@@ -257,6 +263,11 @@ export default function ReusableTable({
       </div>
 
       {/* Scrollable table */}
+      {isError && (
+  <div className="bg-red-100 text-red-700 p-2 rounded mb-2">
+    {error?.message || "Something went wrong while fetching data."}
+  </div>
+)}
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-200 table-auto">
           <thead className="bg-gray-100 text-gray-700 text-left  top-0 z-10">
@@ -278,6 +289,11 @@ export default function ReusableTable({
               </tr>
             ))}
           </thead>
+{(loading || fetching) && (
+   
+      <Loader />
+
+  )}
 
           <tbody>
             {table.getRowModel().rows.map((row) => (
@@ -328,7 +344,7 @@ export default function ReusableTable({
             onChange={(e) => table.setPageSize(Number(e.target.value))}
             className="p-1 border rounded"
           >
-            {[5, 10, 20, 50].map((size) => (
+            {[ 10, 20, 50].map((size) => (
               <option key={size} value={size}>
                 {size} / page
               </option>

@@ -8,12 +8,14 @@ import apiPath from "../api/apiPath";
 import useDebounce from "../hooks/useDebounce";
 import toast from "react-hot-toast";
 import Loader from "../components/Loading";
+import { RiImageEditLine } from "react-icons/ri";
+import { FaRegEye } from "react-icons/fa";
 
 export default function ClassPage() {
     const queryClient = useQueryClient();
 
     // Table state
-    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 5 });
+    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
     const [sorting, setSorting] = useState([]);
     const [globalFilter, setGlobalFilter] = useState("");
     const [columnFilters, setColumnFilters] = useState([]);
@@ -27,8 +29,8 @@ export default function ClassPage() {
     const [errors, setErrors] = useState({});
     const debouncedSearch = useDebounce(globalFilter, 500);
     // Fetch classes
-    const { data: classesData, isLoading, isFetching } = useQuery({
-        queryKey: ["classes", pagination.pageIndex, pagination.pageSize, debouncedSearch],
+    const { data: classesData, isLoading, isFetching, error, isError } = useQuery({
+        queryKey: ["subjects", pagination.pageIndex, pagination.pageSize, debouncedSearch],
         queryFn: () => apiGet(apiPath.getSubjects, {
             page: pagination.pageIndex + 1,  // backend usually 1-indexed
             limit: pagination.pageSize,
@@ -55,7 +57,7 @@ export default function ClassPage() {
 
             setIsModalOpen(false);
             setEditingClass(null);
-            setFormData({ name: "", section: "" });
+            setFormData({ name: "", code: "", description: "", credits: "" });
         },
         onError: (error) => {
             // Show server error message if available
@@ -70,25 +72,25 @@ export default function ClassPage() {
     const deleteMutation = useMutation({
         mutationFn: (id) => apiDelete(`/admins/classes/${id}`),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["classes"] });
+            queryClient.invalidateQueries({ queryKey: ["subjects"] });
         },
     });
     const handleChange = (e) => {
         const { name, value } = e.target;
         let newValue = value;
 
-        switch (name) {
-            case "name":
-                // Allow only letters, spaces, and comma
-                newValue = value.replace(/[^a-zA-Z ,]/g, "");
-                break;
-            case "credits":
-                // Allow only numbers
-                newValue = value.replace(/[^0-9]/g, "");
-                break;
-            default:
-                newValue = value; // code & description can accept anything
-        }
+        // switch (name) {
+        //     case "name":
+        //         // Allow only letters, spaces, and comma
+        //         newValue = value.replace(/[^a-zA-Z ,]/g, "");
+        //         break;
+        //     case "credits":
+        //         // Allow only numbers
+        //         newValue = value.replace(/[^0-9]/g, "");
+        //         break;
+        //     default:
+        //         newValue = value; // code & description can accept anything
+        // }
 
         setFormData((prev) => ({ ...prev, [name]: newValue }));
         setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -123,15 +125,13 @@ export default function ClassPage() {
         //   setErrors(newErrors);
         //   return;
         // }
-        if (!formData.name) {
-            newErrors.name = "Subject name is required";
-        }
-        if (!formData.code) {
-            newErrors.code = "Credits are required";
-        }
+        if (!formData.name) newErrors.name = "Subject name is required";
+        if (!formData.code) newErrors.code = "Code is required";
+        if (!formData.credits) newErrors.credits = "Credits are required";
 
         if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors)
+            setErrors(newErrors);
+            return;
         }
 
         classMutation.mutate({
@@ -190,25 +190,25 @@ export default function ClassPage() {
                             onClick={() => {
                                 const course = row.original;
                                 setEditingClass(course);
-                                setFormData({
-                                    name: course.name,
-                                    code: course.code,
-                                    credits: course.credits,
-                                    description: course.description,
-                                });
+                              setFormData({
+    name: course.name || "",
+    code: course.code || "",
+    credits: course.credits?.toString() || "",
+    description: course.description || "",
+});
                                 setIsModalOpen(true);
                             }}
-                            className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            className=" text-yellow-400 text-[20px] cursor-pointer  hover:text-yellow-500"
                         >
-                            Edit
+                            <RiImageEditLine />
                         </button>
                         <button onClick={() => {
                             setViewModal(true),
                                 setViewData(row.original)
                         }
-                        } className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                        } className=" text-green-600 cursor-pointer  text-[20px] hover:text-green-700"
                         >
-                            View
+                            <FaRegEye />
                         </button>
                         {/* Uncomment if you want delete button */}
                         {/* <button
@@ -230,6 +230,8 @@ export default function ClassPage() {
     console.log("classdata", classesData)
 
     const totalPages = classesData?.results?.totalPages || 1;
+
+
 
 
     return (
@@ -279,13 +281,16 @@ export default function ClassPage() {
                     setColumnFilters={setColumnFilters}
                     totalCount={totalPages || 1}
                     tablePlaceholder="Search subjects..."
+                    error={error}
+                    isError={error}
+
                 />
                 {(isLoading || isFetching) && <Loader />}
             </div>
             {/* Modal for create/edit */}
             <Modal
                 isOpen={isModalOpen}
-                title={editingClass ? "Edit Class" : "Create Subject"}
+                title={editingClass ? "Edit Subject" : "Create Subject"}
                 onClose={() => setIsModalOpen(false)}
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -295,7 +300,7 @@ export default function ClassPage() {
                         value={formData.name}
                         onChange={handleChange}
                         placeholder="physics, math, chem"
-                        error={errors.name}
+                    error={errors.name}
                     />
                     <InputField
                         label="code"
@@ -303,7 +308,7 @@ export default function ClassPage() {
                         value={formData.code}
                         onChange={handleChange}
                         placeholder="PHY101"
-                        error={errors.code}
+                    error={errors.code}
                     />
                     <InputField
                         label="description"
@@ -311,7 +316,7 @@ export default function ClassPage() {
                         value={formData.description}
                         onChange={handleChange}
                         placeholder="Example...."
-                        error={errors.description}
+                    error={errors.description}
                     />
                     <InputField
                         label="credits"
@@ -319,7 +324,7 @@ export default function ClassPage() {
                         value={formData.credits}
                         onChange={handleChange}
                         placeholder="4"
-                        error={errors.credits}
+                    error={errors.credits}
                     />
                     {/* <InputField
             label="Subjects"

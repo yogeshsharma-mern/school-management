@@ -13,6 +13,8 @@ import PublicRoute from "./routes/PublicRoute";
 import Class from "./pages/Class";
 import  { Toaster } from 'react-hot-toast';
 import Subject from "./pages/Subject";
+import StudentDetail from "./pages/StudentDetail";
+import CreateStudent from "./pages/CreateStudent";
 
 export default function App() {
   const queryClient = new QueryClient();
@@ -34,6 +36,10 @@ export default function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="Assignments" element={<Assignment />} />
             <Route path="students" element={<Students />} />
+            <Route path="students/:id" element={<StudentDetail />} />
+            <Route path="student/create" element={<CreateStudent />} />
+
+
             <Route path="teachers" element={<Teachers />} />
             <Route path="fees" element={<Fees />} />
             <Route path="subjects" element={<Subject />} />

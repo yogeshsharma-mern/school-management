@@ -1,7 +1,289 @@
-import React from 'react'
+import React, { useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import ReusableTable from "../components/Table";
+import Modal from "../components/Modal";
+import InputField from "../components/InputField";
+import { apiGet, apiPost, apiPut, apiDelete } from "../api/apiFetch";
+import apiPath from "../api/apiPath";
+import useDebounce from "../hooks/useDebounce";
+import toast from "react-hot-toast";
+import Loader from "../components/Loading";
+import { RiImageEditLine } from "react-icons/ri";
+import { FaRegEye } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
-export default function Students() {
+export default function StudentPage() {
+  const queryClient = useQueryClient();
+const navigate =useNavigate();
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 5 });
+  const [sorting, setSorting] = useState([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [columnFilters, setColumnFilters] = useState([]);
+  const [viewModal, setViewModal] = useState(false);
+  const [viewData, setViewData] = useState([]);
+  const [classFilter, setClassFilter] = useState("");
+  const [academicYearFilter, setAcademicYearFilter] = useState("");
+  
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    dob: "",
+    gender: "",
+    bloodGroup: "",
+    email: "",
+    password: "",
+    phone: "",
+    address: { street: "", city: "", state: "", zip: "", country: "" },
+    parents: [{ name: "", occupation: "", phone: "", email: "" }, { name: "", occupation: "", phone: "", email: "" }],
+    guardian: { name: "", relation: "", occupation: "", phone: "" },
+    emergencyContact: { name: "", relation: "", phone: "", address: "" },
+    classId: "",
+    academicYear: "",
+    physicalDisability: false,
+    disabilityDetails: ""
+  });
+  const [errors, setErrors] = useState({});
+  const debouncedSearch = useDebounce(globalFilter, 500);
+
+  // Fetch students
+  const { data: studentsData, isLoading, isFetching, error } = useQuery({
+    queryKey: ["students", pagination.pageIndex, pagination.pageSize, debouncedSearch,  classFilter,
+        academicYearFilter],
+    queryFn: () =>
+      apiGet(apiPath.getStudents, {
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        search: debouncedSearch,
+      }),
+  });
+
+  // Mutation for create/update student
+  const studentMutation = useMutation({
+    mutationFn: (studentObj) => {
+      if (editingStudent) return apiPut(`${apiPath.updateStudent}/${editingStudent._id}`, studentObj);
+      return apiPost(apiPath.createStudent, studentObj);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      toast.success(editingStudent ? "Student updated successfully ✅" : "Student created successfully 🎉");
+      setIsModalOpen(false);
+      setEditingStudent(null);
+      setFormData({
+        name: "",
+        dob: "",
+        gender: "",
+        bloodGroup: "",
+        email: "",
+        password: "",
+        phone: "",
+        address: { street: "", city: "", state: "", zip: "", country: "" },
+        parents: [{ name: "", occupation: "", phone: "", email: "" }, { name: "", occupation: "", phone: "", email: "" }],
+        guardian: { name: "", relation: "", occupation: "", phone: "" },
+        emergencyContact: { name: "", relation: "", phone: "", address: "" },
+        classId: "",
+        academicYear: "",
+        physicalDisability: false,
+        disabilityDetails: ""
+      });
+    },
+    onError: (error) => {
+      const errorMessage = error?.response?.data?.message || "Something went wrong.";
+      toast.error(errorMessage);
+    },
+  });
+
+  const handleChange = (e, parentIndex = null, type = null) => {
+    const { name, value } = e.target;
+
+    if (type === "address") {
+      setFormData((prev) => ({ ...prev, address: { ...prev.address, [name]: value } }));
+    } else if (type === "parent") {
+      setFormData((prev) => {
+        const updatedParents = [...prev.parents];
+        updatedParents[parentIndex][name] = value;
+        return { ...prev, parents: updatedParents };
+      });
+    } else if (type === "guardian") {
+      setFormData((prev) => ({ ...prev, guardian: { ...prev.guardian, [name]: value } }));
+    } else if (type === "emergencyContact") {
+      setFormData((prev) => ({ ...prev, emergencyContact: { ...prev.emergencyContact, [name]: value } }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newErrors = {};
+    if (!formData.name) newErrors.name = "Name is required";
+    if (!formData.email) newErrors.email = "Email is required";
+    if (!formData.phone) newErrors.phone = "Phone is required";
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    studentMutation.mutate(formData);
+  };
+
+  // Table columns
+  const columns = useMemo(
+    () => [
+      { accessorKey: "name", header: "Name" },
+      // { accessorKey: "dob", header: "DOB" },
+      { accessorKey: "gender", header: "Gender" },
+      { accessorKey: "bloodGroup", header: "Blood Group" },
+      { accessorKey: "email", header: "Email" },
+      { accessorKey: "phone", header: "Phone" },
+      { accessorKey: "name", header: "Class Name" },
+      { accessorKey: "academicYear", header: "Academic Year" },
+      // {
+      //   header: "Parent / Guardian",
+      //   cell: ({ row }) => {
+      //     const student = row.original;
+      //     const parent = student.parents?.[0];
+      //     const guardian = student.guardian;
+      //     return parent ? `${parent.name} (${parent.phone})` : guardian ? `${guardian.name} (${guardian.phone})` : "N/A";
+      //   },
+      // },
+      {
+        header: "Actions",
+        cell: ({ row }) => (
+      
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                const student = row.original;
+                setEditingStudent(student);
+                setFormData(student);
+                setIsModalOpen(true);
+              }}
+              className="text-yellow-400 text-[20px] cursor-pointer hover:text-yellow-500"
+            >
+              <RiImageEditLine />
+            </button>
+          <button
+  onClick={() => navigate(`/admin/students/${row.original._id}`)}
+  className="text-green-600 text-[20px] cursor-pointer hover:text-green-700"
+>
+  <FaRegEye />
+</button>
+          </div>
+        ),
+      },
+    ],
+    []
+  );
+
+  const tableData = useMemo(() => studentsData?.results?.docs || [], [studentsData]);
+  const totalPages = studentsData?.results?.totalPages || 1;
+
   return (
-    <div>Students</div>
-  )
+    <div>
+      {/* View Modal */}
+      <Modal isOpen={viewModal} title="Student Details" onClose={() => setViewModal(false)}>
+        {viewData && (
+          <div className="space-y-2">
+            <p><strong>Name:</strong> {viewData.name}</p>
+            <p><strong>DOB:</strong> {viewData.dob}</p>
+            <p><strong>Gender:</strong> {viewData.gender}</p>
+            <p><strong>Blood Group:</strong> {viewData.bloodGroup}</p>
+            <p><strong>Email:</strong> {viewData.email}</p>
+            <p><strong>Phone:</strong> {viewData.phone}</p>
+            <p><strong>Address:</strong> {`${viewData.address?.street}, ${viewData.address?.city}, ${viewData.address?.state}, ${viewData.address?.zip}, ${viewData.address?.country}`}</p>
+            <p><strong>Parents:</strong> {viewData.parents?.map(p => `${p.name} (${p.phone})`).join(", ")}</p>
+            <p><strong>Guardian:</strong> {viewData.guardian ? `${viewData.guardian.name} (${viewData.guardian.phone})` : "N/A"}</p>
+            <p><strong>Emergency Contact:</strong> {viewData.emergencyContact ? `${viewData.emergencyContact.name} (${viewData.emergencyContact.phone})` : "N/A"}</p>
+            <p><strong>Class:</strong> {viewData.classId}</p>
+            <p><strong>Academic Year:</strong> {viewData.academicYear}</p>
+            <p><strong>Disability:</strong> {viewData.physicalDisability ? viewData.disabilityDetails : "No"}</p>
+          </div>
+        )}
+      </Modal>
+
+      {/* Create / Edit Modal */}
+      <Modal isOpen={isModalOpen} title={editingStudent ? "Edit Student" : "Create Student"} onClose={() => setIsModalOpen(false)}>
+        <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto max-h-[70vh]">
+          <InputField label="Name" name="name" value={formData.name} onChange={handleChange} error={errors.name} />
+          <InputField label="DOB" name="dob" type="date" value={formData.dob} onChange={handleChange} error={errors.dob} />
+          <InputField label="Gender" name="gender" value={formData.gender} onChange={handleChange} error={errors.gender} />
+          <InputField label="Blood Group" name="bloodGroup" value={formData.bloodGroup} onChange={handleChange} error={errors.bloodGroup} />
+          <InputField label="Email" name="email" value={formData.email} onChange={handleChange} error={errors.email} />
+          <InputField label="Phone" name="phone" value={formData.phone} onChange={handleChange} error={errors.phone} />
+          <InputField label="Password" name="password" type="password" value={formData.password} onChange={handleChange} error={errors.password} />
+
+          <h3 className="font-semibold mt-2">Address</h3>
+          {["street","city","state","zip","country"].map(field => (
+            <InputField key={field} label={field.charAt(0).toUpperCase() + field.slice(1)} name={field} value={formData.address[field]} onChange={(e) => handleChange(e,"address")} />
+          ))}
+
+          <h3 className="font-semibold mt-2">Parents</h3>
+          {formData.parents.map((parent, idx) => (
+            <div key={idx} className="space-y-1">
+              <InputField label={`Parent ${idx+1} Name`} name="name" value={parent.name} onChange={(e) => handleChange(e, idx, "parent")} />
+              <InputField label={`Parent ${idx+1} Occupation`} name="occupation" value={parent.occupation} onChange={(e) => handleChange(e, idx, "parent")} />
+              <InputField label={`Parent ${idx+1} Phone`} name="phone" value={parent.phone} onChange={(e) => handleChange(e, idx, "parent")} />
+              <InputField label={`Parent ${idx+1} Email`} name="email" value={parent.email} onChange={(e) => handleChange(e, idx, "parent")} />
+            </div>
+          ))}
+
+          <h3 className="font-semibold mt-2">Guardian</h3>
+          {["name","relation","occupation","phone"].map(field => (
+            <InputField key={field} label={field.charAt(0).toUpperCase() + field.slice(1)} name={field} value={formData.guardian[field]} onChange={(e) => handleChange(e,"guardian")} />
+          ))}
+
+          <h3 className="font-semibold mt-2">Emergency Contact</h3>
+          {["name","relation","phone","address"].map(field => (
+            <InputField key={field} label={field.charAt(0).toUpperCase() + field.slice(1)} name={field} value={formData.emergencyContact[field]} onChange={(e) => handleChange(e,"emergencyContact")} />
+          ))}
+
+          <InputField label="Class ID" name="classId" value={formData.classId} onChange={handleChange} />
+          <InputField label="Academic Year" name="academicYear" value={formData.academicYear} onChange={handleChange} />
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={formData.physicalDisability} onChange={(e) => setFormData(prev => ({...prev, physicalDisability: e.target.checked}))} />
+            Physical Disability
+          </label>
+          {formData.physicalDisability && (
+            <InputField label="Disability Details" name="disabilityDetails" value={formData.disabilityDetails} onChange={handleChange} />
+          )}
+
+          <button type="submit" disabled={studentMutation.isLoading} className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition">
+            {studentMutation.isLoading ? "Saving..." : editingStudent ? "Update Student" : "Create Student"}
+          </button>
+        </form>
+      </Modal>
+
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Students</h1>
+        <button
+   onClick={()=>navigate("/admin/student/create")}
+          className="px-4 py-2 bg-yellow-400 rounded-lg hover:bg-yellow-500 cursor-pointer transition"
+        >
+          Create Student
+        </button>
+      </div>
+
+      <div className="overflow-x-auto  w-[90vw] md:w-[80vw]">
+        <ReusableTable
+          columns={columns}
+          data={tableData}
+          paginationState={pagination}
+          setPaginationState={setPagination}
+          sortingState={sorting}
+          setSortingState={setSorting}
+          globalFilter={globalFilter}
+          setGlobalFilter={setGlobalFilter}
+          columnFilters={columnFilters}
+          setColumnFilters={setColumnFilters}
+          totalCount={totalPages}
+          tablePlaceholder="Search students..."
+          error={error}
+          isError={!!error}
+        />
+        {(isLoading || isFetching) && <Loader />}
+      </div>
+    </div>
+  );
 }
