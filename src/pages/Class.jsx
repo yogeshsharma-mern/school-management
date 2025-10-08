@@ -38,10 +38,10 @@ export default function ClassPage() {
       apiGet(apiPath.classes, {
         page: pagination.pageIndex + 1,
         limit: pagination.pageSize,
-        search: debouncedSearch,
+        name: debouncedSearch,
       }),
   });
-
+console.log("classdata",classesData)
   // Convert 24h -> 12h for API
   const formatTo12Hour = (time) => {
     if (!time) return "";

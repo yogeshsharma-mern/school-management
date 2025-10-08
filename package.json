@@ -10,11 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.4",
+    "@mui/material": "^7.3.4",
     "@reduxjs/toolkit": "^2.9.0",
     "@tailwindcss/vite": "^4.1.13",
     "@tanstack/react-query": "^5.90.2",
     "@tanstack/react-table": "^8.21.3",
     "axios": "^1.12.2",
+    "file-saver": "^2.0.5",
+    "jspdf": "^3.0.3",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
@@ -25,6 +32,8 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.9.3",
     "react-select": "^5.10.2",
+    "react-select-country-list": "^2.2.3",
+    "recharts": "^3.2.1",
     "tailwindcss": "^4.1.13"
   },
   "devDependencies": {

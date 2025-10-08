@@ -15,6 +15,8 @@ import  { Toaster } from 'react-hot-toast';
 import Subject from "./pages/Subject";
 import StudentDetail from "./pages/StudentDetail";
 import CreateStudent from "./pages/CreateStudent";
+import EditStudent from "./pages/EditStudent";
+import AdminProfile from "./pages/AdminProfile";
 
 export default function App() {
   const queryClient = new QueryClient();
@@ -26,7 +28,7 @@ export default function App() {
         {/* Admin Layout with nested routes */}
         {/* public routes */}
         <Route element={<PublicRoute />}>
-          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Login />} />
         </Route>
         {/* protectedroute  */}
         <Route element={<ProtectedRoute />}>
@@ -37,6 +39,10 @@ export default function App() {
             <Route path="Assignments" element={<Assignment />} />
             <Route path="students" element={<Students />} />
             <Route path="students/:id" element={<StudentDetail />} />
+            <Route path="students/edit/:id" element={<EditStudent />} />
+            <Route path="profile" element={<AdminProfile />} />
+
+
             <Route path="student/create" element={<CreateStudent />} />
 
 

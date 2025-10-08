@@ -34,7 +34,7 @@ export default function ClassPage() {
         queryFn: () => apiGet(apiPath.getSubjects, {
             page: pagination.pageIndex + 1,  // backend usually 1-indexed
             limit: pagination.pageSize,
-            search: debouncedSearch,
+            name: debouncedSearch,
         }),
     });
 
@@ -283,9 +283,12 @@ export default function ClassPage() {
                     tablePlaceholder="Search subjects..."
                     error={error}
                     isError={error}
+                    fetching={isFetching}
+                    loading={isLoading}
+                    
 
                 />
-                {(isLoading || isFetching) && <Loader />}
+     
             </div>
             {/* Modal for create/edit */}
             <Modal

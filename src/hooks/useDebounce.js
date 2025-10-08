@@ -8,6 +8,6 @@ export default function useDebounce(value, delay = 500) {
     const handler = setTimeout(() => setDebounced(value), delay);
     return () => clearTimeout(handler);
   }, [value, delay]);
-
   return debounced;
 }
+

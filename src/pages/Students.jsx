@@ -11,6 +11,7 @@ import Loader from "../components/Loading";
 import { RiImageEditLine } from "react-icons/ri";
 import { FaRegEye } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { MdDelete } from "react-icons/md";
 
 export default function StudentPage() {
   const queryClient = useQueryClient();
@@ -27,23 +28,23 @@ const navigate =useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    dob: "",
-    gender: "",
-    bloodGroup: "",
-    email: "",
-    password: "",
-    phone: "",
-    address: { street: "", city: "", state: "", zip: "", country: "" },
-    parents: [{ name: "", occupation: "", phone: "", email: "" }, { name: "", occupation: "", phone: "", email: "" }],
-    guardian: { name: "", relation: "", occupation: "", phone: "" },
-    emergencyContact: { name: "", relation: "", phone: "", address: "" },
-    classId: "",
-    academicYear: "",
-    physicalDisability: false,
-    disabilityDetails: ""
-  });
+  // const [formData, setFormData] = useState({
+  //   name: "",
+  //   dob: "",
+  //   gender: "",
+  //   bloodGroup: "",
+  //   email: "",
+  //   password: "",
+  //   phone: "",
+  //   address: { street: "", city: "", state: "", zip: "", country: "" },
+  //   parents: [{ name: "", occupation: "", phone: "", email: "" }, { name: "", occupation: "", phone: "", email: "" }],
+  //   guardian: { name: "", relation: "", occupation: "", phone: "" },
+  //   emergencyContact: { name: "", relation: "", phone: "", address: "" },
+  //   classId: "",
+  //   academicYear: "",
+  //   physicalDisability: false,
+  //   disabilityDetails: ""
+  // });
   const [errors, setErrors] = useState({});
   const debouncedSearch = useDebounce(globalFilter, 500);
 
@@ -60,73 +61,109 @@ const navigate =useNavigate();
   });
 
   // Mutation for create/update student
-  const studentMutation = useMutation({
-    mutationFn: (studentObj) => {
-      if (editingStudent) return apiPut(`${apiPath.updateStudent}/${editingStudent._id}`, studentObj);
-      return apiPost(apiPath.createStudent, studentObj);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["students"] });
-      toast.success(editingStudent ? "Student updated successfully ✅" : "Student created successfully 🎉");
-      setIsModalOpen(false);
-      setEditingStudent(null);
-      setFormData({
-        name: "",
-        dob: "",
-        gender: "",
-        bloodGroup: "",
-        email: "",
-        password: "",
-        phone: "",
-        address: { street: "", city: "", state: "", zip: "", country: "" },
-        parents: [{ name: "", occupation: "", phone: "", email: "" }, { name: "", occupation: "", phone: "", email: "" }],
-        guardian: { name: "", relation: "", occupation: "", phone: "" },
-        emergencyContact: { name: "", relation: "", phone: "", address: "" },
-        classId: "",
-        academicYear: "",
-        physicalDisability: false,
-        disabilityDetails: ""
-      });
-    },
-    onError: (error) => {
-      const errorMessage = error?.response?.data?.message || "Something went wrong.";
-      toast.error(errorMessage);
-    },
-  });
+  // const studentMutation = useMutation({
+  //   mutationFn: (studentObj) => {
+  //     if (editingStudent) return apiPut(`${apiPath.updateStudent}/${editingStudent._id}`, studentObj);
+  //     return apiPost(apiPath.createStudent, studentObj);
+  //   },
+    
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({ queryKey: ["students"] });
+  //     toast.success(editingStudent ? "Student updated successfully ✅" : "Student created successfully 🎉");
+  //     setIsModalOpen(false);
+  //     setEditingStudent(null);
+  //     setFormData({
+  //       name: "",
+  //       dob: "",
+  //       gender: "",
+  //       bloodGroup: "",
+  //       email: "",
+  //       password: "",
+  //       phone: "",
+  //       address: { street: "", city: "", state: "", zip: "", country: "" },
+  //       parents: [{ name: "", occupation: "", phone: "", email: "" }, { name: "", occupation: "", phone: "", email: "" }],
+  //       guardian: { name: "", relation: "", occupation: "", phone: "" },
+  //       emergencyContact: { name: "", relation: "", phone: "", address: "" },
+  //       classId: "",
+  //       academicYear: "",
+  //       physicalDisability: false,
+  //       disabilityDetails: ""
+  //     });
+  //   },
+  //   onError: (error) => {
+  //     const errorMessage = error?.response?.data?.message || "Something went wrong.";
+  //     toast.error(errorMessage);
+  //   },
+  // });
 
-  const handleChange = (e, parentIndex = null, type = null) => {
-    const { name, value } = e.target;
 
-    if (type === "address") {
-      setFormData((prev) => ({ ...prev, address: { ...prev.address, [name]: value } }));
-    } else if (type === "parent") {
-      setFormData((prev) => {
-        const updatedParents = [...prev.parents];
-        updatedParents[parentIndex][name] = value;
-        return { ...prev, parents: updatedParents };
-      });
-    } else if (type === "guardian") {
-      setFormData((prev) => ({ ...prev, guardian: { ...prev.guardian, [name]: value } }));
-    } else if (type === "emergencyContact") {
-      setFormData((prev) => ({ ...prev, emergencyContact: { ...prev.emergencyContact, [name]: value } }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-    setErrors((prev) => ({ ...prev, [name]: "" }));
-  };
+  // Inside StudentPage component
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const newErrors = {};
-    if (!formData.name) newErrors.name = "Name is required";
-    if (!formData.email) newErrors.email = "Email is required";
-    if (!formData.phone) newErrors.phone = "Phone is required";
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-    studentMutation.mutate(formData);
-  };
+// --- DELETE MUTATION ---
+const deleteMutation = useMutation({
+  mutationFn: ({ id, reason }) =>
+    apiPut(`${apiPath.studentDelete}/${id}`, { reason }),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["students"] });
+    toast.success("Student deleted successfully ✅");
+  },
+  onError: (error) => {
+    toast.error(error?.response?.data?.message || "Failed to delete student ❌");
+  },
+});
+
+const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+const [deleteTarget, setDeleteTarget] = useState({ id: null, name: "", reason: "" });
+
+// --- HANDLE DELETE ---
+const openDeleteModal = (student) => {
+  setDeleteTarget({ id: student._id, name: student.name, reason: "" });
+  setDeleteModalOpen(true);
+};
+
+const confirmDelete = () => {
+  if (!deleteTarget.reason) {
+    toast.error("Please provide a reason for deletion");
+    return;
+  }
+  deleteMutation.mutate({ id: deleteTarget.id, reason: deleteTarget.reason });
+  setDeleteModalOpen(false);
+};
+
+
+  // const handleChange = (e, parentIndex = null, type = null) => {
+  //   const { name, value } = e.target;
+
+  //   if (type === "address") {
+  //     setFormData((prev) => ({ ...prev, address: { ...prev.address, [name]: value } }));
+  //   } else if (type === "parent") {
+  //     setFormData((prev) => {
+  //       const updatedParents = [...prev.parents];
+  //       updatedParents[parentIndex][name] = value;
+  //       return { ...prev, parents: updatedParents };
+  //     });
+  //   } else if (type === "guardian") {
+  //     setFormData((prev) => ({ ...prev, guardian: { ...prev.guardian, [name]: value } }));
+  //   } else if (type === "emergencyContact") {
+  //     setFormData((prev) => ({ ...prev, emergencyContact: { ...prev.emergencyContact, [name]: value } }));
+  //   } else {
+  //     setFormData((prev) => ({ ...prev, [name]: value }));
+  //   }
+  //   setErrors((prev) => ({ ...prev, [name]: "" }));
+  // };
+
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   const newErrors = {};
+  //   if (!formData.name) newErrors.name = "Name is required";
+  //   if (!formData.email) newErrors.email = "Email is required";
+  //   if (!formData.phone) newErrors.phone = "Phone is required";
+  //   if (Object.keys(newErrors).length > 0) {
+  //     setErrors(newErrors);
+  //     return;
+  //   }
+  //   studentMutation.mutate(formData);
+  // };
 
   // Table columns
   const columns = useMemo(
@@ -148,31 +185,34 @@ const navigate =useNavigate();
       //     return parent ? `${parent.name} (${parent.phone})` : guardian ? `${guardian.name} (${guardian.phone})` : "N/A";
       //   },
       // },
-      {
-        header: "Actions",
-        cell: ({ row }) => (
-      
-          <div className="flex gap-2">
-            <button
-              onClick={() => {
-                const student = row.original;
-                setEditingStudent(student);
-                setFormData(student);
-                setIsModalOpen(true);
-              }}
-              className="text-yellow-400 text-[20px] cursor-pointer hover:text-yellow-500"
-            >
-              <RiImageEditLine />
-            </button>
-          <button
-  onClick={() => navigate(`/admin/students/${row.original._id}`)}
-  className="text-green-600 text-[20px] cursor-pointer hover:text-green-700"
->
-  <FaRegEye />
-</button>
-          </div>
-        ),
-      },
+    {
+  header: "Actions",
+  cell: ({ row }) => (
+    <div className="flex gap-2">
+      <button
+       onClick={() => navigate(`/admin/students/edit/${row.original._id}`)}
+        className="text-yellow-400 text-[20px] cursor-pointer hover:text-yellow-500"
+      >
+        <RiImageEditLine />
+      </button>
+
+      <button
+        onClick={() => navigate(`/admin/students/${row.original._id}`)}
+        className="text-green-600 text-[20px] cursor-pointer hover:text-green-700"
+      >
+        <FaRegEye />
+      </button>
+
+      <button
+        onClick={() => openDeleteModal(row.original)}
+        className="text-red-600 text-[20px] cursor-pointer hover:text-red-700"
+      >
+       <MdDelete />
+      </button>
+    </div>
+  ),
+}
+
     ],
     []
   );
@@ -204,8 +244,8 @@ const navigate =useNavigate();
       </Modal>
 
       {/* Create / Edit Modal */}
-      <Modal isOpen={isModalOpen} title={editingStudent ? "Edit Student" : "Create Student"} onClose={() => setIsModalOpen(false)}>
-        <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto max-h-[70vh]">
+      {/* <Modal isOpen={isModalOpen} title={editingStudent ? "Edit Student" : "Create Student"} onClose={() => setIsModalOpen(false)}>
+        <form  className="space-y-4 overflow-y-auto max-h-[70vh]">
           <InputField label="Name" name="name" value={formData.name} onChange={handleChange} error={errors.name} />
           <InputField label="DOB" name="dob" type="date" value={formData.dob} onChange={handleChange} error={errors.dob} />
           <InputField label="Gender" name="gender" value={formData.gender} onChange={handleChange} error={errors.gender} />
@@ -253,7 +293,7 @@ const navigate =useNavigate();
             {studentMutation.isLoading ? "Saving..." : editingStudent ? "Update Student" : "Create Student"}
           </button>
         </form>
-      </Modal>
+      </Modal> */}
 
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Students</h1>
@@ -264,6 +304,32 @@ const navigate =useNavigate();
           Create Student
         </button>
       </div>
+<Modal isOpen={deleteModalOpen} title={`Delete ${deleteTarget.name}?`} onClose={() => setDeleteModalOpen(false)}>
+  <div className="space-y-4">
+    <p>Are you sure you want to delete this student?</p>
+    <InputField
+      label="Reason for deletion"
+      name="reason"
+      value={deleteTarget.reason}
+      onChange={(e) => setDeleteTarget(prev => ({ ...prev, reason: e.target.value }))}
+    />
+    <div className="flex justify-end gap-2">
+      <button
+        onClick={() => setDeleteModalOpen(false)}
+        className="px-4 py-2 bg-gray-300 cursor-pointer rounded hover:bg-gray-400"
+      >
+        Cancel
+      </button>
+      <button
+        onClick={confirmDelete}
+        className="px-4 py-2 bg-red-600 text-white cursor-pointer rounded hover:bg-red-700"
+        disabled={deleteMutation.isLoading}
+      >
+        {deleteMutation.isLoading ? "Deleting..." : "Delete"}
+      </button>
+    </div>
+  </div>
+</Modal>
 
       <div className="overflow-x-auto  w-[90vw] md:w-[80vw]">
         <ReusableTable
@@ -281,8 +347,10 @@ const navigate =useNavigate();
           tablePlaceholder="Search students..."
           error={error}
           isError={!!error}
+          loading={isLoading}
+          fetching={isFetching}
         />
-        {(isLoading || isFetching) && <Loader />}
+        {/* {(isLoading || isFetching) && <Loader />} */}
       </div>
     </div>
   );

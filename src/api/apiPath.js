@@ -8,7 +8,10 @@ const apiPath = Object.freeze({
   createSubject:"/admins/classes/subjects/reg",
   updateSubject:"/admins/classes/update/subject",
   getStudents:"/admins/students/get/all",
-  getParticularStudent:"/admins/students/get/student/profile"
+  getParticularStudent:"/admins/students/get/student/profile",
+  studentReg:"/admins/students/reg",
+  studentDelete:"/admins/students/delete",
+  updateStudent:"/admins/students/update",
 //   getUsers: "/v1/admin/user",
 //   getUserDetails: "/v1/admin/user/details",
 //   acceptRewardRequest: "v1/admin/rewardRequest/accept",

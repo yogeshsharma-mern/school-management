@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { apiPost, apiGet } from "../api/apiFetch";
+
+
+import { useEffect, useState } from "react";
+import { apiPost, apiGet,apiPut } from "../api/apiFetch";
 import toast from "react-hot-toast";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import apiPath from "../api/apiPath";
-import { useQuery } from "@tanstack/react-query";
+import { QueryClient, useQuery } from "@tanstack/react-query";
 import { SettingsSuggestOutlined, Visibility, VisibilityOff } from "@mui/icons-material";
 import {
   InputAdornment,
@@ -19,10 +21,15 @@ import {
   StepLabel,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import Select from "react-select";
+import countryList from "react-select-country-list";
+const countries = countryList().getData(); 
+
 
 export default function CreateStudentPage() {
   const navigate = useNavigate();
-
+const BASE_URL = import.meta.env.VITE_API_BASE_URL; 
   const [student, setStudent] = useState({
     name: "",
     dob: "",
@@ -62,118 +69,185 @@ export default function CreateStudentPage() {
     certificates: [],
   });
 
-  const [showSecondParent, setShowSecondParent] = useState(false);
+  console.log("profileppic",previews.profilePic);
+ const states = [
+  { value: "Rajasthan", label: "Maharashtra" },
+  // { value: "Karnataka", label: "Karnataka" },
+  // { value: "Tamil Nadu", label: "Tamil Nadu" },
+  { value: "Delhi", label: "Delhi" },
+  { value: "Gujarat", label: "Gujarat" },
+];
 
-  const { data: classes = [], isLoading, isError } = useQuery({
+  const [showSecondParent, setShowSecondParent] = useState(false);
+const { id } = useParams();
+const isEditMode = Boolean(id);
+
+  const { data: classes = [], isLoading, isError :err} = useQuery({
     queryKey: ["classesForStudent"],
     queryFn: () => apiGet(apiPath.classes),
   });
+const { data: studentData, isFetching, isError } = useQuery({
+    queryKey: ["student", id],
+    queryFn: () => apiGet(`${apiPath.getParticularStudent}/${id}`),
+    enabled: !!id, // only fetch if id exists
+  });
+
+  // Update state whenever query data changes
+useEffect(() => {
+  if (!studentData?.results?.length) return;
+
+  const s = studentData.results[0];
+
+  setStudent(prev => ({
+    ...prev,
+    ...s,
+
+    // Format date fields for <input type="date">
+    dob: s.dob ? s.dob.split("T")[0] : "",
+    admissionDate: s.admissionDate ? s.admissionDate.split("T")[0] : "",
+
+    // Optional nested mappings
+    address: s.address || prev.address,
+    guardian: s.guardian || prev.guardian,
+    emergencyContact: s.emergencyContact || prev.emergencyContact,
+    parents: s.parentDetails?.length ? s.parentDetails : prev.parents,
+
+    // Documents
+    documents: {
+      ...prev.documents,
+      profilePic: s.profilePic || null,
+      aadharFront: s.aadharFront || null,
+      aadharBack: s.aadharBack || null,
+      certificates: s.certificates || [],
+      marksheets: s.marksheets || [],
+    },
+
+    classId: s.classId || "",
+    academicYear: s.enrollmentDetails?.[0]?.academicYear || "",
+  }));
+
+  // ✅ Set image/file previews (with base URL)
+  setPreviews({
+    profilePic: s.profilePic ? `${BASE_URL}${s.profilePic}` : null,
+    aadharFront: s.aadharFront ? `${BASE_URL}${s.aadharFront}` : null,
+    aadharBack: s.aadharBack ? `${BASE_URL}${s.aadharBack}` : null,
+    certificates: s.certificates?.map(c =>
+      c.fileUrl ? `${BASE_URL}${c.fileUrl}` : `${BASE_URL}${c}`
+    ) || [],
+    marksheets: s.marksheets?.map(c =>
+      c.fileUrl ? `${BASE_URL}${c.fileUrl}` : `${BASE_URL}${c}`
+    ) || [],
+  });
+}, [studentData]);
+
+
+
+console.log("query data", studentData, "loading:", isFetching, "error:", err);
+
+console.log("studentdata",studentData);
 
   const steps = ["Personal Details", "Parent & Guardian", "Academic & Documents"];
 
   // --- Handle Input Changes ---
-  const handleChange = (e, parentIndex = null, section = null) => {
-    const { name, value, type, checked } = e.target;
-    if (parentIndex !== null) {
-      const updatedParents = [...student.parents];
-      updatedParents[parentIndex][name] = value;
-      setStudent({ ...student, parents: updatedParents });
-      setErrors((prev) => ({
-        ...prev,
-        [`parent_${parentIndex}_${name}`]: "",
-      }));
-    } else if (section) {
-      setStudent({
-        ...student,
-        [section]: { ...student[section], [name]: value },
-      });
-      setErrors((prev) => ({
-        ...prev,
-        [`${section}_${name}`]: "",
-      }));
-    } else if (type === "checkbox") {
-      setStudent({ ...student, [name]: checked });
-    } else {
-      setStudent({ ...student, [name]: value });
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-  };
-
-  // --- Handle File Upload ---
-  // const handleFileUpload = (e, field, section = null) => {
-  //   const inputFiles = e.target.files;
-  //   if (!inputFiles || inputFiles.length === 0) return;
-
-  //   // Multiple files (marksheets, certificates)
-  //   if (["marksheets", "certificates"].includes(field)) {
-  //     const files = Array.from(inputFiles).slice(0, 5);
-  //     setStudent(prev => ({
+  // const handleChange = (e, parentIndex = null, section = null) => {
+  //   const { name, value, type, checked } = e.target;
+  //   if (parentIndex !== null) {
+  //     const updatedParents = [...student.parents];
+  //     updatedParents[parentIndex][name] = value;
+  //     setStudent({ ...student, parents: updatedParents });
+  //     setErrors((prev) => ({
   //       ...prev,
-  //       documents: {
-  //         ...prev.documents,
-  //         [field]: files,
-  //       },
+  //       [`parent_${parentIndex}_${name}`]: "",
   //     }));
-  //     setPreviews(prev => ({
+  //   } else if (section) {
+  //     setStudent({
+  //       ...student,
+  //       [section]: { ...student[section], [name]: value },
+  //     });
+  //     setErrors((prev) => ({
   //       ...prev,
-  //       [field]: files.map(f => URL.createObjectURL(f)),
+  //       [`${section}_${name}`]: "",
   //     }));
-  //   } 
-  //   // Single files inside documents section
-  //   else if (section === "documents") {
-  //     const file = inputFiles[0];
-  //     setStudent(prev => ({
-  //       ...prev,
-  //       documents: { ...prev.documents, [field]: file },
-  //     }));
-  //     setPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
-  //   } 
-  //   // Single file outside documents
-  //   else {
-  //     const file = inputFiles[0];
-  //     setStudent(prev => ({ ...prev, [field]: file }));
-  //     setPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
+  //   } else if (type === "checkbox") {
+  //     setStudent({ ...student, [name]: checked });
+  //   } else {
+  //     setStudent({ ...student, [name]: value });
+  //     setErrors((prev) => ({ ...prev, [name]: "" }));
   //   }
   // };
+  const handleChange = (e, parentIndex = null, section = null) => {
+  const { name, value, type, checked } = e.target;
+
+  if (parentIndex !== null) {
+    // For parents
+    const updatedParents = [...student.parents];
+    updatedParents[parentIndex][name] = value;
+    setStudent({ ...student, parents: updatedParents });
+    setErrors((prev) => ({
+      ...prev,
+      [`parent_${parentIndex}_${name}`]: "",
+    }));
+  } 
+  else if (section) {
+    // For nested objects like address, guardian, emergencyContact
+    setStudent({
+      ...student,
+      [section]: { ...student[section], [name]: value },
+    });
+    setErrors((prev) => ({
+      ...prev,
+      [`${section}_${name}`]: "",
+    }));
+  } 
+  else if (type === "checkbox") {
+    setStudent({ ...student, [name]: checked });
+  } 
+  else {
+    setStudent({ ...student, [name]: value });
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  }
+};
+
+
+  // --- Handle File Upload ---
 const handleFileUpload = (e, field, section = null) => {
   const inputFiles = e.target.files;
   if (!inputFiles || inputFiles.length === 0) return;
 
   if (["marksheets", "certificates"].includes(field)) {
-    const newFiles = Array.from(inputFiles);
-    setStudent(prev => {
-      const updatedFiles = [...(prev.documents[field] || []), ...newFiles].slice(0, 5);
-      return {
-        ...prev,
-        documents: {
-          ...prev.documents,
-          [field]: updatedFiles,
-        },
-      };
-    });
-    setPreviews(prev => {
-      const updatedPreviews = [
-        ...(prev[field] || []),
-        ...newFiles.map(f => URL.createObjectURL(f)),
-      ].slice(0, 5);
-      return { ...prev, [field]: updatedPreviews };
-    });
-  } else if (section === "documents") {
+    // Combine existing files with new files, but limit to 5
+    const existingFiles = student.documents[field] || [];
+    const combinedFiles = [ ...Array.from(inputFiles),...existingFiles];
+console.log("combined files",combinedFiles);
+    const filesToSet = combinedFiles.slice(0, 5); // max 5
+    setStudent(prev => ({
+      ...prev,
+      documents: {
+        ...prev.documents,
+        [field]: filesToSet,
+      },
+    }));
+
+    setPreviews(prev => ({
+      ...prev,
+      [field]: filesToSet.map(f => f instanceof File ? URL.createObjectURL(f) : f.fileUrl ? `${BASE_URL}${f.fileUrl}` : `${BASE_URL}${f}`),
+    }));
+  } 
+  else if (section === "documents") {
     const file = inputFiles[0];
     setStudent(prev => ({
       ...prev,
       documents: { ...prev.documents, [field]: file },
     }));
     setPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
-  } else {
+  } 
+  else {
     const file = inputFiles[0];
     setStudent(prev => ({ ...prev, [field]: file }));
     setPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
   }
-
-  // 🔧 Reset the input value so the same files can be re-selected if needed
-  e.target.value = "";
 };
+
 
   // --- Validation Function ---
 const validateStep = () => {
@@ -286,25 +360,7 @@ const handleSubmit = async (e) => {
   try {
     const formData = new FormData();
 
-    // Add JSON fields
-    ["address", "parents", "guardian", "emergencyContact"].forEach((key) => {
-      formData.append(key, JSON.stringify(student[key]));
-    });
-
-    // ✅ Corrected document handling
-    Object.entries(student.documents).forEach(([key, value]) => {
-      if (!value) return;
-
-      if (Array.isArray(value)) {
-        value.forEach((file) => {
-          formData.append(key, file); // no [0]
-        });
-      } else if (value instanceof File) {
-        formData.append(key, value);
-      }
-    });
-
-    // Add remaining primitive fields
+    // 🔹 Add simple primitive fields
     [
       "name",
       "dob",
@@ -321,19 +377,61 @@ const handleSubmit = async (e) => {
       formData.append(key, student[key]);
     });
 
-    // For debugging
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
+    // 🔹 Add nested JSON fields
+    ["address", "parents", "guardian", "emergencyContact"].forEach((key) => {
+      formData.append(key, JSON.stringify(student[key]));
+    });
+
+    // 🔹 Add document fields (handle both files & URLs)
+    Object.entries(student.documents).forEach(([key, value]) => {
+
+      if (!value) return;
+     if (Array.isArray(value)) {
+  value.forEach(item => {
+    if (item instanceof File) {
+      formData.append(key, item); // new file → binary
+    } else if (item && typeof item === "object" && item.fileUrl) {
+      formData.append(key, "null"); // existing file → null placeholder
+    } else {
+      formData.append(key, "null"); // fallback
+    }
+  });
+}
+ else {
+        if (value instanceof File) {
+          formData.append(key, value);
+        } else if (typeof value === "string") {
+          formData.append(key, null); 
+        }
+      }
+    });
+
+    // 🔹 Debug — check payload
+    for (let [key, val] of formData.entries()) {
+      console.log("entries>>>>",
+       formData.entries()
+      );
     }
 
-    await apiPost(apiPath.studentReg, formData);
-    toast.success("Student created successfully ✅");
+    // 🔹 Call API (you can switch this depending on edit/create)
+    if (student._id) {
+      await apiPut(`${apiPath.updateStudent}/${student._id}`, formData);
+      toast.success("Student updated successfully ✅");
+    } else {
+      await apiPost(apiPath.studentReg, formData);
+      toast.success("Student created successfully ✅");
+    }
+
     navigate(-1);
   } catch (err) {
     console.error(err);
-    toast.error("Failed to create student ❌");
+    toast.error("Something went wrong ❌");
   }
 };
+
+
+
+
 
   return (
     <div className="max-w-6xl mx-auto p-8 bg-[var(--color-)] rounded-2xl shadow-xl">
@@ -344,9 +442,10 @@ const handleSubmit = async (e) => {
         ← Back
       </button>
 
-      <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">
-        Create Student
-      </h1>
+<h1 className="text-3xl font-bold mb-8 text-center text-gray-800">
+  {isEditMode ? "Edit Student" : "Create Student"}
+</h1>
+
 
       <Stepper activeStep={activeStep} alternativeLabel>
         {steps.map((label) => (
@@ -488,17 +587,71 @@ const handleSubmit = async (e) => {
                 <p className="text-red-500 text-sm">{errors.documents.profilePic}</p>
               )}
               {previews.profilePic && (
-                <div>
-                  <img
+                <img
                   src={previews.profilePic}
-                  alt="preview"
-                  className="mt-2 w-24 h-24 rounded-md mx-auto object-cover"
+                  alt={previews.profilePic || "Profile Preview"}
+                  className="mt-2 w-24 h-24 rounded-full object-cover"
                 />
-                  </div>
-                
               )}
+   
+
+            </div>
+            <div> <TextField
+    fullWidth
+    name="street"
+    label="Street"
+    value={student.address.street}
+    onChange={(e) => handleChange(e, null, "address")}
+  /></div>
+            <div>
+               <TextField
+    fullWidth
+    name="city"
+    label="City"
+    value={student.address.city}
+    onChange={(e) => handleChange(e, null, "address")}
+  />
+            </div>
+            <div>
+               <Select
+    name="state"
+    options={states}
+    value={states.find(s => s.value === student.address.state)}
+    onChange={(selected) =>
+      setStudent((prev) => ({
+        ...prev,
+        address: { ...prev.address, state: selected.value },
+      }))
+    }
+    placeholder="Select State"
+  />
+            </div>
+            <div>
+               <TextField
+    fullWidth
+    name="zip"
+    label="ZIP Code"
+    value={student.address.zip}
+    onChange={(e) => handleChange(e, null, "address")}
+  />
+
+            </div>
+            <div>
+               <Select
+    name="country"
+    options={countries}
+    value={countries.find(c => c.label === student.address.country)}
+    onChange={(selected) =>
+      setStudent((prev) => ({
+        ...prev,
+        address: { ...prev.address, country: selected.label },
+      }))
+    }
+    placeholder="Select Country"
+  />
             </div>
           </div>
+          
         )}
 
         {/* Step 2 */}
@@ -817,14 +970,13 @@ const handleSubmit = async (e) => {
 {/* --- marksheets Upload --- */}
 <div className="bg-gray-50 p-6 rounded-2xl shadow-sm border border-gray-100">
   <h2 className="text-xl font-semibold text-gray-800 mb-4">marksheets Upload (Max 5)</h2>
-<input
-  type="file"
-  multiple
-  accept="image/*,application/pdf"
-  onChange={(e) => handleFileUpload(e, "marksheets")}
-  className="mb-4"
-/>
-
+  <input
+    type="file"
+    multiple
+    accept="image/*,application/pdf"
+    onChange={(e) => handleFileUpload(e, "marksheets")}
+    className="mb-4"
+  />
 
   {previews.marksheets?.length > 0 && (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mt-2">
@@ -862,13 +1014,13 @@ const handleSubmit = async (e) => {
     {/* --- Certificate Upload --- */}
 <div className="bg-[var(--color-neutral)] p-6 rounded-2xl shadow-sm border border-gray-100">
   <h2 className="text-xl font-semibold text-gray-800 mb-4">Certificates Upload (Max 5)</h2>
-<input
-  type="file"
-  multiple
-  accept="image/*,application/pdf"
-  onChange={(e) => handleFileUpload(e, "certificates")}
-  className="mb-4"
-/>
+  <input
+    type="file"
+    multiple
+    accept="image/*,application/pdf"
+    onChange={(e) => handleFileUpload(e, "certificates")}
+    className="mb-4"
+  />
 
   {previews.certificates?.length > 0 && (
     <div className="flex flex-wrap gap-4 mt-2">
@@ -928,16 +1080,17 @@ const handleSubmit = async (e) => {
   Next
 </Button>
           ) : (
-           <button
+<button
   type="submit"
-  // variant="contained"
-  style={{ backgroundColor: "#4caf50", color: "white" }}
+  style={{ backgroundColor: isEditMode ? "#2196f3" : "#4caf50", color: "white" }}
 >
-  Submit
+  {isEditMode ? "Update" : "Submit"}
 </button>
+
           )}
         </div>
       </form>
     </div>
   );
 }
+

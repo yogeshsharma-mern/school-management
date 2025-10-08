@@ -5,6 +5,9 @@ import Loader from "../components/Loading";
 import toast from "react-hot-toast";
 import { useState } from "react";
 import apiPath from "../api/apiPath";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
+import jsPDF from "jspdf";
 import {
   User,
   Mail,
@@ -21,17 +24,58 @@ export default function StudentDetailPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("profile");
 
-  // ✅ Fetch student details
   const { data, isLoading, error } = useQuery({
     queryKey: ["studentDetail", id],
-    queryFn: () =>
-      apiGet(
-        `${apiPath.getParticularStudent}/${id}`
-      ),
+    queryFn: () => apiGet(`${apiPath.getParticularStudent}/${id}`),
     enabled: !!id,
   });
 
   const student = data?.results?.[0];
+
+  // ✅ Function to download single image as PDF
+  const downloadImageAsPDF = async (fileUrl, filename) => {
+    if (!fileUrl) return;
+    const url = `${import.meta.env.VITE_API_BASE_URL}${fileUrl}`;
+    const img = await loadImage(url);
+    const pdf = new jsPDF({
+      orientation: img.width > img.height ? "landscape" : "portrait",
+    });
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    pdf.addImage(img, "JPEG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save(`${filename}.pdf`);
+  };
+
+  const loadImage = (url) =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous"; // important for CORS images
+      img.src = url;
+      img.onload = () => resolve(img);
+      img.onerror = (err) => reject(err);
+    });
+
+  // ✅ Bulk download marksheets as PDFs in ZIP
+  const downloadAllMarksheetsAsPDF = async () => {
+    if (!student?.marksheets?.length) return;
+    const zip = new JSZip();
+
+    for (const ms of student.marksheets) {
+      const url = `${import.meta.env.VITE_API_BASE_URL}${ms.fileUrl}`;
+      const img = await loadImage(url);
+      const pdf = new jsPDF({
+        orientation: img.width > img.height ? "landscape" : "portrait",
+      });
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      pdf.addImage(img, "JPEG", 0, 0, pdfWidth, pdfHeight);
+      const pdfBlob = pdf.output("blob");
+      zip.file(`${ms.exam}.pdf`, pdfBlob);
+    }
+
+    const content = await zip.generateAsync({ type: "blob" });
+    saveAs(content, `${student.name}_marksheets.zip`);
+  };
 
   // ✅ Mutation for toggling status
   const toggleStatusMutation = useMutation({
@@ -65,9 +109,20 @@ export default function StudentDetailPage() {
 
       {/* Header */}
       <div className="flex justify-between items-center bg-[#1b263b] p-6 rounded-2xl shadow text-white">
-        <div>
-          <h1 className="text-2xl font-bold">{student.name}</h1>
-          <p className="text-sm opacity-90">Admission No: {student.admissionNo}</p>
+        <div className="flex items-center gap-6">
+          <img
+            className="rounded-full w-[100px] h-[100px]"
+            width={100}
+            height={100}
+            src={`${import.meta.env.VITE_API_BASE_URL}${student.profilePic}`}
+            alt="profile-picture"
+          />
+          <div>
+            <h1 className="text-2xl font-bold">{student.name}</h1>
+            <p className="text-sm opacity-90">
+              Admission No: {student.admissionNo}
+            </p>
+          </div>
         </div>
         <button
           onClick={() => toggleStatusMutation.mutate()}
@@ -88,21 +143,26 @@ export default function StudentDetailPage() {
 
       {/* Tabs */}
       <div className="flex border-b mb-4 space-x-6">
-        {["profile", "enrollment", "fees", "assignments", "attendance"].map(
-          (tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-3 px-2 capitalize text-sm font-medium transition ${
-                activeTab === tab
-                  ? "border-b-2 border-blue-600 text-blue-600"
-                  : "text-gray-500 hover:text-blue-500"
-              }`}
-            >
-              {tab}
-            </button>
-          )
-        )}
+        {[
+          "profile",
+          "enrollment",
+          "fees",
+          "assignments",
+          "attendance",
+          "documents & marksheets",
+        ].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`pb-3 px-2 capitalize text-sm font-medium transition ${
+              activeTab === tab
+                ? "border-b-2 border-blue-600 text-blue-600"
+                : "text-gray-500 hover:text-blue-500"
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
       {/* TAB CONTENT */}
@@ -125,7 +185,8 @@ export default function StudentDetailPage() {
                 <strong>Phone:</strong> {student.phone}
               </p>
               <p>
-                <strong>DOB:</strong> {new Date(student.dob).toLocaleDateString()}
+                <strong>DOB:</strong>{" "}
+                {new Date(student.dob).toLocaleDateString()}
               </p>
               <p>
                 <strong>Gender:</strong> {student.gender}
@@ -135,37 +196,32 @@ export default function StudentDetailPage() {
               </p>
               <p className="col-span-2 flex items-start gap-2">
                 <Home className="w-4 h-4 mt-1 text-gray-500" />
-                {`${student.address.street}, ${student.address.city}, ${student.address.state}, ${student.address.zip}, ${student.address.country}`}
               </p>
             </div>
 
             {/* Parents */}
-{/* Parents */}
-{/* Parents */}
-<h3 className="text-lg font-semibold mt-6">Parents</h3>
-{student.parentDetails?.length ? (
-  <div className="grid md:grid-cols-2 gap-4 mt-2">
-    {student.parentDetails.map((parent) => (
-      <div
-        key={parent._id}
-        className="p-4 bg-gray-50 rounded-lg border shadow-sm hover:shadow-md transition"
-      >
-        <p className="font-semibold text-gray-800">{parent.name}</p>
-        <p className="text-sm text-gray-600">{parent.occupation}</p>
-        <p className="text-sm text-gray-600">
-          <span className="font-medium">📞 Phone:</span> {parent.phone}
-        </p>
-        <p className="text-sm text-gray-600">
-          <span className="font-medium">✉️ Email:</span> {parent.email}
-        </p>
-      </div>
-    ))}
-  </div>
-) : (
-  <p className="text-gray-500">No parent info available</p>
-)}
-
-
+            <h3 className="text-lg font-semibold mt-6">Parents</h3>
+            {student.parentDetails?.length ? (
+              <div className="grid md:grid-cols-2 gap-4 mt-2">
+                {student.parentDetails.map((parent) => (
+                  <div
+                    key={parent._id}
+                    className="p-4 bg-gray-50 rounded-lg border shadow-sm hover:shadow-md transition"
+                  >
+                    <p className="font-semibold text-gray-800">{parent.name}</p>
+                    <p className="text-sm text-gray-600">{parent.occupation}</p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">📞 Phone:</span> {parent.phone}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">✉️ Email:</span> {parent.email}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">No parent info available</p>
+            )}
 
             {/* Guardian */}
             <h3 className="text-lg font-semibold mt-6">Guardian</h3>
@@ -336,6 +392,128 @@ export default function StudentDetailPage() {
             )}
           </div>
         )}
+
+        {/* Documents & Marksheets Tab */}
+{activeTab === "documents & marksheets" && (
+          <div className="bg-white shadow rounded-2xl p-6 space-y-6">
+            <h2 className="text-xl font-semibold mb-4">
+              Documents & Marksheets
+            </h2>
+
+            {/* Profile & ID */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              {[
+                { label: "Profile Picture", file: student.profilePic },
+                { label: "Aadhar Front", file: student.aadharFront },
+                { label: "Aadhar Back", file: student.aadharBack },
+              ].map((doc, i) => (
+                <div
+                  key={i}
+                  className="p-4 border border-gray-300 rounded-lg flex flex-col items-center gap-2 hover:shadow-md transition"
+                >
+                  {doc.file ? (
+                    <img
+                      src={`${import.meta.env.VITE_API_BASE_URL}${doc.file}`}
+                      alt={doc.label}
+                      className="w-full h-40 object-cover rounded-lg"
+                    />
+                  ) : (
+                    <div className="w-full h-40 bg-gray-100 flex items-center justify-center rounded-lg text-gray-400">
+                      No File
+                    </div>
+                  )}
+                  <p className="font-medium">{doc.label}</p>
+                  {doc.file && (
+                    <button
+                      onClick={() =>
+                        downloadImageAsPDF(doc.file, `${student.name}_${doc.label}`)
+                      }
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      Download PDF
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Marksheets */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Marksheets</h3>
+              {student.marksheets?.length ? (
+                <div className="grid grid-cols-3 gap-4">
+                  {student.marksheets.map((ms) => (
+                    <div
+                      key={ms._id}
+                      className="p-4 border border-gray-300 rounded-lg flex flex-col items-center gap-2 hover:shadow-md transition"
+                    >
+                      <img
+                        src={`${import.meta.env.VITE_API_BASE_URL}${ms.fileUrl}`}
+                        alt={ms.exam}
+                        className="w-full h-40 object-cover rounded-lg"
+                      />
+                      <p className="font-medium text-center">{ms.exam}</p>
+                      <button
+                        onClick={() =>
+                          downloadImageAsPDF(ms.fileUrl, `${student.name}_${ms.exam}`)
+                        }
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        Download PDF
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500">No marksheets uploaded</p>
+              )}
+              <button
+                onClick={downloadAllMarksheetsAsPDF}
+                className="px-4 py-2 bg-yellow-500 text-black rounded-sm hover:bg-yellow-600 cursor-pointer transition mt-4"
+              >
+                Download All Marksheets as ZIP
+              </button>
+            </div>
+
+            {/* Certificates */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Certificates</h3>
+              {student.certificates?.length ? (
+                <div className="grid grid-cols-3 gap-4">
+                  {student.certificates.map((cert) => (
+                    <div
+                      key={cert._id}
+                      className="p-4 border rounded-lg shadow-sm flex flex-col items-center gap-2 hover:shadow-md transition"
+                    >
+                      <img
+                        src={`${import.meta.env.VITE_API_BASE_URL}${cert.fileUrl}`}
+                        alt={cert.name || "Certificate"}
+                        className="w-full h-40 object-cover rounded-lg"
+                      />
+                      <p className="font-medium text-center">
+                        {cert.name || "Certificate"}
+                      </p>
+                      <button
+                        onClick={() =>
+                          downloadImageAsPDF(
+                            cert.fileUrl,
+                            `${student.name}_${cert.name || "Certificate"}`
+                          )
+                        }
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        Download PDF
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500">No certificates uploaded</p>
+              )}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
