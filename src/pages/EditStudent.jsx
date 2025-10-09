@@ -434,7 +434,7 @@ const handleSubmit = async (e) => {
 
 
   return (
-    <div className="max-w-6xl mx-auto p-8 bg-[var(--color-)] rounded-2xl shadow-xl">
+    <div className="max-w-6xl mx-auto md:p-8 p-4 bg-[var(--color-)] rounded-2xl shadow-xl">
       <button
         onClick={() => navigate(-1)}
         className="mb-4 cursor-pointer px-4 py-1 bg-gray-100 rounded-lg hover:bg-gray-200"

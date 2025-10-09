@@ -5,7 +5,7 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import apiPath from "../api/apiPath";
 import { useQuery } from "@tanstack/react-query";
-import { SettingsSuggestOutlined, Visibility, VisibilityOff } from "@mui/icons-material";
+import {  Visibility, VisibilityOff } from "@mui/icons-material";
 import {
   InputAdornment,
   IconButton,
@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-export default function CreateStudentPage() {
+export default function CreateTeacherPage() {
   const navigate = useNavigate();
 
   const [student, setStudent] = useState({
@@ -345,7 +345,7 @@ const handleSubmit = async (e) => {
       </button>
 
       <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">
-        Create Student
+        Create Teacher
       </h1>
 
       <Stepper activeStep={activeStep} alternativeLabel>

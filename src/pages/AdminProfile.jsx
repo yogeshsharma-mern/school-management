@@ -33,7 +33,7 @@ export default function AdminProfile() {
         ← Back
       </button>
 
-    <div className="min-h-screen bg-gray-100 p-8 flex justify-center">
+    <div className="min-h-screen bg-gray-100 md:p-8 flex justify-center">
       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-xl overflow-hidden">
         {/* Header Banner */}
         <div className="relative h-44 bg-gradient-to-r from-yellow-500 via-yellow-200 to-yellow-500">

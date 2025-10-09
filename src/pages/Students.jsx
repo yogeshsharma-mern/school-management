@@ -16,7 +16,7 @@ import { MdDelete } from "react-icons/md";
 export default function StudentPage() {
   const queryClient = useQueryClient();
 const navigate =useNavigate();
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 5 });
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState([]);
@@ -25,26 +25,6 @@ const navigate =useNavigate();
   const [classFilter, setClassFilter] = useState("");
   const [academicYearFilter, setAcademicYearFilter] = useState("");
   
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingStudent, setEditingStudent] = useState(null);
-  // const [formData, setFormData] = useState({
-  //   name: "",
-  //   dob: "",
-  //   gender: "",
-  //   bloodGroup: "",
-  //   email: "",
-  //   password: "",
-  //   phone: "",
-  //   address: { street: "", city: "", state: "", zip: "", country: "" },
-  //   parents: [{ name: "", occupation: "", phone: "", email: "" }, { name: "", occupation: "", phone: "", email: "" }],
-  //   guardian: { name: "", relation: "", occupation: "", phone: "" },
-  //   emergencyContact: { name: "", relation: "", phone: "", address: "" },
-  //   classId: "",
-  //   academicYear: "",
-  //   physicalDisability: false,
-  //   disabilityDetails: ""
-  // });
   const [errors, setErrors] = useState({});
   const debouncedSearch = useDebounce(globalFilter, 500);
 
@@ -60,41 +40,7 @@ const navigate =useNavigate();
       }),
   });
 
-  // Mutation for create/update student
-  // const studentMutation = useMutation({
-  //   mutationFn: (studentObj) => {
-  //     if (editingStudent) return apiPut(`${apiPath.updateStudent}/${editingStudent._id}`, studentObj);
-  //     return apiPost(apiPath.createStudent, studentObj);
-  //   },
-    
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries({ queryKey: ["students"] });
-  //     toast.success(editingStudent ? "Student updated successfully ✅" : "Student created successfully 🎉");
-  //     setIsModalOpen(false);
-  //     setEditingStudent(null);
-  //     setFormData({
-  //       name: "",
-  //       dob: "",
-  //       gender: "",
-  //       bloodGroup: "",
-  //       email: "",
-  //       password: "",
-  //       phone: "",
-  //       address: { street: "", city: "", state: "", zip: "", country: "" },
-  //       parents: [{ name: "", occupation: "", phone: "", email: "" }, { name: "", occupation: "", phone: "", email: "" }],
-  //       guardian: { name: "", relation: "", occupation: "", phone: "" },
-  //       emergencyContact: { name: "", relation: "", phone: "", address: "" },
-  //       classId: "",
-  //       academicYear: "",
-  //       physicalDisability: false,
-  //       disabilityDetails: ""
-  //     });
-  //   },
-  //   onError: (error) => {
-  //     const errorMessage = error?.response?.data?.message || "Something went wrong.";
-  //     toast.error(errorMessage);
-  //   },
-  // });
+
 
 
   // Inside StudentPage component
@@ -131,39 +77,7 @@ const confirmDelete = () => {
 };
 
 
-  // const handleChange = (e, parentIndex = null, type = null) => {
-  //   const { name, value } = e.target;
 
-  //   if (type === "address") {
-  //     setFormData((prev) => ({ ...prev, address: { ...prev.address, [name]: value } }));
-  //   } else if (type === "parent") {
-  //     setFormData((prev) => {
-  //       const updatedParents = [...prev.parents];
-  //       updatedParents[parentIndex][name] = value;
-  //       return { ...prev, parents: updatedParents };
-  //     });
-  //   } else if (type === "guardian") {
-  //     setFormData((prev) => ({ ...prev, guardian: { ...prev.guardian, [name]: value } }));
-  //   } else if (type === "emergencyContact") {
-  //     setFormData((prev) => ({ ...prev, emergencyContact: { ...prev.emergencyContact, [name]: value } }));
-  //   } else {
-  //     setFormData((prev) => ({ ...prev, [name]: value }));
-  //   }
-  //   setErrors((prev) => ({ ...prev, [name]: "" }));
-  // };
-
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   const newErrors = {};
-  //   if (!formData.name) newErrors.name = "Name is required";
-  //   if (!formData.email) newErrors.email = "Email is required";
-  //   if (!formData.phone) newErrors.phone = "Phone is required";
-  //   if (Object.keys(newErrors).length > 0) {
-  //     setErrors(newErrors);
-  //     return;
-  //   }
-  //   studentMutation.mutate(formData);
-  // };
 
   // Table columns
   const columns = useMemo(

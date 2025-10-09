@@ -11,7 +11,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   return (
     <aside
       className={`
-        fixed top-0 left-0 h-full bg-[#0d1b2a] text-white flex flex-col shadow-lg
+        fixed top-0 z-[100] left-0 h-full bg-[#0d1b2a] text-white flex flex-col shadow-lg
         w-64 transform transition-transform duration-300 ease-in-out
         ${isOpen ? "translate-x-0" : "-translate-x-full"} 
         md:translate-x-0 md:static md:w-64

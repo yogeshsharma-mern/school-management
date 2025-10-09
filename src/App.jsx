@@ -17,6 +17,7 @@ import StudentDetail from "./pages/StudentDetail";
 import CreateStudent from "./pages/CreateStudent";
 import EditStudent from "./pages/EditStudent";
 import AdminProfile from "./pages/AdminProfile";
+import CreateTeacher from "./pages/CreateTeacher";
 
 export default function App() {
   const queryClient = new QueryClient();
@@ -47,6 +48,8 @@ export default function App() {
 
 
             <Route path="teachers" element={<Teachers />} />
+            <Route path="teachers/create" element={<CreateTeacher />} />
+
             <Route path="fees" element={<Fees />} />
             <Route path="subjects" element={<Subject />} />
 
