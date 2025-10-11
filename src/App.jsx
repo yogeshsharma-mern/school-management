@@ -22,6 +22,8 @@ const EditStudent = lazy(() => import("./pages/EditStudent"));
 const AdminProfile = lazy(() => import("./pages/AdminProfile"));
 const CreateTeacher = lazy(() => import("./pages/CreateTeacher"));
 const TeacherDetails = lazy(() => import("./pages/TeacherDetails.jsx"));
+const AdminSettings = lazy(() => import("./components/AdminSettings.jsx"));
+const ResetPassword = lazy(() => import("./components/ResetPassword.jsx"));
 
 export default function App() {
   const queryClient = new QueryClient();
@@ -57,6 +59,8 @@ export default function App() {
             <Route path="fees" element={<Fees />} />
             <Route path="subjects" element={<Subject />} />
             <Route path="teachers/:id" element={<TeacherDetails />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="password" element={<ResetPassword />} />
 
           </Route>
         </Route>

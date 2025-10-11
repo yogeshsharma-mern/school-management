@@ -135,6 +135,7 @@ export default function CreateTeacherPage() {
     });
     console.log("student", student);
     const [errors, setErrors] = useState({});
+    console.log("errors", errors);
     const [showPassword, setShowPassword] = useState(false);
     const [activeStep, setActiveStep] = useState(0);
     const [previews, setPreviews] = useState({
@@ -160,8 +161,35 @@ export default function CreateTeacherPage() {
     const steps = ["Personal Details", "Professional Information", "Academic & Documents"];
 
     // --- Handle Input Changes ---
+    // const handleChange = (e, parentIndex = null, section = null) => {
+    //     const { name, value, type, checked } = e.target;
+    //     if (parentIndex !== null) {
+    //         const updatedParents = [...student.parents];
+    //         updatedParents[parentIndex][name] = value;
+    //         setStudent({ ...student, parents: updatedParents });
+    //         setErrors((prev) => ({
+    //             ...prev,
+    //             [`parent_${parentIndex}_${name}`]: "",
+    //         }));
+    //     } else if (section) {
+    //         setStudent({
+    //             ...student,
+    //             [section]: { ...student[section], [name]: value },
+    //         });
+    //         setErrors((prev) => ({
+    //             ...prev,
+    //             [`${section}_${name}`]: "",
+    //         }));
+    //     } else if (type === "checkbox") {
+    //         setStudent({ ...student, [name]: checked });
+    //     } else {
+    //         setStudent({ ...student, [name]: value });
+    //         setErrors((prev) => ({ ...prev, [name]: "" }));
+    //     }
+    // };
     const handleChange = (e, parentIndex = null, section = null) => {
         const { name, value, type, checked } = e.target;
+
         if (parentIndex !== null) {
             const updatedParents = [...student.parents];
             updatedParents[parentIndex][name] = value;
@@ -181,6 +209,7 @@ export default function CreateTeacherPage() {
             }));
         } else if (type === "checkbox") {
             setStudent({ ...student, [name]: checked });
+            setErrors((prev) => ({ ...prev, [name]: "" }));
         } else {
             setStudent({ ...student, [name]: value });
             setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -223,7 +252,7 @@ export default function CreateTeacherPage() {
             setStudent(prev => ({ ...prev, [field]: file }));
             setPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
         }
-
+        setErrors(prev => ({ ...prev, [field]: "" }));
         // 🔧 Reset the input value so the same files can be re-selected if needed
         e.target.value = "";
     };
@@ -233,27 +262,39 @@ export default function CreateTeacherPage() {
         const newErrors = {};
 
         if (activeStep === 0) {
-            // if (!student.name) newErrors.name = "Name is required";
-            // if (!student.dob) newErrors.dob = "Date of Birth is required";
-            // if (!student.gender) newErrors.gender = "Gender is required";
-            // if (!student.bloodGroup) newErrors.bloodGroup = "Blood group is required";
-            // if (!student.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email))
-            //     newErrors.email = "Valid email is required";
-            // if (!student.password || student.password.length < 6)
-            //     newErrors.password = "Password must be at least 6 characters";
-            // if (!student.phone || student.phone.replace(/\D/g, "").length < 10)
-            //     newErrors.phone = "Valid phone number required";
-            // if(!student.address.street) newErrors.address_street="Street is required";
-            // if(!student.address.city) newErrors.address_city="City is required";
-            // if(!student.address.state) newErrors.address_state="State is required";
-            // if(!student.address.zip) newErrors.address_zip="ZIP is required";
-            // if(!student.address.country) newErrors.address_country="Country is required";
-            // if (!student.documents.profilePic) {
-            //     if (!newErrors.documents) newErrors.documents = {};
-            //     newErrors.documents.profilePic = "Profile picture is required";
-            // }
+            const today = new Date();
+            const dobDate = student.dob ? new Date(student.dob) : null;
 
+            if (!student.name) newErrors.name = "Name is required";
+
+            if (!student.dob) newErrors.dob = "Date of Birth is required";
+            else if (dobDate >= today)
+                newErrors.dob = "Date of Birth cannot be today or in the future";
+
+            if (!student.gender) newErrors.gender = "Gender is required";
+            if (!student.bloodGroup) newErrors.bloodGroup = "Blood group is required";
+
+            if (!student.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email))
+                newErrors.email = "Valid email is required";
+
+            if (!student.password || student.password.length < 6)
+                newErrors.password = "Password must be at least 6 characters";
+
+            if (!student.phone || student.phone.replace(/\D/g, "").length < 10)
+                newErrors.phone = "Valid phone number required";
+
+            if (!student.address.street) newErrors.address_street = "Street is required";
+            if (!student.address.city) newErrors.address_city = "City is required";
+            if (!student.address.state) newErrors.address_state = "State is required";
+            if (!student.address.zip) newErrors.address_zip = "ZIP is required";
+            if (!student.address.country) newErrors.address_country = "Country is required";
+
+            if (!student.documents.profilePic) {
+                if (!newErrors.documents) newErrors.documents = {};
+                newErrors.documents.profilePic = "Profile picture is required";
+            }
         }
+
 
         else if (activeStep === 1) {
             if (!student.designation) newErrors.designation = "Designation is required";
@@ -272,7 +313,7 @@ export default function CreateTeacherPage() {
 
                 student.subjectsHandled.forEach((subj, i) => {
                     if (!subj.subjectName) newErrors[`subjectName_${i}`] = "Subject name is required";
-                    if (!subj.subjectCode) newErrors[`subjectCode_${i}`] = "Subject code is required";
+                    // if (!subj.subjectCode) newErrors[`subjectCode_${i}`] = "Subject code is required";
                     if (!subj.classId) newErrors[`classId_${i}`] = "Class is required"
                 });
 
@@ -307,6 +348,7 @@ export default function CreateTeacherPage() {
                 newErrors.emergencyContact_phone = "Phone required";
             if (!student.emergencyContact.address)
                 newErrors.emergencyContact_address = "Address required";
+
         }
 
         else if (activeStep === 2) {
@@ -379,34 +421,34 @@ export default function CreateTeacherPage() {
             //     netSalary: 0
             // },
             // Add remaining primitive fields
-     [
-  "name",
-  "dob",
-  "gender",
-  "bloodGroup",
-  "email",
-  "password",
-  "phone",
-  "classes",
-  "physicalDisability",
-  "disabilityDetails",
-  "designation",
-  "specialization",
-  "qualifications",
-  "experience",
-  "dateOfJoining",
-  "salaryInfo",
-  "subjectsHandled",
-].forEach((key) => {
-  const value = student[key];
-  
-  // Arrays/objects should be JSON.stringified
-  if (Array.isArray(value) || typeof value === "object") {
-    formData.append(key, JSON.stringify(value));
-  } else {
-    formData.append(key, value);
-  }
-});
+            [
+                "name",
+                "dob",
+                "gender",
+                "bloodGroup",
+                "email",
+                "password",
+                "phone",
+                "classes",
+                "physicalDisability",
+                "disabilityDetails",
+                "designation",
+                "specialization",
+                "qualifications",
+                "experience",
+                "dateOfJoining",
+                "salaryInfo",
+                "subjectsHandled",
+            ].forEach((key) => {
+                const value = student[key];
+
+                // Arrays/objects should be JSON.stringified
+                if (Array.isArray(value) || typeof value === "object") {
+                    formData.append(key, JSON.stringify(value));
+                } else {
+                    formData.append(key, value);
+                }
+            });
 
 
             // For debugging
@@ -448,6 +490,8 @@ export default function CreateTeacherPage() {
                 {/* Step 1 */}
                 {activeStep === 0 && (
                     <div className="grid md:grid-cols-2 gap-6">
+
+                        {/* Full Name */}
                         <TextField
                             fullWidth
                             label="Full Name"
@@ -457,6 +501,8 @@ export default function CreateTeacherPage() {
                             error={!!errors.name}
                             helperText={errors.name}
                         />
+
+                        {/* Date of Birth */}
                         <TextField
                             fullWidth
                             type="date"
@@ -465,26 +511,26 @@ export default function CreateTeacherPage() {
                             onChange={handleChange}
                             InputLabelProps={{ shrink: true }}
                             label="Date of Birth"
+                            inputProps={{
+                                max: new Date(new Date().setDate(new Date().getDate() - 1))
+                                    .toISOString()
+                                    .split("T")[0], // yesterday or earlier
+                            }}
                             error={!!errors.dob}
                             helperText={errors.dob}
                         />
+
+                        {/* Gender */}
                         <TextField
                             select
                             fullWidth
                             name="gender"
                             label="Gender"
                             value={student.gender}
-                            // onChange={handleChange}
-                            //              onChange={(e)=>
-                            // //         {
-                            // //           setStudent({...student,gender:e.target.value});
-                            // //           setErrors((prev)=>({...prev,gender:""}));
-                            // //         }
                             onChange={(e) => {
                                 setStudent({ ...student, gender: e.target.value });
-                                setErrors((prev) => ({ ...prev, gender: "" }))
-                            }
-                            }
+                                setErrors((prev) => ({ ...prev, gender: "" }));
+                            }}
                             error={!!errors.gender}
                             helperText={errors.gender}
                         >
@@ -493,18 +539,18 @@ export default function CreateTeacherPage() {
                             <MenuItem value="Female">Female</MenuItem>
                             <MenuItem value="Other">Other</MenuItem>
                         </TextField>
+
+                        {/* Blood Group */}
                         <TextField
                             select
                             fullWidth
                             name="bloodGroup"
                             label="Blood Group"
                             value={student.bloodGroup}
-                            // onChange={handleChange}
                             onChange={(e) => {
                                 setStudent({ ...student, bloodGroup: e.target.value });
-                                setErrors((prev) => ({ ...prev, bloodGroup: "" }))
-                            }
-                            }
+                                setErrors((prev) => ({ ...prev, bloodGroup: "" }));
+                            }}
                             error={!!errors.bloodGroup}
                             helperText={errors.bloodGroup}
                         >
@@ -514,6 +560,8 @@ export default function CreateTeacherPage() {
                                 </MenuItem>
                             ))}
                         </TextField>
+
+                        {/* Email */}
                         <TextField
                             fullWidth
                             type="email"
@@ -524,6 +572,8 @@ export default function CreateTeacherPage() {
                             error={!!errors.email}
                             helperText={errors.email}
                         />
+
+                        {/* Password */}
                         <TextField
                             fullWidth
                             type={showPassword ? "text" : "password"}
@@ -543,6 +593,8 @@ export default function CreateTeacherPage() {
                                 ),
                             }}
                         />
+
+                        {/* Phone */}
                         <div>
                             <label className="block text-gray-600 font-medium mb-1">Phone</label>
                             <PhoneInput
@@ -555,13 +607,11 @@ export default function CreateTeacherPage() {
                                 }
                                 inputClass="w-full p-3 rounded-lg border border-gray-300"
                             />
-                            {errors.phone && (
-                                <p className="text-red-500 text-sm">{errors.phone}</p>
-                            )}
+                            {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
                         </div>
-   
 
-                        <div> <TextField
+                        {/* Address: Street */}
+                        <TextField
                             fullWidth
                             name="street"
                             label="Street"
@@ -569,60 +619,67 @@ export default function CreateTeacherPage() {
                             onChange={(e) => handleChange(e, null, "address")}
                             error={!!errors.address_street}
                             helperText={errors.address_street}
-                        /></div>
-                        <div>
-                            <TextField
-                                fullWidth
-                                name="city"
-                                label="City"
-                                value={student.address.city}
-                                error={!!errors.address_city}
-                                helperText={errors.address_city}
-                                onChange={(e) => handleChange(e, null, "address")}
-                            />
-                        </div>
-                        <div>
-                            <Select
-                                name="state"
-                                options={states}
-                                value={states.find(s => s.value === student.address.state)}
-                                onChange={(selected) =>
-                                    setStudent((prev) => ({
-                                        ...prev,
-                                        address: { ...prev.address, state: selected.value },
-                                    }))
-                                }
-                                placeholder="Select State"
-                            />
-                        </div>
-                        <div>
-                            <TextField
-                                fullWidth
-                                name="zip"
-                                label="ZIP Code"
-                                value={student.address.zip}
-                                onChange={(e) => handleChange(e, null, "address")}
-                                error={!!errors.address_zip}
-                                helperText={errors.address_zip}
-                            />
+                        />
 
-                        </div>
-                        <div>
-                            <Select
-                                name="country"
-                                options={countries}
-                                value={countries.find(c => c.label === student.address.country)}
-                                onChange={(selected) =>
-                                    setStudent((prev) => ({
-                                        ...prev,
-                                        address: { ...prev.address, country: selected.label },
-                                    }))
-                                }
+                        {/* Address: City */}
+                        <TextField
+                            fullWidth
+                            name="city"
+                            label="City"
+                            value={student.address.city}
+                            onChange={(e) => handleChange(e, null, "address")}
+                            error={!!errors.address_city}
+                            helperText={errors.address_city}
+                        />
 
-                                placeholder="Select Country"
-                            />
-                        </div>
-                        {/* --- Disability Section --- */}
+                        {/* Address: State */}
+                        <Select
+                            name="state"
+                            options={states}
+                            value={states.find((s) => s.value === student.address.state)}
+                            onChange={(selected) => {
+                                setStudent((prev) => ({
+                                    ...prev,
+                                    address: { ...prev.address, state: selected.value },
+                                }));
+                                setErrors((prev) => ({ ...prev, address_state: "" }));
+                            }}
+                            placeholder="Select State"
+                        />
+                        {errors.address_state && (
+                            <p className="text-red-500 text-sm mt-1">{errors.address_state}</p>
+                        )}
+
+                        {/* Address: ZIP */}
+                        <TextField
+                            fullWidth
+                            name="zip"
+                            label="ZIP Code"
+                            value={student.address.zip}
+                            onChange={(e) => handleChange(e, null, "address")}
+                            error={!!errors.address_zip}
+                            helperText={errors.address_zip}
+                        />
+
+                        {/* Address: Country */}
+                        <Select
+                            name="country"
+                            options={countries}
+                            value={countries.find((c) => c.label === student.address.country)}
+                            onChange={(selected) => {
+                                setStudent((prev) => ({
+                                    ...prev,
+                                    address: { ...prev.address, country: selected.label },
+                                }));
+                                setErrors((prev) => ({ ...prev, address_country: "" }));
+                            }}
+                            placeholder="Select Country"
+                        />
+                        {errors.address_country && (
+                            <p className="text-red-500 text-sm mt-1">{errors.address_country}</p>
+                        )}
+
+                        {/* Physical Disability */}
                         <div className="bg-gray-50 p-1 rounded-2xl shadow-sm border border-gray-100">
                             <FormControlLabel
                                 control={
@@ -652,46 +709,46 @@ export default function CreateTeacherPage() {
                                 />
                             )}
                         </div>
-                                        <div className="bg-white p-3 w-full rounded-2xl shadow-md border border-gray-200 mx-auto">
-  <label className="block text-gray-700 font-semibold mb-3">
-    Profile Picture
-  </label>
 
-  {/* File Upload Button */}
-  <label className="flex items-center justify-center w-ful p-3 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 transition-colors duration-200">
-    <div className="text-center">
-      <p className="text-gray-500 mb-2">Click to upload</p>
-      <p className="text-gray-400 text-sm">(JPG, PNG, GIF)</p>
-    </div>
-    <input
-      type="file"
-      accept="image/*"
-      className="hidden"
-      onChange={(e) => {
-        handleFileUpload(e, "profilePic", "documents");
-        setErrors((prev) => ({ ...prev, profilePic: "" }));
-      }}
-    />
-  </label>
-
-  {/* Error Message */}
-  {errors?.documents?.profilePic && (
-    <p className="text-red-500 text-sm mt-2">{errors.documents.profilePic}</p>
-  )}
-
-  {/* Image Preview */}
-  {previews.profilePic && (
-    <div className="mt-4 flex justify-center">
-      <img
-        src={previews.profilePic}
-        alt="preview"
-        className="w-28 h-28 rounded-full object-cover border border-gray-300 shadow-sm"
-      />
-    </div>
-  )}
-</div>
+                        {/* Profile Picture Upload */}
+                        <div className="bg-white p-3 w-full rounded-2xl shadow-md border border-gray-200 mx-auto">
+                            <label className="block text-gray-700 font-semibold mb-3">
+                                Profile Picture
+                            </label>
+                            <label className="flex items-center justify-center w-full p-3 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 transition-colors duration-200">
+                                <div className="text-center">
+                                    <p className="text-gray-500 mb-2">Click to upload</p>
+                                    <p className="text-gray-400 text-sm">(JPG, PNG, GIF)</p>
+                                </div>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                        handleFileUpload(e, "profilePic", "documents");
+                                        setErrors((prev) => ({
+                                            ...prev,
+                                            documents: { ...prev.documents, profilePic: "" },
+                                        }));
+                                    }}
+                                />
+                            </label>
+                            {errors?.documents?.profilePic && (
+                                <p className="text-red-500 text-sm mt-2">{errors.documents.profilePic}</p>
+                            )}
+                            {previews.profilePic && (
+                                <div className="mt-4 flex justify-center">
+                                    <img
+                                        src={previews.profilePic}
+                                        alt="preview"
+                                        className="w-28 h-28 rounded-full object-cover border border-gray-300 shadow-sm"
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
+
 
                 {/* Step 2 */}
                 {activeStep === 1 && (
@@ -741,11 +798,15 @@ export default function CreateTeacherPage() {
                                         classNamePrefix="select"
                                         placeholder="Select qualifications..."
                                         value={student.qualifications.map((q) => ({ value: q, label: q }))}
-                                        onChange={(selected) =>
+                                        onChange={(selected) => {
                                             setStudent({
                                                 ...student,
                                                 qualifications: selected.map((s) => s.value),
-                                            })
+                                            });
+                                            setErrors((prev) => ({ ...prev, qualifications: "" }));
+                                        }
+
+
                                         }
                                     />
                                     {errors.qualifications && (
@@ -765,15 +826,19 @@ export default function CreateTeacherPage() {
                                         classNamePrefix="select"
                                         placeholder="Select specialization..."
                                         value={student.specialization.map((s) => ({ value: s, label: s }))}
-                                        onChange={(selected) =>
+                                        onChange={(selected) => {
+
+
                                             setStudent({
                                                 ...student,
                                                 specialization: selected.map((s) => s.value),
-                                            })
+                                            });
+                                            setErrors((prev) => ({ ...prev, specialization: "" }));
+                                        }
                                         }
 
                                     />
-                                    {errors.qualifications && (
+                                    {errors.specialization && (
                                         <p className="text-red-500 text-sm mt-1">{errors.specialization}</p>
                                     )}
                                 </Grid>
@@ -844,11 +909,15 @@ export default function CreateTeacherPage() {
                                             const found = classes?.results?.docs.find((cls) => cls._id === clsId);
                                             return found ? { value: found._id, label: found.name } : null;
                                         })}
-                                        onChange={(selected) =>
+                                        onChange={(selected) => {
                                             setStudent({
                                                 ...student,
                                                 classes: selected ? selected.map((s) => s.value) : [],
-                                            })
+                                            });
+                                            setErrors((prev) => ({ ...prev, classes: "" }));
+
+                                        }
+
                                         }
 
                                     />
@@ -919,6 +988,7 @@ export default function CreateTeacherPage() {
 
                                     <Grid container spacing={3} alignItems="center">
                                         {/* Subject Name */}
+                                        {/* Subject Name */}
                                         <Grid item xs={12} sm={4}>
                                             <Select
                                                 key={index}
@@ -929,16 +999,15 @@ export default function CreateTeacherPage() {
                                                         ...base,
                                                         minHeight: "56px",
                                                         borderRadius: "8px",
-                                                        borderColor: state.isFocused ? "#1976d2" : "#d1d5db",
+                                                        borderColor: errors[`subjectName_${index}`] ? "red" : (state.isFocused ? "#1976d2" : "#d1d5db"),
                                                         boxShadow: state.isFocused ? "0 0 0 2px rgba(25,118,210,0.1)" : "none",
-                                                        "&:hover": { borderColor: "#1976d2" },
+                                                        "&:hover": { borderColor: state.isFocused ? "#1976d2" : "#d1d5db" },
                                                     }),
                                                 }}
                                                 options={subjects?.results?.docs.map((subj) => ({
                                                     value: subj._id,
                                                     label: subj.name,
                                                 }))}
-
                                                 value={
                                                     subject.subjectName
                                                         ? {
@@ -949,27 +1018,27 @@ export default function CreateTeacherPage() {
                                                         }
                                                         : null
                                                 }
-
                                                 onChange={(selected) => {
                                                     const foundSubject = subjects?.results?.docs.find(
                                                         (subj) => subj._id === selected?.value
                                                     );
-
                                                     const updatedSubjects = [...student.subjectsHandled];
                                                     updatedSubjects[index] = {
                                                         ...updatedSubjects[index],
                                                         subjectName: selected?.value || "",
-                                                        subjectCode: foundSubject?.code || "", // 🔹 Auto-fill subject code
+                                                        subjectCode: foundSubject?.code || "",
                                                     };
+                                                    setStudent({ ...student, subjectsHandled: updatedSubjects });
 
-                                                    setStudent({
-                                                        ...student,
-                                                        subjectsHandled: updatedSubjects,
-                                                    });
+                                                    // 🔹 Clear error on change
+                                                    setErrors(prev => ({ ...prev, [`subjectName_${index}`]: "" }));
                                                 }}
                                             />
-
+                                            {errors[`subjectName_${index}`] && (
+                                                <p className="text-red-500 text-sm mt-1">{errors[`subjectName_${index}`]}</p>
+                                            )}
                                         </Grid>
+
 
                                         {/* Subject Code */}
                                         <Grid item xs={12} sm={4}>
@@ -1001,9 +1070,9 @@ export default function CreateTeacherPage() {
                                                         ...base,
                                                         minHeight: "56px",
                                                         borderRadius: "8px",
-                                                        borderColor: state.isFocused ? "#1976d2" : "#d1d5db",
+                                                        borderColor: errors[`classId_${index}`] ? "red" : (state.isFocused ? "#1976d2" : "#d1d5db"),
                                                         boxShadow: state.isFocused ? "0 0 0 2px rgba(25,118,210,0.1)" : "none",
-                                                        "&:hover": { borderColor: "#1976d2" },
+                                                        "&:hover": { borderColor: state.isFocused ? "#1976d2" : "#d1d5db" },
                                                     }),
                                                 }}
                                                 options={classes?.results?.docs.map((cls) => ({
@@ -1016,19 +1085,19 @@ export default function CreateTeacherPage() {
                                                         : null
                                                 }
                                                 onChange={(selected) => {
-                                                    const updatedSubjects = [...student.subjectsHandled]; // copy array
-                                                    updatedSubjects[index] = {
-                                                        ...updatedSubjects[index], // copy existing object
-                                                        classId: selected.value,   // update classId
-                                                    };
-                                                    setStudent({
-                                                        ...student,
-                                                        subjectsHandled: updatedSubjects, // set updated array
-                                                    });
+                                                    const updatedSubjects = [...student.subjectsHandled];
+                                                    updatedSubjects[index] = { ...updatedSubjects[index], classId: selected.value };
+                                                    setStudent({ ...student, subjectsHandled: updatedSubjects });
+
+                                                    // 🔹 Clear error on change
+                                                    setErrors(prev => ({ ...prev, [`classId_${index}`]: "" }));
                                                 }}
                                             />
-
+                                            {errors[`classId_${index}`] && (
+                                                <p className="text-red-500 text-sm mt-1">{errors[`classId_${index}`]}</p>
+                                            )}
                                         </Grid>
+
                                     </Grid>
 
                                     {index !== student.subjectsHandled.length - 1 && (
@@ -1039,60 +1108,71 @@ export default function CreateTeacherPage() {
                         </Paper>
 
                         {/* SALARY INFO */}
-                     {/* SALARY INFO */}
-<Paper elevation={3} className="p-8 rounded-3xl">
-  <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
-    💰 Salary Details
-  </h2>
+                        {/* SALARY INFO */}
+                        <Paper elevation={3} className="p-8 rounded-3xl">
+                            <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
+                                💰 Salary Details
+                            </h2>
 
-  <Grid container spacing={3}>
-    {["basic", "allowances", "deductions"].map((field) => (
-      <Grid item xs={12} sm={3} key={field}>
-        <TextField
-          fullWidth
-          type="number"
-          name={field}
-          label={field.replace(/^\w/, (c) => c.toUpperCase())}
-          value={student.salaryInfo[field]}
-          onChange={(e) => {
-            const { name, value } = e.target;
-            const updatedSalary = {
-              ...student.salaryInfo,
-              [name]: parseFloat(value) || 0,
-            };
+                            <Grid container spacing={3}>
+                                {["basic", "allowances", "deductions"].map((field) => (
+                                    <Grid item xs={12} sm={3} key={field}>
+                                        <TextField
+                                            fullWidth
+                                            type="number"
+                                            name={field}
+                                            label={field.replace(/^\w/, (c) => c.toUpperCase())}
+                                            value={student.salaryInfo[field]}
+                                            onChange={(e) => {
+                                                const { name, value } = e.target;
+                                                const updatedSalary = {
+                                                    ...student.salaryInfo,
+                                                    [name]: parseFloat(value) || 0,
+                                                };
 
-            // 🔹 Auto-calculate net salary
-            const { basic = 0, allowances = 0, deductions = 0 } = updatedSalary;
-            updatedSalary.netSalary = basic + allowances - deductions;
+                                                // 🔹 Auto-calculate net salary
+                                                const { basic = 0, allowances = 0, deductions = 0 } = updatedSalary;
+                                                updatedSalary.netSalary = basic + allowances - deductions;
 
-            setStudent({
-              ...student,
-              salaryInfo: updatedSalary,
-            });
-          }}
-          InputProps={{
-            style: { height: "56px", borderRadius: "8px" },
-          }}
-        />
-      </Grid>
-    ))}
+                                                setStudent({
+                                                    ...student,
+                                                    salaryInfo: updatedSalary,
+                                                });
 
-    {/* Auto-calculated Net Salary */}
-    <Grid item xs={12} sm={3}>
-      <TextField
-        fullWidth
-        type="number"
-        name="netSalary"
-        label="Net Salary (Auto)"
-        value={student.salaryInfo.netSalary || 0}
-        InputProps={{
-          readOnly: true,
-          style: { height: "56px", borderRadius: "8px", backgroundColor: "#f9fafb" },
-        }}
-      />
-    </Grid>
-  </Grid>
-</Paper>
+                                                // 🔹 Clear error for this field on change
+                                                setErrors((prev) => ({ ...prev, [name]: "" }));
+                                            }}
+                                            error={!!errors[field]}
+                                            helperText={errors[field]}
+                                            InputProps={{
+                                                style: { height: "56px", borderRadius: "8px" },
+                                            }}
+                                        />
+                                    </Grid>
+                                ))}
+
+                                {/* Auto-calculated Net Salary */}
+                                <Grid item xs={12} sm={3}>
+                                    <TextField
+                                        fullWidth
+                                        type="number"
+                                        name="netSalary"
+                                        label="Net Salary (Auto)"
+                                        value={student.salaryInfo.netSalary || 0}
+                                        InputProps={{
+                                            readOnly: true,
+                                            style: { height: "56px", borderRadius: "8px", backgroundColor: "#f9fafb" },
+                                        }}
+                                    />
+                                </Grid>
+                            </Grid>
+
+                            {/* Optional: show overall salary errors */}
+                            {errors.salaryInfo && (
+                                <p className="text-red-500 text-sm mt-2">{errors.salaryInfo}</p>
+                            )}
+                        </Paper>
+
 
 
                         {/* EMERGENCY CONTACT */}

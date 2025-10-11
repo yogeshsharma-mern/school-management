@@ -4,6 +4,10 @@ import { SiGoogleclassroom } from "react-icons/si";
 import { useDispatch } from "react-redux";
 import { logout } from "../redux/features/auth/authslice";
 import { NavLink } from "react-router-dom";
+import { IoIosSettings } from "react-icons/io";
+import { TbLockPassword } from "react-icons/tb";
+
+
 
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
@@ -81,7 +85,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           <FaChalkboardTeacher size={20} />
           <span>Teachers</span>
         </NavLink>
-        <NavLink
+        {/* <NavLink
           to="/admin/assignments"
           className={({ isActive }) =>
             `flex items-center space-x-3 p-3 rounded-xl transition ${isActive ? "bg-[#1b263b] text-yellow-400" : "hover:bg-[#1b263b]"
@@ -91,7 +95,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         >
           <FaBook size={20} />
           <span>Assignments</span>
-        </NavLink>
+        </NavLink> */}
         <NavLink
           to="/admin/fees"
           className={({ isActive }) =>
@@ -102,6 +106,28 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         >
           <FaMoneyBill size={20} />
           <span>Fees</span>
+        </NavLink>
+         <NavLink
+          to="/admin/settings"
+          className={({ isActive }) =>
+            `flex items-center space-x-3 p-3 rounded-xl transition ${isActive ? "bg-[#1b263b] text-yellow-400" : "hover:bg-[#1b263b]"
+            }`
+          }
+          onClick={toggleSidebar}
+        >
+          <IoIosSettings  size={20} />
+          <span>Admin Settings</span>
+        </NavLink>
+         <NavLink
+          to="/admin/password"
+          className={({ isActive }) =>
+            `flex items-center space-x-3 p-3 rounded-xl transition ${isActive ? "bg-[#1b263b] text-yellow-400" : "hover:bg-[#1b263b]"
+            }`
+          }
+          onClick={toggleSidebar}
+        >
+          <TbLockPassword size={20} />
+          <span>Reset Password</span>
         </NavLink>
       </nav>
 
