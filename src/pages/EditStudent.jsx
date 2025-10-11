@@ -260,8 +260,8 @@ const validateStep = () => {
     if (!student.bloodGroup) newErrors.bloodGroup = "Blood group is required";
     if (!student.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email))
       newErrors.email = "Valid email is required";
-    if (!student.password || student.password.length < 6)
-      newErrors.password = "Password must be at least 6 characters";
+    // if (!student.password || student.password.length < 6)
+    //   newErrors.password = "Password must be at least 6 characters";
     if (!student.phone || student.phone.replace(/\D/g, "").length < 10)
       newErrors.phone = "Valid phone number required";
     if (!student.documents.profilePic) {

@@ -6,6 +6,7 @@ import "react-phone-input-2/lib/style.css";
 import apiPath from "../api/apiPath";
 import { useQuery } from "@tanstack/react-query";
 import { SettingsSuggestOutlined, Visibility, VisibilityOff } from "@mui/icons-material";
+import { BsCloudUpload } from "react-icons/bs";
 import {
   InputAdornment,
   IconButton,
@@ -72,32 +73,38 @@ export default function CreateStudentPage() {
   const steps = ["Personal Details", "Parent & Guardian", "Academic & Documents"];
 
   // --- Handle Input Changes ---
-  const handleChange = (e, parentIndex = null, section = null) => {
-    const { name, value, type, checked } = e.target;
-    if (parentIndex !== null) {
-      const updatedParents = [...student.parents];
-      updatedParents[parentIndex][name] = value;
-      setStudent({ ...student, parents: updatedParents });
-      setErrors((prev) => ({
-        ...prev,
-        [`parent_${parentIndex}_${name}`]: "",
-      }));
-    } else if (section) {
-      setStudent({
-        ...student,
-        [section]: { ...student[section], [name]: value },
-      });
-      setErrors((prev) => ({
-        ...prev,
-        [`${section}_${name}`]: "",
-      }));
-    } else if (type === "checkbox") {
-      setStudent({ ...student, [name]: checked });
-    } else {
-      setStudent({ ...student, [name]: value });
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-  };
+const handleChange = (e, parentIndex = null, section = null) => {
+  const { name, value, type, checked } = e.target;
+
+  // ✅ Block numbers and special characters for 'name' fields
+  const isNameField = name.toLowerCase().includes("name");
+  const sanitizedValue = isNameField ? value.replace(/[^A-Za-z\s]/g, "") : value;
+
+  if (parentIndex !== null) {
+    const updatedParents = [...student.parents];
+    updatedParents[parentIndex][name] = sanitizedValue;
+    setStudent({ ...student, parents: updatedParents });
+    setErrors((prev) => ({
+      ...prev,
+      [`parent_${parentIndex}_${name}`]: "",
+    }));
+  } else if (section) {
+    setStudent({
+      ...student,
+      [section]: { ...student[section], [name]: sanitizedValue },
+    });
+    setErrors((prev) => ({
+      ...prev,
+      [`${section}_${name}`]: "",
+    }));
+  } else if (type === "checkbox") {
+    setStudent({ ...student, [name]: checked });
+  } else {
+    setStudent({ ...student, [name]: sanitizedValue });
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  }
+};
+
 
   // --- Handle File Upload ---
   // const handleFileUpload = (e, field, section = null) => {
@@ -180,7 +187,11 @@ const validateStep = () => {
   const newErrors = {};
 
   if (activeStep === 0) {
-    if (!student.name) newErrors.name = "Name is required";
+  if (!student.name.trim()) {
+    newErrors.name = "Name is required";
+  } else if (!/^[A-Za-z\s]+$/.test(student.name)) {
+    newErrors.name = "Name must not contain numbers or special characters";
+  }
     if (!student.dob) newErrors.dob = "Date of Birth is required";
     if (!student.gender) newErrors.gender = "Gender is required";
     if (!student.bloodGroup) newErrors.bloodGroup = "Blood group is required";
@@ -190,10 +201,9 @@ const validateStep = () => {
       newErrors.password = "Password must be at least 6 characters";
     if (!student.phone || student.phone.replace(/\D/g, "").length < 10)
       newErrors.phone = "Valid phone number required";
-    if (!student.documents.profilePic) {
-      if (!newErrors.documents) newErrors.documents = {};
-      newErrors.documents.profilePic = "Profile picture is required";
-    }
+   if (!student.documents || !student.documents.profilePic) {
+  newErrors.documents = { ...(newErrors.documents || {}), profilePic: "Profile picture is required" };
+}
   }
 
   else if (activeStep === 1) {
@@ -222,11 +232,13 @@ const validateStep = () => {
     if (!student.classId) newErrors.classId = "Class is required";
     if (!student.academicYear) newErrors.academicYear = "Academic year is required";
 
-    // Document validation
-    if (!student.documents.aadharFront)
-      newErrors.aadharFront = "Aadhaar front is required";
-    if (!student.documents.aadharBack)
-      newErrors.aadharBack = "Aadhaar back is required";
+   if (!student.documents?.aadharFront) {
+  newErrors.aadharFront = "Aadhar front is required";
+}
+
+if (!student.documents?.aadharBack) {
+  newErrors.aadharBack = "Aadhar back is required";
+}
   }
 
   setErrors(newErrors);
@@ -326,12 +338,14 @@ const handleSubmit = async (e) => {
       console.log(key, value);
     }
 
-    await apiPost(apiPath.studentReg, formData);
+    const res=await apiPost(apiPath.studentReg, formData);
+    // console.log("res student created",res);
+    if(res.success==true)
     toast.success("Student created successfully ✅");
     navigate(-1);
   } catch (err) {
     console.error(err);
-    toast.error("Failed to create student ❌");
+    toast.error(err?.response?.data?.message || "Failed to create student ❌");
   }
 };
 
@@ -370,16 +384,20 @@ const handleSubmit = async (e) => {
               helperText={errors.name}
             />
             <TextField
-              fullWidth
-              type="date"
-              name="dob"
-              value={student.dob}
-              onChange={handleChange}
-              InputLabelProps={{ shrink: true }}
-              label="Date of Birth"
-              error={!!errors.dob}
-              helperText={errors.dob}
-            />
+  fullWidth
+  type="date"
+  name="dob"
+  value={student.dob}
+  onChange={handleChange}
+  InputLabelProps={{ shrink: true }}
+  label="Date of Birth"
+  error={!!errors.dob}
+  helperText={errors.dob}
+  inputProps={{
+    max: new Date(Date.now() - 86400000).toISOString().split("T")[0], // 🔒 only before today
+  }}
+/>
+
             <TextField
               select
               fullWidth
@@ -473,31 +491,69 @@ const handleSubmit = async (e) => {
                 <p className="text-red-500 text-sm">{errors.phone}</p>
               )}
             </div>
-            <div>
-              <label className="block text-gray-600 font-medium mb-1">
-                Profile Picture
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) =>{ handleFileUpload(e, "profilePic", "documents");
-                  setErrors((prev)=>({...prev,profilePic:""}))
-                }}
-              />
-              {errors?.documents?.profilePic && (
-                <p className="text-red-500 text-sm">{errors.documents.profilePic}</p>
-              )}
-              {previews.profilePic && (
-                <div>
-                  <img
-                  src={previews.profilePic}
-                  alt="preview"
-                  className="mt-2 w-24 h-24 rounded-md mx-auto object-cover"
-                />
-                  </div>
-                
-              )}
-            </div>
+   <div className="w-full max-w-xs ">
+  <label className="block text-gray-700 font-semibold mb-2">Profile Picture</label>
+
+  <div className="relative">
+    {/* Upload Box */}
+    <label
+      htmlFor="profilePic"
+      className="flex flex-col items-center w-full justify-center w-full py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-indigo-500 transition-colors bg-gray-50"
+    >
+      {previews.profilePic ? (
+        <img
+          src={previews.profilePic}
+          alt="preview"
+          className=" rounded-full w-[100px] h-[100px] object-cover"
+        />
+      ) : (
+        <div className="text-center text-gray-400">
+      <BsCloudUpload size={20} className="mx-auto text-blue-500" />
+          <span className="text-sm">Click  to upload</span>
+        </div>
+      )}
+      <input
+        id="profilePic"
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          handleFileUpload(e, "profilePic", "documents");
+          setErrors((prev) => ({
+            ...prev,
+            documents: {
+              ...(prev.documents || {}),
+              profilePic: "",
+            },
+          }));
+        }}
+      />
+    </label>
+
+    {/* Remove button */}
+    {previews.profilePic && (
+      <button
+        type="button"
+        onClick={() => {
+          setPreviews((p) => ({ ...p, profilePic: null }));
+          setStudent((s) => ({
+            ...s,
+            documents: { ...s.documents, profilePic: null },
+          }));
+        }}
+        className="absolute cursor-pointer -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+      >
+        ✕
+      </button>
+    )}
+  </div>
+
+  {/* Error Message */}
+  {errors?.documents?.profilePic && (
+    <p className="text-red-500 text-sm mt-1">{errors.documents.profilePic}</p>
+  )}
+</div>
+
           </div>
         )}
 
@@ -725,7 +781,7 @@ const handleSubmit = async (e) => {
           error={!!errors.academicYear}
           helperText={errors.academicYear}
         >
-          {Array.from({ length: 5 }).map((_, i) => {
+          {Array.from({ length: 1 }).map((_, i) => {
             const startYear = new Date().getFullYear() + i;
             const endYear = startYear + 1;
             const yearString = `${startYear}-${endYear}`;
@@ -782,7 +838,10 @@ const handleSubmit = async (e) => {
             <input
               type="file"
               accept="image/*"
-              onChange={(e) => handleFileUpload(e, side, "documents")}
+            onChange={(e) => {
+  handleFileUpload(e, side, "documents");
+  setErrors((prev) => ({ ...prev, [side]: "" })); // ✅ clears top-level error
+}}
             />
             {errors[side] && (
               <p className="text-red-500 text-sm mt-1">{errors[side]}</p>
@@ -932,6 +991,7 @@ const handleSubmit = async (e) => {
   type="submit"
   // variant="contained"
   style={{ backgroundColor: "#4caf50", color: "white" }}
+  className="px-6 py-2 rounded-lg hover:bg-green-600 cursor-pointer"
 >
   Submit
 </button>

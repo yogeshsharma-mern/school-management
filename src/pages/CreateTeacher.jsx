@@ -379,27 +379,35 @@ export default function CreateTeacherPage() {
             //     netSalary: 0
             // },
             // Add remaining primitive fields
-            [
-                "name",
-                "dob",
-                "gender",
-                "bloodGroup",
-                "email",
-                "password",
-                "phone",
-                "classes",
-                "physicalDisability",
-                "disabilityDetails",
-                "designation",
-                "specialization",
-                "qualifications",
-                "experience",
-                "dateOfJoining",
-                "salaryInfo",
-                "subjectsHandled",
-            ].forEach((key) => {
-                formData.append(key, student[key]);
-            });
+     [
+  "name",
+  "dob",
+  "gender",
+  "bloodGroup",
+  "email",
+  "password",
+  "phone",
+  "classes",
+  "physicalDisability",
+  "disabilityDetails",
+  "designation",
+  "specialization",
+  "qualifications",
+  "experience",
+  "dateOfJoining",
+  "salaryInfo",
+  "subjectsHandled",
+].forEach((key) => {
+  const value = student[key];
+  
+  // Arrays/objects should be JSON.stringified
+  if (Array.isArray(value) || typeof value === "object") {
+    formData.append(key, JSON.stringify(value));
+  } else {
+    formData.append(key, value);
+  }
+});
+
 
             // For debugging
             for (let [key, value] of formData.entries()) {
@@ -551,32 +559,8 @@ export default function CreateTeacherPage() {
                                 <p className="text-red-500 text-sm">{errors.phone}</p>
                             )}
                         </div>
-                        <div>
-                            <label className="block text-gray-600 font-medium mb-1">
-                                Profile Picture
-                            </label>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                    handleFileUpload(e, "profilePic", "documents");
-                                    setErrors((prev) => ({ ...prev, profilePic: "" }))
-                                }}
-                            />
-                            {errors?.documents?.profilePic && (
-                                <p className="text-red-500 text-sm">{errors.documents.profilePic}</p>
-                            )}
-                            {previews.profilePic && (
-                                <div>
-                                    <img
-                                        src={previews.profilePic}
-                                        alt="preview"
-                                        className="mt-2 w-24 h-24 rounded-md mx-auto object-cover"
-                                    />
-                                </div>
+   
 
-                            )}
-                        </div>
                         <div> <TextField
                             fullWidth
                             name="street"
@@ -668,6 +652,44 @@ export default function CreateTeacherPage() {
                                 />
                             )}
                         </div>
+                                        <div className="bg-white p-3 w-full rounded-2xl shadow-md border border-gray-200 mx-auto">
+  <label className="block text-gray-700 font-semibold mb-3">
+    Profile Picture
+  </label>
+
+  {/* File Upload Button */}
+  <label className="flex items-center justify-center w-ful p-3 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 transition-colors duration-200">
+    <div className="text-center">
+      <p className="text-gray-500 mb-2">Click to upload</p>
+      <p className="text-gray-400 text-sm">(JPG, PNG, GIF)</p>
+    </div>
+    <input
+      type="file"
+      accept="image/*"
+      className="hidden"
+      onChange={(e) => {
+        handleFileUpload(e, "profilePic", "documents");
+        setErrors((prev) => ({ ...prev, profilePic: "" }));
+      }}
+    />
+  </label>
+
+  {/* Error Message */}
+  {errors?.documents?.profilePic && (
+    <p className="text-red-500 text-sm mt-2">{errors.documents.profilePic}</p>
+  )}
+
+  {/* Image Preview */}
+  {previews.profilePic && (
+    <div className="mt-4 flex justify-center">
+      <img
+        src={previews.profilePic}
+        alt="preview"
+        className="w-28 h-28 rounded-full object-cover border border-gray-300 shadow-sm"
+      />
+    </div>
+  )}
+</div>
                     </div>
                 )}
 

@@ -9,6 +9,7 @@ import useDebounce from "../hooks/useDebounce";
 import toast from "react-hot-toast";
 import Loader from "../components/Loading";
 import { RiImageEditLine } from "react-icons/ri";
+import ToggleButton from "../components/ToggleButton";
 
 export default function ClassPage() {
   const queryClient = useQueryClient();
@@ -62,46 +63,79 @@ console.log("classdata",classesData)
   };
 
   // Handle input changes
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    let newValue = value;
-    if (name === "section") newValue = value.toUpperCase();
-    setFormData((prev) => ({ ...prev, [name]: newValue }));
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  let newValue = value;
+
+  if (name === "section") {
+    newValue = value.toUpperCase(); // auto uppercase
+
+    // Real-time validation
+    if (!/^[A-D]$/.test(newValue) && newValue !== "") {
+      setErrors((prev) => ({ ...prev, section: "Section must be A, B, C, or D" }));
+    } else {
+      setErrors((prev) => ({ ...prev, section: "" }));
+    }
+  }
+
+  setFormData((prev) => ({ ...prev, [name]: newValue }));
+
+  // Clear other errors
+  if (name !== "section") {
     setErrors((prev) => ({ ...prev, [name]: "" }));
-  };
+  }
+};
+
 
   // Handle submit
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const newErrors = {};
-    const validClasses = [
-      "Prep", "1st", "2nd", "3rd", "4th", "5th", "6th",
-      "7th", "8th", "9th", "10th", "11th", "12th",
-    ];
+const handleSubmit = (e) => {
+  e.preventDefault();
+  const newErrors = {};
+  const validClasses = [
+    "Prep", "1st", "2nd", "3rd", "4th", "5th", "6th",
+    "7th", "8th", "9th", "10th", "11th", "12th",
+  ];
 
-    if (!formData.name) newErrors.name = "Class name is required";
-    else if (!validClasses.includes(formData.name.trim()))
-      newErrors.name = "Invalid class name. Must be Prep or 1st to 12th";
+  // Class name validation
+  if (!formData.name) newErrors.name = "Class name is required";
+  else if (!validClasses.includes(formData.name.trim()))
+    newErrors.name = "Invalid class name. Must be Prep or 1st to 12th";
 
-    if (!formData.section) newErrors.section = "Section is required";
-    else if (!/^[A-D]$/.test(formData.section))
-      newErrors.section = "Section must be A, B, C, or D";
+  // Section validation (only A-D)
+  if (!formData.section) newErrors.section = "Section is required";
+  else if (!/^[A-D]$/.test(formData.section))
+    newErrors.section = "Section must be A, B, C, or D";
 
-    if (!formData.startTime) newErrors.startTime = "Start time is required";
-    if (!formData.endTime) newErrors.endTime = "End time is required";
+  // Start/End time validation
+  if (!formData.startTime) newErrors.startTime = "Start time is required";
+  if (!formData.endTime) newErrors.endTime = "End time is required";
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
+  if (formData.startTime && formData.endTime) {
+    const start = formData.startTime.split(":").map(Number); // [HH, MM]
+    const end = formData.endTime.split(":").map(Number);
+    const startMinutes = start[0] * 60 + start[1];
+    const endMinutes = end[0] * 60 + end[1];
+
+    if (endMinutes <= startMinutes) {
+      newErrors.endTime = "End time must be after start time";
     }
+  }
 
-    classMutation.mutate({
-      name: formData.name.trim(),
-      section: formData.section.trim(),
-      startTime: formatTo12Hour(formData.startTime),
-      endTime: formatTo12Hour(formData.endTime),
-    });
-  };
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+
+  // Submit mutation
+  classMutation.mutate({
+    name: formData.name.trim(),
+    section: formData.section.trim(),
+    startTime: formatTo12Hour(formData.startTime),
+    endTime: formatTo12Hour(formData.endTime),
+  });
+};
+
+
 
   // Mutation for create/update class
   const classMutation = useMutation({
@@ -109,9 +143,9 @@ console.log("classdata",classesData)
       if (editingClass) return apiPut(`${apiPath.updateClass}/${editingClass._id}`, classObj);
       return apiPost(apiPath.createClassess, classObj);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["classes"] });
-      toast.success(editingClass ? "Class updated successfully ✅" : "Class created successfully 🎉");
+      toast.success(editingClass ? data.message : data.message);
       setIsModalOpen(false);
       setEditingClass(null);
       setFormData({ name: "", section: "", startTime: "", endTime: "" });
@@ -135,6 +169,37 @@ console.log("classdata",classesData)
       { accessorKey: "name", header: "Class" },
       { accessorKey: "section", header: "Section" },
       { accessorKey: "studentCount", header: "Students" },
+      {
+  header: "Status",
+  accessorKey: "isActive", // backend field
+  cell: ({ row }) => {
+    const cls = row.original;
+
+    // mutation for toggling active/inactive
+    const toggleMutation = useMutation({
+      mutationFn: (newStatus) =>
+        apiPut(`${apiPath.clssToggle}/${cls._id}`, { status: newStatus }),
+      onSuccess: (data) =>{queryClient.invalidateQueries({ queryKey: ["classes"]      });
+      toast.success(data.message || "Status updated successfully ✅");},
+      onError: (err) => {
+        toast.error(err?.response?.data?.message || "Failed to update status ❌");
+      },
+    });
+
+    const handleToggle = () =>{
+      const newStatus = cls.status === "active" ? false : true;
+      toggleMutation.mutate(newStatus);
+    }
+
+    return (
+      <ToggleButton
+        isActive={cls.status}
+        onToggle={handleToggle}
+        disabled={toggleMutation.isLoading}
+      />
+    );
+  },
+},
       { header: "Teacher Name", accessorFn: (row) => row.classTeacher?.name || "N/A" },
       { header: "Teacher Email", accessorFn: (row) => row.classTeacher?.email || "N/A" },
       { header: "Teacher Department", accessorFn: (row) => row.classTeacher?.department || "N/A" },
@@ -265,7 +330,7 @@ console.log("classdata",classesData)
           <button
             type="submit"
             disabled={classMutation.isLoading}
-            className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
+            className="w-full cursor-pointer bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
           >
             {classMutation.isLoading ? "Saving..." : editingClass ? "Update Class" : "Create Class"}
           </button>

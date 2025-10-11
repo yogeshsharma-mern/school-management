@@ -1,23 +1,27 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
-import AdminLayout from "./Layouts/AdminLayout";
-import Dashboard from "./pages/Dashboard";
-import Students from "./pages/Students";
-import Teachers from "./pages/Teachers";
-import Fees from "./pages/Fees";
-import Assignment from "./pages/Assignment";
-import Login from "./pages/Login";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "react-hot-toast";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
-import Class from "./pages/Class";
-import  { Toaster } from 'react-hot-toast';
-import Subject from "./pages/Subject";
-import StudentDetail from "./pages/StudentDetail";
-import CreateStudent from "./pages/CreateStudent";
-import EditStudent from "./pages/EditStudent";
-import AdminProfile from "./pages/AdminProfile";
-import CreateTeacher from "./pages/CreateTeacher";
+import Loader from "./components/Loading.jsx";
+
+// Lazy load pages
+const AdminLayout = lazy(() => import("./Layouts/AdminLayout"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Students = lazy(() => import("./pages/Students"));
+const Teachers = lazy(() => import("./pages/Teachers"));
+const Fees = lazy(() => import("./pages/Fees"));
+const Assignment = lazy(() => import("./pages/Assignment"));
+const Login = lazy(() => import("./pages/Login"));
+const Class = lazy(() => import("./pages/Class"));
+const Subject = lazy(() => import("./pages/Subject"));
+const StudentDetail = lazy(() => import("./pages/StudentDetail"));
+const CreateStudent = lazy(() => import("./pages/CreateStudent"));
+const EditStudent = lazy(() => import("./pages/EditStudent"));
+const AdminProfile = lazy(() => import("./pages/AdminProfile"));
+const CreateTeacher = lazy(() => import("./pages/CreateTeacher"));
+const TeacherDetails = lazy(() => import("./pages/TeacherDetails.jsx"));
 
 export default function App() {
   const queryClient = new QueryClient();
@@ -52,6 +56,7 @@ export default function App() {
 
             <Route path="fees" element={<Fees />} />
             <Route path="subjects" element={<Subject />} />
+            <Route path="teachers/:id" element={<TeacherDetails />} />
 
           </Route>
         </Route>
