@@ -18,8 +18,10 @@ const apiPath = Object.freeze({
   createTeacher:"/admins/teachers/register",
   getTeachers:"/admins/teachers/getAllTeacher",
   getParticularTeacher:"/admins/teachers/getTeacherProfile",
+  updateTeacher:"/admins/teachers/update-teacher",
   deleteTeacher:"/admins/teachers/soft-delete",
-  getParticularTeacher:"/admins/teachers/getProfile"
+  getParticularTeacher:"/admins/teachers/getProfile",
+  dashboardData:"/admins/dashboard"
   // updateTeacher:"/admins/teachers/update",
 //   getUsers: "/v1/admin/user",
 //   getUserDetails: "/v1/admin/user/details",

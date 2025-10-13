@@ -2,6 +2,10 @@ import React from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, BarChart, Bar, Legend } from "recharts";
 import { Card, CardContent } from "../components/Card"; // assuming shadcn ui
 import { FaUserGraduate, FaChalkboardTeacher, FaSchool } from "react-icons/fa";
+import apiPath from "../api/apiPath";
+import { apiGet, apiPut } from "../api/apiFetch";
+import { useQuery } from "@tanstack/react-query";
+
 
 const studentData = [
   { month: "Jan", students: 40 },
@@ -28,6 +32,13 @@ const attendanceData = [
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
 export default function Dashboard() {
+    const { data: dashboardData, isLoading, isFetching, error } = useQuery({
+    queryKey: ["dashboardData"],
+    queryFn: () =>
+      apiGet(apiPath.dashboardData),
+  });
+  console.log("dashboardData",dashboardData);
+
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
       {/* --- Top Metrics --- */}
@@ -36,7 +47,7 @@ export default function Dashboard() {
           <CardContent className="flex items-center gap-4">
             <FaUserGraduate size={32} className="text-yellow-600" />
             <div>
-              <p className="text-2xl font-bold">320</p>
+              <p className="text-2xl font-bold">{dashboardData?.results?.totalNumberOfStudents}</p>
               <p>Total Students</p>
             </div>
           </CardContent>
@@ -45,7 +56,7 @@ export default function Dashboard() {
           <CardContent className="flex items-center gap-4">
             <FaChalkboardTeacher size={32} className="text-green-600" />
             <div>
-              <p className="text-2xl font-bold">25</p>
+              <p className="text-2xl font-bold">{dashboardData?.results?.totalNumberOfTeachers}</p>
               <p>Total Teachers</p>
             </div>
           </CardContent>
@@ -54,7 +65,7 @@ export default function Dashboard() {
           <CardContent className="flex items-center gap-4">
             <FaSchool size={32} className="text-blue-600" />
             <div>
-              <p className="text-2xl font-bold">18</p>
+              <p className="text-2xl font-bold">{dashboardData?.results?.totalNumberOfClasses}</p>
               <p>Classes Active</p>
             </div>
           </CardContent>
@@ -140,7 +151,7 @@ export default function Dashboard() {
       </div>
 
       {/* --- Recent Activity Table --- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="p-4">
           <h2 className="text-xl font-semibold mb-4">Recently Registered Students</h2>
           <table className="w-full text-left border-collapse">
@@ -174,7 +185,7 @@ export default function Dashboard() {
             </tbody>
           </table>
         </Card>
-      </div>
+      </div> */}
     </div>
   );
 }

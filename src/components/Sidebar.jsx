@@ -127,7 +127,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           onClick={toggleSidebar}
         >
           <TbLockPassword size={20} />
-          <span>Reset Password</span>
+          <span>Change Password</span>
         </NavLink>
       </nav>
 

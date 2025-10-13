@@ -205,6 +205,13 @@ const handleSubmit = (e) => {
       { header: "Teacher Department", accessorFn: (row) => row.classTeacher?.department || "N/A" },
       { header: "Teacher Specialization", accessorFn: (row) => row.classTeacher?.specialization || "N/A" },
       {
+        header: "Class Timing",
+        accessorFn: (row) =>
+          row.startTime && row.endTime
+            ? `${row.startTime} - ${row.endTime}`
+            : "N/A",
+      },
+      {
         accessorKey: "subjects",
         header: "Subjects",
         cell: ({ getValue }) => (getValue() ? getValue().join(", ") : "N/A"),

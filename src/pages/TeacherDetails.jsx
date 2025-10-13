@@ -40,7 +40,7 @@ export default function TeacherDetailPage() {
     enabled: !!id,
   });
 
-  const teacher = data?.results?.profile;
+  const teacher = data?.results;
 
   // 🖼️ Helper to load image for PDF
   const loadImage = (url) =>
@@ -266,7 +266,7 @@ export default function TeacherDetailPage() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {docs.map((doc, i) => {
-              const fileUrl = doc?.fileUrl || "";
+              const fileUrl = doc || "";
               const isPDF =
                 typeof fileUrl === "string" &&
                 fileUrl.toLowerCase().endsWith(".pdf");

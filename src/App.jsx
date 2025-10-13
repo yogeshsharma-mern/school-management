@@ -6,6 +6,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
 import Loader from "./components/Loading.jsx";
 
+
 // Lazy load pages
 const AdminLayout = lazy(() => import("./Layouts/AdminLayout"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -23,7 +24,9 @@ const AdminProfile = lazy(() => import("./pages/AdminProfile"));
 const CreateTeacher = lazy(() => import("./pages/CreateTeacher"));
 const TeacherDetails = lazy(() => import("./pages/TeacherDetails.jsx"));
 const AdminSettings = lazy(() => import("./components/AdminSettings.jsx"));
-const ResetPassword = lazy(() => import("./components/ResetPassword.jsx"));
+const ChangePassword = lazy(() => import("./components/ChangePasswoord.jsx"));
+const EditTeacher=lazy(()=>import("./pages/EditTeacher.jsx"));
+const ResetPassword=lazy(()=>import("./components/ResetPassword.jsx"));
 
 export default function App() {
   const queryClient = new QueryClient();
@@ -36,6 +39,8 @@ export default function App() {
         {/* public routes */}
         <Route element={<PublicRoute />}>
           <Route path="/" element={<Login />} />
+            <Route path="reset-password" element={<ResetPassword />} />
+
         </Route>
         {/* protectedroute  */}
         <Route element={<ProtectedRoute />}>
@@ -48,8 +53,6 @@ export default function App() {
             <Route path="students/:id" element={<StudentDetail />} />
             <Route path="students/edit/:id" element={<EditStudent />} />
             <Route path="profile" element={<AdminProfile />} />
-
-
             <Route path="student/create" element={<CreateStudent />} />
 
 
@@ -59,8 +62,11 @@ export default function App() {
             <Route path="fees" element={<Fees />} />
             <Route path="subjects" element={<Subject />} />
             <Route path="teachers/:id" element={<TeacherDetails />} />
+            <Route path="teachers/:id" element={<TeacherDetails />} />
+            <Route path="teachers/edit/:id" element={<EditTeacher />} />
             <Route path="settings" element={<AdminSettings />} />
-            <Route path="password" element={<ResetPassword />} />
+            <Route path="password" element={<ChangePassword />} />
+
 
           </Route>
         </Route>
