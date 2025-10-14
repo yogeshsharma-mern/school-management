@@ -29,6 +29,7 @@ const apiPath = Object.freeze({
   updateSchoolSettings:"/admins/setting/update-settings",
   resetSchoolSettings:"/admins/setting/school-settings/reset",
   getAdminProfile:"/admins/auth/profile",
+  updateAdminProfile:"/admins/auth/edit-profile",
   // getTeachers:"/admins/teachers/getAllTeacher",
 //   getTeacherDetails:"/admins/teachers/getTeacherProfile",
 //   teacherDelete:"/admins/teachers/soft-delete",

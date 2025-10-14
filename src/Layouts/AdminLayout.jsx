@@ -85,10 +85,12 @@ import Sidebar from "../components/Sidebar";
 import Avatar, { genConfig } from "react-nice-avatar";
 import { logout } from "../redux/features/auth/authslice";
 import { useDispatch } from "react-redux";
+import { User } from "lucide-react";
 
 
 export default function AdminLayout() {
   const dispacth = useDispatch();
+  const baseurl = import.meta.env.VITE_API_BASE_URL;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -96,6 +98,7 @@ export default function AdminLayout() {
   const menuRef = useRef(null);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
+  console.log("user",user);
   const config = genConfig({ sex: "man", faceColor: "#d2a679", bgColor: "yellow" });
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
@@ -156,8 +159,10 @@ export default function AdminLayout() {
             </button>
 
             <div className="flex items-center space-x-2 cursor-pointer" onClick={() => setMenuOpen((prev) => !prev)}>
-              <Avatar style={{ width: "32px", height: "32px" }} {...config} />
-              <span className="hidden md:block font-semibold">{user.fullName}</span>
+                     <span className="hidden md:block font-semibold">{user.firstName} {user.lastName}</span>
+              {/* <Avatar style={{ width: "32px", height: "32px" }} {...config} /> */}
+              <img className="w-[40px] h-[40px] cursor-pointer rounded-full" src={`${baseurl}${user.profilePic}`} alt="profilePicture" />
+       
             </div>
 
             {/* Dropdown Menu */}

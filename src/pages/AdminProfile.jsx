@@ -1,224 +1,116 @@
-// import React from "react";
-// import Avatar, { genConfig } from "react-nice-avatar";
-// import { Navigate, useNavigate } from "react-router-dom";
-// import {
-//   FaEnvelope,
-//   FaPhoneAlt,
-//   FaUserShield,
-//   FaMapMarkerAlt,
-// } from "react-icons/fa";
-
-// export default function AdminProfile() {
-//   const user = JSON.parse(localStorage.getItem("user") || "{}");
-//   const config = genConfig({
-//     sex: "man",
-//     faceColor: "#f9d3b4",
-//     bgColor: "#c7d2fe",
-//   });
-
-//   const activities = [
-//     { action: "Added a role 'Teacher'", date: "11/02/2025 10:45 AM" },
-//     { action: "Updated student 'Rahul Sharma' details", date: "11/02/2025 10:15 AM" },
-//     { action: "Assigned task to 'Worker - 1'", date: "11/02/2025 09:45 AM" },
-//     { action: "Approved leave for 'Aditi Patel'", date: "11/02/2025 09:30 AM" },
-//   ];
-//   const navigate=useNavigate();
-
-//   return (
-//     <>
-//           <button
-//         onClick={() => navigate(-1)}
-//         className="mb-4 cursor-pointer px-4 py-1 bg-gray-100 rounded-lg hover:bg-gray-200"
-//       >
-//         ← Back
-//       </button>
-
-//     <div className="min-h-screen bg-gray-100 md:p-8 flex justify-center">
-//       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-xl overflow-hidden">
-//         {/* Header Banner */}
-//         <div className="relative h-44 bg-gradient-to-r from-yellow-500 via-yellow-200 to-yellow-500">
-//           <div className="absolute left-10 top-28 flex items-center gap-4">
-//             <Avatar
-//               className="rounded-full border-4 border-white shadow-lg"
-//               style={{ width: "100px", height: "100px" }}
-//               {...config}
-//             />
-//             <div>
-//               <h1 className="text-2xl font-bold text-white">
-//                 {user.fullName || "Clay Jensen"}
-//               </h1>
-//               <p className="text-sm text-black">Administrator</p>
-//             </div>
-//           </div>
-//           <button className="absolute top-32 right-10 bg-white text-blue-600 border border-blue-600 hover:bg-blue-600 hover:text-white px-5 py-2 rounded-lg shadow transition-all">
-//             Edit Profile
-//           </button>
-//         </div>
-
-//         {/* Content */}
-//         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-10 pt-20">
-//           {/* Left Content */}
-//           <div className="md:col-span-2 space-y-8">
-//             {/* Basic Info */}
-//             <div className="grid grid-cols-2 gap-y-3 text-gray-700">
-//               <div className="flex items-center gap-2">
-//                 <FaMapMarkerAlt className="text-blue-500" />
-//                 <span>
-//                   {user.location || "Northridge, California (CA), 91326, USA"}
-//                 </span>
-//               </div>
-//               <div>
-//                 <span className="font-semibold">Age:</span> 24
-//               </div>
-//               <div>
-//                 <span className="font-semibold">Gender:</span> Male
-//               </div>
-//               <div>
-//                 <span className="font-semibold">Status:</span>{" "}
-//                 <span className="text-green-600 font-semibold">Active</span>
-//               </div>
-//             </div>
-
-//             {/* Detailed Info */}
-//             <div className="space-y-4 mt-4">
-//               <div className="flex items-center gap-3">
-//                 <FaUserShield className="text-blue-500" />
-//                 <span className="w-24 font-semibold text-gray-600">Role:</span>
-//                 <span className="text-gray-800">Administrator</span>
-//               </div>
-
-//               <div className="flex items-center gap-3">
-//                 <FaEnvelope className="text-blue-500" />
-//                 <span className="w-24 font-semibold text-gray-600">Email:</span>
-//                 <span className="text-gray-800">
-//                   {user.email || "clay.jensen@email.com"}
-//                 </span>
-//               </div>
-
-//               <div className="flex items-center gap-3">
-//                 <FaPhoneAlt className="text-blue-500" />
-//                 <span className="w-24 font-semibold text-gray-600">Contact:</span>
-//                 <span className="text-gray-800">(+1) 45687-45687</span>
-//               </div>
-
-//               <div className="flex items-center gap-3">
-//                 <FaMapMarkerAlt className="text-blue-500" />
-//                 <span className="w-24 font-semibold text-gray-600">Region:</span>
-//                 <span className="text-gray-800">Central US</span>
-//               </div>
-//             </div>
-
-//             {/* Your Activities */}
-//             <div className="mt-10 bg-gray-50 border border-gray-200 rounded-xl p-6 shadow-sm">
-//               <h2 className="text-lg font-semibold text-gray-800 mb-3">
-//                 Your Activities
-//               </h2>
-//               <ul className="space-y-2 text-sm text-gray-600">
-//                 <li>
-//                   You added a role <b>‘Sales Lead’</b> —{" "}
-//                   <span className="text-gray-400">19/02/2025</span>
-//                 </li>
-//                 <li>
-//                   Assigned task ‘API Integration’ to{" "}
-//                   <b>‘Technical Lead - BE’</b>
-//                 </li>
-//                 <li>Updated student record <b>‘Riya Sharma’</b></li>
-//               </ul>
-//             </div>
-//           </div>
-
-//           {/* Right Sidebar */}
-//           <div className="bg-gray-50 border border-gray-200 rounded-xl shadow-sm p-6 h-fit">
-//             <h3 className="text-lg font-semibold text-gray-800 mb-4">
-//               Recent Activities
-//             </h3>
-//             <div className="space-y-4 text-sm text-gray-700">
-//               {activities.map((a, i) => (
-//                 <div
-//                   key={i}
-//                   className="border-b border-gray-200 pb-2 last:border-none"
-//                 >
-//                   <p>{a.action}</p>
-//                   <span className="text-xs text-gray-400">{a.date}</span>
-//                 </div>
-//               ))}
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-
-//     </>
-
-//   );
-// }
-import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import React, { useState, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Avatar, { genConfig } from "react-nice-avatar";
 import { useNavigate } from "react-router-dom";
+import { FaEnvelope, FaPhoneAlt, FaUserShield, FaMapMarkerAlt } from "react-icons/fa";
+import Modal from "../components/Modal";
 import apiPath from "../api/apiPath";
-import { apiPut,apiGet,apiPost,apiDelete } from "../api/apiFetch";
-import {
-  FaEnvelope,
-  FaPhoneAlt,
-  FaUserShield,
-  FaMapMarkerAlt,
-} from "react-icons/fa";
-
-// Fetch function for React Query
-// const fetchAdminProfile = async () => {
-//   const { data } = await apiGet(apiPath.getAdminProfile);
-//   console.log("dataprofile",data)
-//   return data.results;
-// };
+import {apiPost, apiGet, apiPut } from "../api/apiFetch";
+import toast from "react-hot-toast";
 
 export default function AdminProfile() {
   const baseurl = import.meta.env.VITE_API_BASE_URL;
   const navigate = useNavigate();
-  const { data, isLoading, error:isError } = useQuery({
-    queryKey: ["adminDetails"],
-    queryFn: () => apiGet(`${apiPath.getAdminProfile}`)
-  });
-  const profile = data?.results || {};
-  console.log("profile",profile);
-  // Query to fetch admin profile
-  // const { data: profile, isLoading, isError } = useQuery({
-  //   queryKey: ["adminProfile"],
-  //   queryFn: fetchAdminProfile,
-  // });
-  // console.log("profiledetails",profile)
+  const queryClient = useQueryClient();
 
-  // Avatar config (for placeholder)
+  // Fetch admin profile
+  const { data, isLoading, error: isError } = useQuery({
+    queryKey: ["adminDetails"],
+    queryFn: () => apiGet(`${apiPath.getAdminProfile}`),
+  });
+
+  const profile = data?.results || {};
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    contact: "",
+    region: "",
+    address: "",
+  });
+
+  const [profilePic, setProfilePic] = useState(null); // for file upload
+  const [preview, setPreview] = useState(""); // for image preview
+  const fileInputRef = useRef();
+
+  // Open modal and pre-fill form
+  const handleOpenModal = () => {
+    setFormData({
+      firstName: profile.firstName || "",
+      lastName: profile.lastName || "",
+      email: profile.email || "",
+      contact: profile.contact || "",
+      region: profile.region || "",
+      address: profile.address || "",
+    });
+    setPreview(profile.profilePic ? `${baseurl}${profile.profilePic}` : "");
+    setProfilePic(null);
+    setIsModalOpen(true);
+  };
+
+  // Handle input change
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle image selection
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfilePic(file);
+      setPreview(URL.createObjectURL(file)); // preview the selected image
+    }
+  };
+
+  // Update mutation (FormData)
+  const updateMutation = useMutation({
+    mutationFn: async (data) => {
+      const formDataToSend = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        if (value) formDataToSend.append(key, value);
+      });
+      if (profilePic) formDataToSend.append("profilePic", profilePic);
+
+      return apiPost(apiPath.updateAdminProfile, formDataToSend);
+    },
+    onSuccess: (data) => {
+      console.log(data,"data");
+      toast.success(data.message || "Profile updated successfully!");
+      queryClient.invalidateQueries(["adminDetails"]);
+      setIsModalOpen(false);
+    },
+  });
+
+  // Handle submit
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    updateMutation.mutate(formData);
+  };
+
+  // Avatar config
   const config = genConfig({
     sex: "man",
     faceColor: "#f9d3b4",
     bgColor: "#c7d2fe",
   });
 
-  // Dummy recent activities
-  const activities = [
-    { action: "Added a role 'Teacher'", date: "11/02/2025 10:45 AM" },
-    { action: "Updated student 'Rahul Sharma' details", date: "11/02/2025 10:15 AM" },
-    { action: "Assigned task to 'Worker - 1'", date: "11/02/2025 09:45 AM" },
-    { action: "Approved leave for 'Aditi Patel'", date: "11/02/2025 09:30 AM" },
-  ];
-
-  if (isLoading) {
+  if (isLoading)
     return (
       <div className="flex justify-center items-center h-screen text-gray-600">
         Loading profile...
       </div>
     );
-  }
 
-  if (isError) {
+  if (isError)
     return (
       <div className="flex justify-center items-center h-screen text-red-600">
         Failed to load profile. Please try again.
       </div>
     );
-  }
 
   return (
     <>
@@ -234,9 +126,9 @@ export default function AdminProfile() {
           {/* Header */}
           <div className="relative h-44 bg-gradient-to-r from-yellow-500 via-yellow-200 to-yellow-500">
             <div className="absolute left-10 top-28 flex items-center gap-4">
-              {`${baseurl}/${profile.profilePic}` ? (
+              {profile.profilePic ? (
                 <img
-                  src={profile.profilePic}
+                  src={`${baseurl}${profile.profilePic}`}
                   alt="Profile"
                   className="rounded-full border-4 border-white shadow-lg w-[100px] h-[100px] object-cover"
                 />
@@ -255,7 +147,10 @@ export default function AdminProfile() {
               </div>
             </div>
 
-            <button className="absolute top-32 right-10 bg-white text-blue-600 border border-blue-600 hover:bg-blue-600 hover:text-white px-5 py-2 rounded-lg shadow transition-all">
+            <button
+              onClick={handleOpenModal}
+              className="absolute md:top-32 top-4 right-10 bg-white text-yellow-500 border border-yellow-500 cursor-pointer px-5 py-2 rounded-lg shadow transition-all hover:bg-yellow-500 hover:text-white"
+            >
               Edit Profile
             </button>
           </div>
@@ -264,15 +159,13 @@ export default function AdminProfile() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-10 pt-20">
             {/* Left - Details */}
             <div className="md:col-span-2 space-y-8">
-              {/* Basic Info */}
               <div className="grid grid-cols-2 gap-y-3 text-gray-700">
                 <div className="flex items-center gap-2">
                   <FaMapMarkerAlt className="text-blue-500" />
-                  <span>Northridge, California (CA), 91326, USA</span>
+                  <span>{profile.address || "N/A"}</span>
                 </div>
                 <div>
-                  <span className="font-semibold">Account ID:</span>{" "}
-                  {profile._id}
+                  <span className="font-semibold">Account ID:</span> {profile._id}
                 </div>
                 <div>
                   <span className="font-semibold">Role:</span>{" "}
@@ -307,13 +200,13 @@ export default function AdminProfile() {
                 <div className="flex items-center gap-3">
                   <FaPhoneAlt className="text-blue-500" />
                   <span className="w-24 font-semibold text-gray-600">Contact:</span>
-                  <span className="text-gray-800">(+1) 45687-45687</span>
+                  <span className="text-gray-800">{profile.contact || "N/A"}</span>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <FaMapMarkerAlt className="text-blue-500" />
                   <span className="w-24 font-semibold text-gray-600">Region:</span>
-                  <span className="text-gray-800">Central US</span>
+                  <span className="text-gray-800">{profile.region || "N/A"}</span>
                 </div>
               </div>
 
@@ -324,8 +217,7 @@ export default function AdminProfile() {
                 </h2>
                 <ul className="space-y-2 text-sm text-gray-600">
                   <li>
-                    Logged in last at{" "}
-                    <b>{new Date(profile.lastLogin).toLocaleString()}</b>
+                    Logged in last at <b>{new Date(profile.lastLogin).toLocaleString()}</b>
                   </li>
                   <li>
                     Account created on{" "}
@@ -338,27 +230,128 @@ export default function AdminProfile() {
                 </ul>
               </div>
             </div>
-
-            {/* Right - Recent Activities */}
-            <div className="bg-gray-50 border border-gray-200 rounded-xl shadow-sm p-6 h-fit">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Recent Activities
-              </h3>
-              <div className="space-y-4 text-sm text-gray-700">
-                {activities.map((a, i) => (
-                  <div
-                    key={i}
-                    className="border-b border-gray-200 pb-2 last:border-none"
-                  >
-                    <p>{a.action}</p>
-                    <span className="text-xs text-gray-400">{a.date}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </div>
+
+      {/* ✏️ Edit Profile Modal */}
+      <Modal isOpen={isModalOpen} title="Edit Profile" onClose={() => setIsModalOpen(false)}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Image Upload Section */}
+          <div className="flex flex-col items-center">
+            <div className="relative w-28 h-28">
+              <img
+                src={preview || `${baseurl}${profile.profilePic}` || ""}
+                alt="Preview"
+                className="w-28 h-28 rounded-full object-cover border-2 border-yellow-400"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current.click()}
+                className="absolute bottom-0 right-0 cursor-pointer bg-yellow-500 text-white rounded-full p-2 text-xs shadow-md hover:bg-yellow-600"
+              >
+                📸
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-2">Click camera icon to change</p>
+          </div>
+
+          {/* Input Fields */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">First Name</label>
+              <input
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Last Name</label>
+              <input
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Contact</label>
+            <input
+              type="text"
+              name="contact"
+              value={formData.contact}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Region</label>
+            <input
+              type="text"
+              name="region"
+              value={formData.region}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Address</label>
+            <textarea
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              rows="3"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400 resize-none"
+              placeholder="Enter your address"
+            ></textarea>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="px-4 py-2 bg-gray-200 cursor-pointer text-gray-800 rounded-md hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              disabled={updateMutation.isPending}
+              className="px-4 py-2 cursor-pointer bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
+            >
+              {updateMutation.isPending ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </>
   );
 }
