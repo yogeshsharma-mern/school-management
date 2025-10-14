@@ -116,7 +116,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           onClick={toggleSidebar}
         >
           <IoIosSettings  size={20} />
-          <span>Admin Settings</span>
+          <span>School Settings</span>
         </NavLink>
          <NavLink
           to="/admin/password"

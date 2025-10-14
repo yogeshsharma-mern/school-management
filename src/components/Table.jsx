@@ -209,6 +209,10 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 import Loader from "./Loading";
+import {
+  Box,
+  CircularProgress,
+} from "@mui/material";
 
 export default function ReusableTable({
   columns,
@@ -250,6 +254,12 @@ export default function ReusableTable({
   });
 console.log("error",isError);
 console.log("isfetching,loading",fetching,loading);
+  // if (loading)
+  //   return (
+  //     <Box display="flex" justifyContent="center" mt={8}>
+  //       <CircularProgress />
+  //     </Box>
+  //   );
   return (
     <div className="bg-[var(--color-neutral)] shadow w-full rounded-lg p-4 overflow-x-auto">
       

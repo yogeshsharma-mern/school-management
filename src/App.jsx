@@ -27,6 +27,7 @@ const AdminSettings = lazy(() => import("./components/AdminSettings.jsx"));
 const ChangePassword = lazy(() => import("./components/ChangePasswoord.jsx"));
 const EditTeacher=lazy(()=>import("./pages/EditTeacher.jsx"));
 const ResetPassword=lazy(()=>import("./components/ResetPassword.jsx"));
+const ResetPasswordId=lazy(()=>import("./pages/ResetPasswordId.jsx"));
 
 export default function App() {
   const queryClient = new QueryClient();
@@ -40,6 +41,8 @@ export default function App() {
         <Route element={<PublicRoute />}>
           <Route path="/" element={<Login />} />
             <Route path="reset-password" element={<ResetPassword />} />
+            <Route path="reset-password/:id" element={<ResetPasswordId />} />
+
 
         </Route>
         {/* protectedroute  */}

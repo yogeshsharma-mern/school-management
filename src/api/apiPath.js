@@ -1,3 +1,5 @@
+import SchoolSettings from "../components/AdminSettings";
+
 const apiPath = Object.freeze({
   loginadmin: "/admins/auth/login",
   students:"/studetns",
@@ -21,7 +23,15 @@ const apiPath = Object.freeze({
   updateTeacher:"/admins/teachers/update-teacher",
   deleteTeacher:"/admins/teachers/soft-delete",
   getParticularTeacher:"/admins/teachers/getProfile",
-  dashboardData:"/admins/dashboard"
+  dashboardData:"/admins/dashboard",
+  SchoolSettings:"/admins/setting/school-settings",
+  createSchoolSettings:"/admins/setting/school-settings",
+  updateSchoolSettings:"/admins/setting/update-settings",
+  resetSchoolSettings:"/admins/setting/school-settings/reset",
+  getAdminProfile:"/admins/auth/profile",
+  // getTeachers:"/admins/teachers/getAllTeacher",
+//   getTeacherDetails:"/admins/teachers/getTeacherProfile",
+//   teacherDelete:"/admins/teachers/soft-delete",
   // updateTeacher:"/admins/teachers/update",
 //   getUsers: "/v1/admin/user",
 //   getUserDetails: "/v1/admin/user/details",
