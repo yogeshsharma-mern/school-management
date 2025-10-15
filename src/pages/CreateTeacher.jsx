@@ -475,7 +475,7 @@ export default function CreateTeacherPage() {
             </button>
 
             <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">
-                Create Teacher
+                Add Teacher
             </h1>
 
             <Stepper activeStep={activeStep} alternativeLabel>
@@ -596,7 +596,7 @@ export default function CreateTeacherPage() {
 
                         {/* Phone */}
                         <div>
-                            <label className="block text-gray-600 font-medium mb-1">Phone</label>
+                            {/* <label className="block text-gray-600 font-medium mb-1">Phone</label> */}
                             <PhoneInput
                                 country="in"
                                 enableSearch

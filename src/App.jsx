@@ -56,7 +56,7 @@ export default function App() {
             <Route path="students/:id" element={<StudentDetail />} />
             <Route path="students/edit/:id" element={<EditStudent />} />
             <Route path="profile" element={<AdminProfile />} />
-            <Route path="student/create" element={<CreateStudent />} />
+            <Route path="students/create" element={<CreateStudent />} />
 
 
             <Route path="teachers" element={<Teachers />} />

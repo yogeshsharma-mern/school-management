@@ -345,7 +345,7 @@ const handleSubmit = async (e) => {
     navigate(-1);
   } catch (err) {
     console.error(err);
-    toast.error(err?.response?.data?.message || "Failed to create student ❌");
+    toast.error(err?.response?.data?.message || "Failed to add student ❌");
   }
 };
 
@@ -359,7 +359,7 @@ const handleSubmit = async (e) => {
       </button>
 
       <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">
-        Create Student
+        Add Student
       </h1>
 
       <Stepper activeStep={activeStep} alternativeLabel>
@@ -476,7 +476,7 @@ const handleSubmit = async (e) => {
               }}
             />
             <div>
-              <label className="block text-gray-600 font-medium mb-1">Phone</label>
+              {/* <label className="block text-gray-600 font-medium mb-1">Phone</label> */}
               <PhoneInput
                 country="in"
                 enableSearch

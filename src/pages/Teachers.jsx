@@ -223,13 +223,13 @@ export default function StudentPage() {
 
 
 
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex p-6 justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Teachers</h1>
         <button
           onClick={() => navigate("/admin/teachers/create")}
           className="px-4 py-2 bg-yellow-400 rounded-lg hover:bg-yellow-500 cursor-pointer transition"
         >
-          Create Teacher
+          Add Teacher
         </button>
       </div>
       <Modal isOpen={deleteModalOpen} title={`Delete ${deleteTarget.name}?`} onClose={() => setDeleteModalOpen(false)}>

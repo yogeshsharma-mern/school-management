@@ -198,10 +198,27 @@ function apiPut(url, body) {
       throw err;
     });
 }
+function apiPatch(url, body) {
+  let headers = {};
 
+  // 👇 Detect if body is FormData
+  if (body instanceof FormData) {
+    headers["Content-Type"] = "multipart/form-data";
+  } else {
+    headers["Content-Type"] = "application/json";
+  }
+
+  return instance
+    .patch(url, body, { headers })
+    .then((res) => res.data)
+    .catch((err) => {
+      console.error("API PUT error:", err);
+      throw err;
+    });
+}
 //
 function apiDelete(url) {
   return instance.delete(url).then(res => res.data);
 }
 
-export { getHeaders, apiGet, apiPost, apiPut, apiDelete };
+export { getHeaders, apiGet, apiPost, apiPut, apiDelete,apiPatch };

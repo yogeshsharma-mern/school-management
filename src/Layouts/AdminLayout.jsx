@@ -161,7 +161,7 @@ export default function AdminLayout() {
             <div className="flex items-center space-x-2 cursor-pointer" onClick={() => setMenuOpen((prev) => !prev)}>
                      <span className="hidden md:block font-semibold">{user.firstName} {user.lastName}</span>
               {/* <Avatar style={{ width: "32px", height: "32px" }} {...config} /> */}
-              <img className="w-[40px] h-[40px] cursor-pointer rounded-full" src={`${baseurl}${user.profilePic}`} alt="profilePicture" />
+              <img className="w-[40px] h-[40px] cursor-pointer rounded-full" src={`${user.profilePic}`} alt="profilePicture" />
        
             </div>
 
@@ -186,7 +186,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 overflow-auto">
           <div className="w-full overflow-x-auto">
             <Outlet />
           </div>

@@ -114,7 +114,7 @@ export default function StudentDetailPage() {
             className="rounded-full w-[100px] h-[100px]"
             width={100}
             height={100}
-            src={`${import.meta.env.VITE_API_BASE_URL}${student.profilePic}`}
+            src={`${student.profilePic}`}
             alt="profile-picture"
           />
           <div>
@@ -149,7 +149,7 @@ export default function StudentDetailPage() {
           "fees",
           "assignments",
           "attendance",
-          "documents & marksheets",
+          "documents",
         ].map((tab) => (
           <button
             key={tab}
@@ -394,10 +394,10 @@ export default function StudentDetailPage() {
         )}
 
         {/* Documents & Marksheets Tab */}
-{activeTab === "documents & marksheets" && (
+{activeTab === "documents" && (
           <div className="bg-white shadow rounded-2xl p-6 space-y-6">
             <h2 className="text-xl font-semibold mb-4">
-              Documents & Marksheets
+              Documents 
             </h2>
 
             {/* Profile & ID */}
@@ -413,7 +413,7 @@ export default function StudentDetailPage() {
                 >
                   {doc.file ? (
                     <img
-                      src={`${import.meta.env.VITE_API_BASE_URL}${doc.file}`}
+                      src={`${doc.file}`}
                       alt={doc.label}
                       className="w-full h-40 object-cover rounded-lg"
                     />
@@ -448,7 +448,7 @@ export default function StudentDetailPage() {
                       className="p-4 border border-gray-300 rounded-lg flex flex-col items-center gap-2 hover:shadow-md transition"
                     >
                       <img
-                        src={`${import.meta.env.VITE_API_BASE_URL}${ms.fileUrl}`}
+                        src={`${ms.fileUrl}`}
                         alt={ms.exam}
                         className="w-full h-40 object-cover rounded-lg"
                       />
@@ -486,7 +486,7 @@ export default function StudentDetailPage() {
                       className="p-4 border rounded-lg shadow-sm flex flex-col items-center gap-2 hover:shadow-md transition"
                     >
                       <img
-                        src={`${import.meta.env.VITE_API_BASE_URL}${cert.fileUrl}`}
+                        src={`${cert.fileUrl}`}
                         alt={cert.name || "Certificate"}
                         className="w-full h-40 object-cover rounded-lg"
                       />

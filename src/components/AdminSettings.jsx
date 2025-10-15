@@ -22,7 +22,7 @@ import PhoneInput from "react-phone-input-2";
 import Select from "react-select";
 import ToggleButton from "../components/ToggleButton";
 import "react-phone-input-2/lib/material.css";
-import { apiPut,apiGet,apiDelete,apiPost } from "../api/apiFetch";
+import { apiPut,apiGet,apiPatch,apiDelete,apiPost } from "../api/apiFetch";
 import apiPath from "../api/apiPath";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
@@ -128,7 +128,7 @@ useEffect(() => {
     schoolLogo: null, // keep null, preview handled separately
   });
 
-  if (s.schoolLogo) setLogoPreview(`${API_BASE}${s.schoolLogo}`);
+  if (s.schoolLogo) setLogoPreview(`${s.schoolLogo}`);
 
 }, [studentData]);
 
@@ -141,13 +141,17 @@ const mutation = useMutation({
       ? apiPut(apiPath.updateSchoolSettings, formData)
       : apiPost(apiPath.createSchoolSettings, formData);
   },
-  onSuccess: () => queryClient.invalidateQueries(["school-settings"]),
+  onSuccess: (data) =>{ queryClient.invalidateQueries(["school-settings"])
+    toast.success(data.message || "Settings saved successfully");
+  },
 });
 
   // PATCH Reset Defaults
   const resetMutation = useMutation({
-    mutationFn: async () => apiPut(apiPath.resetSchoolSettings),
-    onSuccess: () => queryClient.invalidateQueries(["school-settings"]),
+    mutationFn: async () => apiPatch(apiPath.resetSchoolSettings),
+    onSuccess: (data) =>{ queryClient.invalidateQueries(["school-settings"])
+      toast.success(data.message || "Settings reset to defaults");
+    },
   });
 const generateSessionOptions = (startDate, endDate) => {
   if (!startDate || !endDate) return [];
@@ -219,10 +223,15 @@ const handleChange = (path, value) => {
     );
 
   return (
-    <Box sx={{ maxWidth: 950, mx: "auto", my: 6, p: 4 }}>
-      <Typography variant="h4" color="primary" align="center" gutterBottom>
-        🏫 School Settings
-      </Typography>
+    <Box className="p-6" >
+  <Typography
+  className="text-yellow-500  font-bold tracking-wide"
+  variant="h5"
+  align="center"
+  gutterBottom
+>
+  🏫 School Settings
+</Typography>
 
       <form onSubmit={handleSubmit}>
         {/* Basic Info + Status */}

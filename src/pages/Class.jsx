@@ -107,19 +107,19 @@ const handleSubmit = (e) => {
     newErrors.section = "Section must be A, B, C, or D";
 
   // Start/End time validation
-  if (!formData.startTime) newErrors.startTime = "Start time is required";
-  if (!formData.endTime) newErrors.endTime = "End time is required";
+  // if (!formData.startTime) newErrors.startTime = "Start time is required";
+  // if (!formData.endTime) newErrors.endTime = "End time is required";
 
-  if (formData.startTime && formData.endTime) {
-    const start = formData.startTime.split(":").map(Number); // [HH, MM]
-    const end = formData.endTime.split(":").map(Number);
-    const startMinutes = start[0] * 60 + start[1];
-    const endMinutes = end[0] * 60 + end[1];
+  // if (formData.startTime && formData.endTime) {
+  //   const start = formData.startTime.split(":").map(Number); // [HH, MM]
+  //   const end = formData.endTime.split(":").map(Number);
+  //   const startMinutes = start[0] * 60 + start[1];
+  //   const endMinutes = end[0] * 60 + end[1];
 
-    if (endMinutes <= startMinutes) {
-      newErrors.endTime = "End time must be after start time";
-    }
-  }
+  //   if (endMinutes <= startMinutes) {
+  //     newErrors.endTime = "End time must be after start time";
+  //   }
+  // }
 
   if (Object.keys(newErrors).length > 0) {
     setErrors(newErrors);
@@ -130,8 +130,8 @@ const handleSubmit = (e) => {
   classMutation.mutate({
     name: formData.name.trim(),
     section: formData.section.trim(),
-    startTime: formatTo12Hour(formData.startTime),
-    endTime: formatTo12Hour(formData.endTime),
+    // startTime: formatTo12Hour(formData.startTime),
+    // endTime: formatTo12Hour(formData.endTime),
   });
 };
 
@@ -248,7 +248,7 @@ const handleSubmit = (e) => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between p-6 items-center mb-4">
         <h1 className="text-2xl font-bold">Classes</h1>
         <button
           onClick={() => {
@@ -258,7 +258,7 @@ const handleSubmit = (e) => {
           }}
           className="px-4 py-2 bg-yellow-400 cursor-pointer rounded-lg hover:bg-yellow-400 transition"
         >
-          Create Class
+          Add Class
         </button>
       </div>
 
@@ -287,7 +287,7 @@ const handleSubmit = (e) => {
       {/* Modal */}
       <Modal
         isOpen={isModalOpen}
-        title={editingClass ? "Edit Class" : "Create Class"}
+        title={editingClass ? "Edit Class" : "Add Class"}
         onClose={() => setIsModalOpen(false)}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -310,7 +310,7 @@ const handleSubmit = (e) => {
 
           <div className="flex gap-4">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700">Start Time</label>
+              {/* <label className="block text-sm font-medium text-gray-700">Start Time</label>
               <input
                 type="time"
                 name="startTime"
@@ -318,11 +318,11 @@ const handleSubmit = (e) => {
                 value={formData.startTime}
                 onChange={handleChange}
               />
-              {errors.startTime && <p className="text-red-500 text-sm">{errors.startTime}</p>}
+              {errors.startTime && <p className="text-red-500 text-sm">{errors.startTime}</p>} */}
             </div>
 
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700">End Time</label>
+              {/* <label className="block text-sm font-medium text-gray-700">End Time</label>
               <input
                 type="time"
                 name="endTime"
@@ -330,7 +330,7 @@ const handleSubmit = (e) => {
                 value={formData.endTime}
                 onChange={handleChange}
               />
-              {errors.endTime && <p className="text-red-500 text-sm">{errors.endTime}</p>}
+              {errors.endTime && <p className="text-red-500 text-sm">{errors.endTime}</p>} */}
             </div>
           </div>
 
@@ -339,7 +339,7 @@ const handleSubmit = (e) => {
             disabled={classMutation.isLoading}
             className="w-full cursor-pointer bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
           >
-            {classMutation.isLoading ? "Saving..." : editingClass ? "Update Class" : "Create Class"}
+            {classMutation.isLoading ? "Saving..." : editingClass ? "Update Class" : "Add Class"}
           </button>
         </form>
       </Modal>

@@ -701,7 +701,7 @@ if (
 
                         {/* Phone */}
                         <div>
-                            <label className="block text-gray-600 font-medium mb-1">Phone</label>
+                            {/* <label className="block text-gray-600 font-medium mb-1">Phone</label> */}
                             <PhoneInput
                                 country="in"
                                 enableSearch

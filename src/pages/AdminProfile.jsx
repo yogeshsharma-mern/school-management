@@ -113,7 +113,7 @@ export default function AdminProfile() {
     );
 
   return (
-    <>
+    <div className="p-3">
       <button
         onClick={() => navigate(-1)}
         className="mb-4 cursor-pointer px-4 py-1 bg-gray-100 rounded-lg hover:bg-gray-200"
@@ -128,7 +128,7 @@ export default function AdminProfile() {
             <div className="absolute left-10 top-28 flex items-center gap-4">
               {profile.profilePic ? (
                 <img
-                  src={`${baseurl}${profile.profilePic}`}
+                  src={`${profile.profilePic}`}
                   alt="Profile"
                   className="rounded-full border-4 border-white shadow-lg w-[100px] h-[100px] object-cover"
                 />
@@ -241,7 +241,7 @@ export default function AdminProfile() {
           <div className="flex flex-col items-center">
             <div className="relative w-28 h-28">
               <img
-                src={preview || `${baseurl}${profile.profilePic}` || ""}
+                src={preview || `${profile.profilePic}` || ""}
                 alt="Preview"
                 className="w-28 h-28 rounded-full object-cover border-2 border-yellow-400"
               />
@@ -352,6 +352,6 @@ export default function AdminProfile() {
           </div>
         </form>
       </Modal>
-    </>
+  </div>
   );
 }

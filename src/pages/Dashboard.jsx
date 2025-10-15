@@ -27,7 +27,13 @@ export default function Dashboard() {
     queryFn: () => apiGet(apiPath.dashboardData),
   });
 
-  if (isLoading) return <div className="p-8 text-center">Loading Dashboard...</div>;
+  // if (isLoading) return <div className="p-8 text-center">Loading Dashboard...</div>;
+  if(isLoading)
+  {
+    return  <div className=" h-[70vh] inset-0 flex items-center justify-center bg-opacity-70 z-50">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+    </div>
+  }
   if (error) return <div className="p-8 text-center text-red-500">Failed to load data</div>;
 
   const results = dashboardData?.results || {};
@@ -82,16 +88,28 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-red-100">
+        {/* <Card className="bg-red-100">
           <CardContent className="flex items-center gap-4">
+            <FaSchool size={32} className="text-blue-600" />
+
             <div className="text-red-600 text-2xl font-bold">
-              {results.percentageTeachersPresentToday ?? 0}%
+              {results.percentageTeachersPresentToday ?? 0}
             </div>
             <div>
-              <p>Today Teacher Attendance</p>
+              <p>Today Present Teacher </p>
+            </div>
+          </CardContent>
+        </Card> */}
+         <Card className="bg-blue-100">
+          <CardContent className="flex items-center gap-4">
+            <FaSchool size={32} className="text-blue-600" />
+            <div>
+              <p className="text-2xl font-bold">{results.percentageTeachersPresentToday ??  0}</p>
+              <p>Today Present Teachers</p>
             </div>
           </CardContent>
         </Card>
+
       </div>
 
       {/* --- Charts --- */}

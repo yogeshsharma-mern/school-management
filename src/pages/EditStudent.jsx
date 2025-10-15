@@ -128,14 +128,14 @@ useEffect(() => {
 
   // ✅ Set image/file previews (with base URL)
   setPreviews({
-    profilePic: s.profilePic ? `${BASE_URL}${s.profilePic}` : null,
-    aadharFront: s.aadharFront ? `${BASE_URL}${s.aadharFront}` : null,
-    aadharBack: s.aadharBack ? `${BASE_URL}${s.aadharBack}` : null,
+    profilePic: s.profilePic ? `${s.profilePic}` : null,
+    aadharFront: s.aadharFront ? `${s.aadharFront}` : null,
+    aadharBack: s.aadharBack ? `${s.aadharBack}` : null,
     certificates: s.certificates?.map(c =>
-      c.fileUrl ? `${BASE_URL}${c.fileUrl}` : `${BASE_URL}${c}`
+      c.fileUrl ? `${c.fileUrl}` : `${c}`
     ) || [],
     marksheets: s.marksheets?.map(c =>
-      c.fileUrl ? `${BASE_URL}${c.fileUrl}` : `${BASE_URL}${c}`
+      c.fileUrl ? `${c.fileUrl}` : `${c}`
     ) || [],
   });
 }, [studentData]);
@@ -230,7 +230,7 @@ console.log("combined files",combinedFiles);
 
     setPreviews(prev => ({
       ...prev,
-      [field]: filesToSet.map(f => f instanceof File ? URL.createObjectURL(f) : f.fileUrl ? `${BASE_URL}${f.fileUrl}` : `${BASE_URL}${f}`),
+      [field]: filesToSet.map(f => f instanceof File ? URL.createObjectURL(f) : f.fileUrl ? `${f.fileUrl}` : `${f}`),
     }));
   } 
   else if (section === "documents") {

@@ -209,13 +209,13 @@ const confirmDelete = () => {
         </form>
       </Modal> */}
 
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex p-6 justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Students</h1>
         <button
-   onClick={()=>navigate("/admin/student/create")}
+   onClick={()=>navigate("/admin/students/create")}
           className="px-4 py-2 bg-yellow-400 rounded-lg hover:bg-yellow-500 cursor-pointer transition"
         >
-          Create Student
+          Add Student
         </button>
       </div>
 <Modal isOpen={deleteModalOpen} title={`Delete ${deleteTarget.name}?`} onClose={() => setDeleteModalOpen(false)}>

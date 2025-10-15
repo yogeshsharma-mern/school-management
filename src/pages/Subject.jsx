@@ -199,7 +199,12 @@ console.log("subject",subject);
     const toggleMutation = useMutation({
       mutationFn: (newStatus) =>
         apiPut(`${apiPath.ToggleSubject}/${subject._id}`, { status: newStatus }),
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["subjects"] }),
+      onSuccess: (data) =>
+      {
+        toast.success(data.message || "Status updated successfully 🎉");
+         queryClient.invalidateQueries({ queryKey: ["subjects"] });
+
+      },
       onError: (err) => {
         toast.error(err?.response?.data?.message || "Failed to update status ❌");
       },
@@ -312,7 +317,7 @@ console.log("subject",subject);
                     )
                 }
             </Modal>
-            <div className="flex justify-between items-center cursor-pointer mb-4">
+            <div className="flex p-6 justify-between items-center cursor-pointer mb-4">
                 <h1 className="text-2xl font-bold">Subjects</h1>
                 <button
                     onClick={() => {
@@ -322,7 +327,7 @@ console.log("subject",subject);
                     }}
                     className="px-4 py-2 bg-yellow-400 cursor-pointer  rounded-lg hover:bg-yellow-500 cursor-pointer transition"
                 >
-                    Create Subject
+                    Add Subject
                 </button>
             </div>
             <div className="overflow-x-auto  realtive w-[90vw] md:w-[80vw]">
@@ -353,7 +358,7 @@ console.log("subject",subject);
             {/* Modal for create/edit */}
             <Modal
                 isOpen={isModalOpen}
-                title={editingClass ? "Edit Subject" : "Create Subject"}
+                title={editingClass ? "Edit Subject" : "Add Subject"}
                 onClose={() => setIsModalOpen(false)}
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -409,7 +414,7 @@ console.log("subject",subject);
     : "Update Subject"
   : classMutation.isLoading
   ? "Creating..."
-  : "Create Subject"}
+  : "Add Subject"}
 
                     </button>
                 </form>
