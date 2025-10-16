@@ -115,22 +115,7 @@ export default function Dashboard() {
       {/* --- Charts --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* 📊 Daily Teacher Attendance Trend */}
-        <Card className="p-4">
-          <h2 className="text-xl font-semibold mb-4">Daily Teacher Attendance</h2>
-          <LineChart width={400} height={250} data={dailyAttendanceData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="day" />
-            <YAxis />
-            <Tooltip />
-            <Line
-              type="monotone"
-              dataKey="attendance"
-              stroke="#8884d8"
-              strokeWidth={3}
-              dot={false}
-            />
-          </LineChart>
-        </Card>
+    
 
         {/* 🧑‍🏫 Teacher Distribution */}
         <Card className="p-4">
@@ -153,9 +138,7 @@ export default function Dashboard() {
             <Tooltip />
           </PieChart>
         </Card>
-
-        {/* 👥 Gender Ratio */}
-        <Card className="p-4">
+         <Card className="p-4">
           <h2 className="text-xl font-semibold mb-4">Gender Ratio</h2>
           <PieChart width={400} height={250}>
             <Pie
@@ -174,8 +157,11 @@ export default function Dashboard() {
           </PieChart>
         </Card>
 
+        {/* 👥 Gender Ratio */}
+       
+
         {/* 📊 Teacher Attendance Overview */}
-        <Card className="p-4">
+        {/* <Card className="p-4">
           <h2 className="text-xl font-semibold mb-4">Teacher Attendance Overview</h2>
           <BarChart width={400} height={250} data={dailyAttendanceData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -185,8 +171,31 @@ export default function Dashboard() {
             <Legend />
             <Bar dataKey="attendance" fill="#82ca9d" />
           </BarChart>
-        </Card>
+        </Card> */}
+
+
       </div>
+               <Card className="p-4 w-full">
+  <h2 className="text-xl  font-semibold mb-4">Daily Teacher Attendance</h2>
+  <LineChart
+    className="w-full"
+    width={1000}
+    height={250}
+    data={dailyAttendanceData}
+  >
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey="day" />
+    <YAxis />
+    <Tooltip />
+    <Line
+      type="monotone"
+      dataKey="attendance"
+      stroke="#8884d8"
+      strokeWidth={3}
+      dot={false}
+    />
+  </LineChart>
+</Card>
     </div>
   );
 }

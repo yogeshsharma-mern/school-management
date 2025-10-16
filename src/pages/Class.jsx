@@ -202,7 +202,7 @@ const handleSubmit = (e) => {
 },
       { header: "Teacher Name", accessorFn: (row) => row.classTeacher?.name || "N/A" },
       { header: "Teacher Email", accessorFn: (row) => row.classTeacher?.email || "N/A" },
-      { header: "Teacher Department", accessorFn: (row) => row.classTeacher?.department || "N/A" },
+      // { header: "Teacher Department", accessorFn: (row) => row.classTeacher?.department || "N/A" },
       { header: "Teacher Specialization", accessorFn: (row) => row.classTeacher?.specialization || "N/A" },
       {
         header: "Class Timing",

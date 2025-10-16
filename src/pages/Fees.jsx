@@ -172,7 +172,7 @@ const classOptions = (() => {
     classOptions.find((cls) => cls.value === selectedClass)?.label || "N/A";
 
   return (
-    <div className="p-8 bg-gradient-to-b from-yellow-50 via-yellow-100 to-yellow-50 min-h-screen">
+    <div className="p-8  min-h-screen">
       <Typography
         variant="h4"
         align="center"

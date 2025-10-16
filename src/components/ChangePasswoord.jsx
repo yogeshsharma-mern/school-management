@@ -61,7 +61,7 @@ const ResetPassword = () => {
   return (
     <div className="h-[85vh]  flex items-center justify-center  ">
       <Toaster position="top-right" />
-      <div className="w-full max-w-md bg-white/80 backdrop-blur-xl shadow-2xl rounded-3xl border border-gray-100 p-8 transition-all duration-300 hover:shadow-[0_0_30px_rgba(59,130,246,0.2)]">
+      <div className="w-full max-w-md bg-white/80 backdrop-blur-xl  rounded-3xl border border-gray-100 p-8 transition-all duration-300 hover:shadow-[0_0_30px_rgba(59,130,246,0.2)]">
         {/* Header */}
         <div className="flex flex-col cursor-pointer items-center mb-8">
           <div className="bg-blue-100 text-yellow-500  p-4 rounded-full shadow-inner">

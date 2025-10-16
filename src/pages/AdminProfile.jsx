@@ -46,7 +46,7 @@ export default function AdminProfile() {
       region: profile.region || "",
       address: profile.address || "",
     });
-    setPreview(profile.profilePic ? `${baseurl}${profile.profilePic}` : "");
+    setPreview(profile.profilePic ? `${profile.profilePic}` : "");
     setProfilePic(null);
     setIsModalOpen(true);
   };

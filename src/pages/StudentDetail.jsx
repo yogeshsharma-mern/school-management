@@ -35,7 +35,7 @@ export default function StudentDetailPage() {
   // ✅ Function to download single image as PDF
   const downloadImageAsPDF = async (fileUrl, filename) => {
     if (!fileUrl) return;
-    const url = `${import.meta.env.VITE_API_BASE_URL}${fileUrl}`;
+    const url = `${fileUrl}`;
     const img = await loadImage(url);
     const pdf = new jsPDF({
       orientation: img.width > img.height ? "landscape" : "portrait",
@@ -124,7 +124,7 @@ export default function StudentDetailPage() {
             </p>
           </div>
         </div>
-        <button
+        {/* <button
           onClick={() => toggleStatusMutation.mutate()}
           disabled={toggleStatusMutation.isLoading}
           className={`px-4 py-2 rounded-lg text-white font-medium shadow ${
@@ -138,7 +138,7 @@ export default function StudentDetailPage() {
             : student.status === "active"
             ? "Set Inactive"
             : "Set Active"}
-        </button>
+        </button> */}
       </div>
 
       {/* Tabs */}
@@ -195,7 +195,7 @@ export default function StudentDetailPage() {
                 <strong>Blood Group:</strong> {student.bloodGroup}
               </p>
               <p className="col-span-2 flex items-start gap-2">
-                <Home className="w-4 h-4 mt-1 text-gray-500" />
+                {/* <Home className="w-4 h-4 mt-1 text-gray-500" /> */}
               </p>
             </div>
 

@@ -371,7 +371,7 @@ console.log("subject",subject);
                     error={errors.name}
                     />
                     <InputField
-                        label="code"
+                        label="Code"
                         name="code"
                         value={formData.code}
                         onChange={handleChange}
@@ -379,7 +379,7 @@ console.log("subject",subject);
                     error={errors.code}
                     />
                     <InputField
-                        label="description"
+                        label="Description"
                         name="description"
                         value={formData.description}
                         onChange={handleChange}

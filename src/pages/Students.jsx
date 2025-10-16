@@ -82,6 +82,17 @@ const confirmDelete = () => {
   // Table columns
   const columns = useMemo(
     () => [
+       {
+        accessorKey: "profilePic",
+        header: "Profile Pic",
+        cell: ({ row }) => (
+          <img
+            src={`${row.original.profilePic}` || "/default-avatar.png"}
+            alt={row.original.name}
+            className="w-10 h-10 rounded-full object-cover border"
+          />
+        ),
+      },
       { accessorKey: "name", header: "Name" },
       // { accessorKey: "dob", header: "DOB" },
       { accessorKey: "gender", header: "Gender" },

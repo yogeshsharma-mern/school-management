@@ -415,11 +415,19 @@ const handleSubmit = async (e) => {
 
     // 🔹 Call API (you can switch this depending on edit/create)
     if (student._id) {
-      await apiPut(`${apiPath.updateStudent}/${student._id}`, formData);
-      toast.success("Student updated successfully ✅");
+    const res=  await apiPut(`${apiPath.updateStudent}/${student._id}`, formData);
+    // console.log("responsestudent",res);
+    if(res.success===true){
+toast.success(res.message);
+    }
+
     } else {
-      await apiPost(apiPath.studentReg, formData);
-      toast.success("Student created successfully ✅");
+ const res=  await apiPost(apiPath.studentReg, formData);
+ if(res.success===true)
+ {
+  toast.success(res.message);
+ }
+
     }
 
     navigate(-1);
@@ -1082,6 +1090,7 @@ const handleSubmit = async (e) => {
           ) : (
 <button
   type="submit"
+  className="p-2 cursor-pointer rounded-md"
   style={{ backgroundColor: isEditMode ? "#2196f3" : "#4caf50", color: "white" }}
 >
   {isEditMode ? "Update" : "Submit"}
