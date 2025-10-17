@@ -8,6 +8,10 @@ import apiPath from "../api/apiPath";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
+import Modal from "../components/Modal";
+// import EditFeesForm from "../components/EditFeesForm";
+import AddFeesForm from "../pages/AddFeesForm";
+import { Link } from "react-router-dom";
 import {
   User,
   Mail,
@@ -30,7 +34,10 @@ export default function StudentDetailPage() {
     enabled: !!id,
   });
 
+  const [showFeesModal,setShowFeesModal] = useState(false);
+
   const student = data?.results?.[0];
+  console.log("studentdata",student);
 
   // ✅ Function to download single image as PDF
   const downloadImageAsPDF = async (fileUrl, filename) => {
@@ -301,63 +308,127 @@ export default function StudentDetailPage() {
         )}
 
         {/* Fees Tab */}
-        {activeTab === "fees" && (
-          <div className="bg-white shadow rounded-2xl p-6">
-            <h2 className="text-xl font-semibold mb-4">Fee Details</h2>
-            {student.feeStructuresDetails?.map((structure) => (
-              <div
-                key={structure._id}
-                className="p-4 mb-4 border rounded-xl bg-gray-50"
-              >
-                <p>
-                  <strong>Academic Year:</strong> {structure.academicYear}
-                </p>
-                <p>
-                  <strong>Total Amount:</strong> ₹{structure.totalAmount}
-                </p>
-                <h3 className="font-semibold mt-2">Fee Heads:</h3>
-                <ul className="list-disc ml-6">
-                  {structure.feeHeads.map((fh) => (
-                    <li key={fh._id}>
-                      {fh.type}: ₹{fh.amount}{" "}
-                      {fh.isOptional ? "(Optional)" : ""}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+     {activeTab === "fees" && (
+  <div className="bg-white shadow rounded-2xl p-6">
+<Modal
+  isOpen={showFeesModal}
+  onClose={() => setShowFeesModal(false)}
+  title="Add Fees"
+>
+  <AddFeesForm
+    studentId={student._id}
+    onClose={() => setShowFeesModal(false)}
+    queryClient={queryClient}
+  />
+</Modal>
 
-            {student.feesDetails?.map((fee) => (
-              <div
-                key={fee._id}
-                className="p-4 border rounded-xl shadow-sm bg-green-50"
-              >
-                <p>
-                  <strong>Total Fee:</strong> ₹{fee.totalFee}
-                </p>
-                <p>
-                  <strong>Paid:</strong> ₹{fee.paidTillNow}
-                </p>
-                <p>
-                  <strong>Remaining:</strong> ₹{fee.remaining}
-                </p>
-                <p>
-                  <strong>Status:</strong> {fee.status}
-                </p>
-                <h3 className="font-semibold mt-2">Payments:</h3>
-                <ul className="list-disc ml-6">
-                  {fee.payments.map((pay) => (
-                    <li key={pay.transactionId}>
-                      ₹{pay.amountPaid} via {pay.mode} on{" "}
-                      {new Date(pay.date).toLocaleDateString()} - {pay.status} (
-                      {pay.remarks})
-                    </li>
-                  ))}
-                </ul>
-              </div>
+
+    <div className="flex justify-between items-center mb-3">
+      <h2 className="text-xl font-semibold mb-4">Fee Details</h2>
+        <button onClick={()=>
+          {
+            setShowFeesModal(true)
+          }
+        } className="p-2 bg-yellow-500 rounded-md text-white cursor-pointer">
+          Add Fees
+        </button>
+    </div>
+
+    {/* --- Fee Structure --- */}
+    {student.feeStructures?.length ? (
+      student.feeStructures.map((structure) => (
+        <div
+          key={structure._id}
+          className="p-4 mb-4 border rounded-xl bg-gray-50 shadow-sm"
+        >
+          <h3 className="text-lg font-semibold mb-2 text-blue-700">
+            Fee Structure ({structure.academicYear})
+          </h3>
+          <p>
+            <strong>Class:</strong> {structure.classIdentifier}
+          </p>
+          <p>
+            <strong>Total Amount:</strong> ₹{structure.totalAmount}
+          </p>
+          <p>
+            <strong>Status:</strong>{" "}
+            <span
+              className={`${
+                structure.status === "active" ? "text-green-600" : "text-red-500"
+              }`}
+            >
+              {structure.status}
+            </span>
+          </p>
+          <h4 className="font-semibold mt-3">Fee Heads:</h4>
+          <ul className="list-disc ml-6">
+            {structure.feeHeads.map((fh) => (
+              <li key={fh._id}>
+                {fh.type}: ₹{fh.amount}{" "}
+                {fh.isOptional ? <em>(Optional)</em> : ""}
+              </li>
             ))}
-          </div>
-        )}
+          </ul>
+        </div>
+      ))
+    ) : (
+      <p className="text-gray-500">No fee structure available.</p>
+    )}
+
+    {/* --- Fee Records --- */}
+    {student.feesDetails?.length ? (
+      student.feesDetails.map((fee) => (
+        <div
+          key={fee._id}
+          className="p-4 border rounded-xl shadow-sm bg-green-50"
+        >
+          <h3 className="text-lg font-semibold mb-2 text-green-700">
+            Fee Payment Record
+          </h3>
+          <p>
+            <strong>Total Fee:</strong> ₹{fee.totalFee}
+          </p>
+          <p>
+            <strong>Paid:</strong> ₹{fee.paidTillNow}
+          </p>
+          <p>
+            <strong>Remaining:</strong> ₹{fee.remaining}
+          </p>
+          <p>
+            <strong>Status:</strong> {fee.status}
+          </p>
+
+          {/* <h4 className="font-semibold mt-2">Applied Fee Heads:</h4> */}
+          <ul className="list-disc ml-6">
+            {/* {fee.appliedFeeHeads.map((head) => (
+              <li key={head._id}>
+                {head.type}: ₹{head.amount} (Paid: ₹{head.paidTillNow})
+              </li>
+            ))} */}
+          </ul>
+
+          <h4 className="font-semibold mt-3">Payments:</h4>
+          {fee.payments.length ? (
+            <ul className="list-disc ml-6">
+              {fee.payments.map((pay) => (
+                <li key={pay.transactionId}>
+                  ₹{pay.amountPaid} via {pay.mode} on{" "}
+                  {new Date(pay.date).toLocaleDateString()} - {pay.status} (
+                  {pay.remarks})
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500">No payments yet.</p>
+          )}
+        </div>
+      ))
+    ) : (
+      <p className="text-gray-500 mt-4">No fee records available.</p>
+    )}
+  </div>
+)}
+
 
         {/* Assignments Tab */}
         {activeTab === "assignments" && (

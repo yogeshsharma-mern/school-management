@@ -7,6 +7,7 @@ import PublicRoute from "./routes/PublicRoute";
 import Loader from "./components/Loading.jsx";
 
 
+
 // Lazy load pages
 const AdminLayout = lazy(() => import("./Layouts/AdminLayout"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -28,6 +29,8 @@ const ChangePassword = lazy(() => import("./components/ChangePasswoord.jsx"));
 const EditTeacher=lazy(()=>import("./pages/EditTeacher.jsx"));
 const ResetPassword=lazy(()=>import("./components/ResetPassword.jsx"));
 const ResetPasswordId=lazy(()=>import("./pages/ResetPasswordId.jsx"));
+// const EditFeesForm=lazy(()=>import('./pages/EditFeesForm.jsx'));
+const Assign = lazy(()=>import('./pages/Assign.jsx'));
 
 export default function App() {
   const queryClient = new QueryClient();
@@ -55,6 +58,8 @@ export default function App() {
             <Route path="students" element={<Students />} />
             <Route path="students/:id" element={<StudentDetail />} />
             <Route path="students/edit/:id" element={<EditStudent />} />
+            {/* <Route path="students/edit/fees/:id" element={<EditFeesForm />} /> */}
+
             <Route path="profile" element={<AdminProfile />} />
             <Route path="students/create" element={<CreateStudent />} />
 
@@ -65,10 +70,12 @@ export default function App() {
             <Route path="fees" element={<Fees />} />
             <Route path="subjects" element={<Subject />} />
             <Route path="teachers/:id" element={<TeacherDetails />} />
-            <Route path="teachers/:id" element={<TeacherDetails />} />
+            {/* <Route path="teachers/:id" element={<TeacherDetails />} /> */}
             <Route path="teachers/edit/:id" element={<EditTeacher />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="password" element={<ChangePassword />} />
+            <Route path="assign" element={<Assign />} />
+
 
 
           </Route>

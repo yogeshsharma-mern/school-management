@@ -7,6 +7,14 @@ import apiPath from "../api/apiPath";
 import { useQuery } from "@tanstack/react-query";
 import { SettingsSuggestOutlined, Visibility, VisibilityOff } from "@mui/icons-material";
 import { BsCloudUpload } from "react-icons/bs";
+import { Edit, School } from "@mui/icons-material";
+// import Select from "@mui/material";
+import Select from "react-select";
+import { FaPlusCircle } from "react-icons/fa";
+import { useEffect } from "react";
+
+
+
 import {
   InputAdornment,
   IconButton,
@@ -19,7 +27,16 @@ import {
   Step,
   StepLabel,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Typography,
+  Divider,
+  Tooltip,
+  CircularProgress,
+} from "@mui/material";
 
 export default function CreateStudentPage() {
   const navigate = useNavigate();
@@ -55,6 +72,7 @@ export default function CreateStudentPage() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
+    const [isModalOpen, setIsModalOpen] = useState(false);
   const [previews, setPreviews] = useState({
     profilePic: null,
     aadharFront: null,
@@ -62,15 +80,81 @@ export default function CreateStudentPage() {
     marksheets: [],
     certificates: [],
   });
-
+    const currentYear = new Date().getFullYear();
+  const nextYear = currentYear + 1;
+    const [formData, setFormData] = useState({
+      academicYear: `${currentYear}-${nextYear}`,
+      feeHeads: [
+        { type: "Tuition Fee", amount: 0, isOptional: false },
+        { type: "Exam Fee", amount: 0, isOptional: false },
+      ],
+      totalAmount: 0,
+    });
+     console.log("formdata",formData);
+      const addFeeHead = () =>
+    setFormData({
+      ...formData,
+      feeHeads: [...formData.feeHeads, { type: "", amount: 0, isOptional: false }],
+    });
+      const removeFeeHead = (index) =>
+    setFormData({
+      ...formData,
+      feeHeads: formData.feeHeads.filter((_, i) => i !== index),
+    });
+    const [editData, setEditData] = useState(null);
+  const [selectedClass, setSelectedClass] = useState(null);
   const [showSecondParent, setShowSecondParent] = useState(false);
 
   const { data: classes = [], isLoading, isError } = useQuery({
     queryKey: ["classesForStudent"],
     queryFn: () => apiGet(apiPath.classes),
   });
+const classOptions = (() => {
+  if (!classes?.results?.docs) return [];
 
-  const steps = ["Personal Details", "Parent & Guardian", "Academic & Documents"];
+  const uniqueMap = new Map();
+
+  classes.results.docs.forEach((cls) => {
+    // Extract base class name (e.g., "10th" from "10th A" or "10th-B")
+    const baseName = cls.name.split(" ")[0].trim();
+
+    if (!uniqueMap.has(baseName)) {
+      uniqueMap.set(baseName, {
+        value: baseName, // or cls.classIdentifier if consistent
+        label: baseName,
+      });
+    }
+  });
+
+  return Array.from(uniqueMap.values());
+})();
+
+  const selectedClassLabel =
+    classOptions.find((cls) => cls.value === selectedClass)?.label || "N/A";
+
+  // get fees structure
+  const { data: feesData, isLoading: feesLoading } = useQuery({
+    queryKey: ["feesStructuredata", selectedClass],
+    queryFn: () =>
+      apiGet(`${apiPath.getFeesStructure}?classIdentifier=${selectedClass}`),
+    enabled: !!selectedClass,
+  });
+  useEffect(() => {
+  if (feesData?.results) {
+    // Example response: { feeHeads: [...], totalAmount: 5000, academicYear: "2025-2026" }
+    const fetched = feesData.results;
+
+    setFormData((prev) => ({
+      ...prev,
+      feeHeads: fetched.feeHeads || prev.feeHeads,
+      totalAmount: fetched.totalAmount || 0,
+      academicYear: fetched.academicYear || prev.academicYear,
+    }));
+  }
+}, [feesData]);
+
+console.log("feesdata",feesData);
+  const steps = ["Personal Details", "Parent & Guardian", "Academic & Documents", "Fees Details"];
 
   // --- Handle Input Changes ---
   const handleChange = (e, parentIndex = null, section = null) => {
@@ -103,6 +187,26 @@ export default function CreateStudentPage() {
       setStudent({ ...student, [name]: sanitizedValue });
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
+  };
+  const handleFeeHeadChange = (index, field, value) => {
+    const newHeads = [...formData.feeHeads];
+    newHeads[index][field] = value;
+    setFormData({ ...formData, feeHeads: newHeads });
+  };
+    const handleEdit = () => {
+    const data = feesData?.results;
+    if (!data) return;
+
+    setEditData(data);
+    setFormData({
+      academicYear: data.academicYear || `${currentYear}-${nextYear}`,
+      feeHeads: data.feeHeads || [
+        { type: "Tuition Fee", amount: 0, isOptional: false },
+        { type: "Exam Fee", amount: 0, isOptional: false },
+      ],
+      totalAmount: data.totalAmount || 0,
+    });
+    setIsModalOpen(true);
   };
 
 
@@ -186,60 +290,60 @@ export default function CreateStudentPage() {
   const validateStep = () => {
     const newErrors = {};
 
-    if (activeStep === 0) {
-      if (!student.name.trim()) {
-        newErrors.name = "Name is required";
-      } else if (!/^[A-Za-z\s]+$/.test(student.name)) {
-        newErrors.name = "Name must not contain numbers or special characters";
-      }
-      if (!student.dob) newErrors.dob = "Date of Birth is required";
-      if (!student.gender) newErrors.gender = "Gender is required";
-      if (!student.bloodGroup) newErrors.bloodGroup = "Blood group is required";
-      if (!student.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email))
-        newErrors.email = "Valid email is required";
-      if (!student.password || student.password.length < 6)
-        newErrors.password = "Password must be at least 6 characters";
-      if (!student.phone || student.phone.replace(/\D/g, "").length < 10)
-        newErrors.phone = "Valid phone number required";
-      if (!student.documents || !student.documents.profilePic) {
-        newErrors.documents = { ...(newErrors.documents || {}), profilePic: "Profile picture is required" };
-      }
-    }
+    // if (activeStep === 0) {
+    //   if (!student.name.trim()) {
+    //     newErrors.name = "Name is required";
+    //   } else if (!/^[A-Za-z\s]+$/.test(student.name)) {
+    //     newErrors.name = "Name must not contain numbers or special characters";
+    //   }
+    //   if (!student.dob) newErrors.dob = "Date of Birth is required";
+    //   if (!student.gender) newErrors.gender = "Gender is required";
+    //   if (!student.bloodGroup) newErrors.bloodGroup = "Blood group is required";
+    //   if (!student.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email))
+    //     newErrors.email = "Valid email is required";
+    //   if (!student.password || student.password.length < 6)
+    //     newErrors.password = "Password must be at least 6 characters";
+    //   if (!student.phone || student.phone.replace(/\D/g, "").length < 10)
+    //     newErrors.phone = "Valid phone number required";
+    //   if (!student.documents || !student.documents.profilePic) {
+    //     newErrors.documents = { ...(newErrors.documents || {}), profilePic: "Profile picture is required" };
+    //   }
+    // }
 
-    else if (activeStep === 1) {
-      student.parents.forEach((parent, i) => {
-        if (!parent.name)
-          newErrors[`parent_${i}_name`] = "Parent name is required";
-        if (!parent.occupation)
-          newErrors[`parent_${i}_occupation`] = "Occupation required";
-        if (!parent.phone)
-          newErrors[`parent_${i}_phone`] = "Phone is required";
-        if (parent.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parent.email))
-          newErrors[`parent_${i}_email`] = "Enter valid email";
-      });
+    // else if (activeStep === 1) {
+    //   student.parents.forEach((parent, i) => {
+    //     if (!parent.name)
+    //       newErrors[`parent_${i}_name`] = "Parent name is required";
+    //     if (!parent.occupation)
+    //       newErrors[`parent_${i}_occupation`] = "Occupation required";
+    //     if (!parent.phone)
+    //       newErrors[`parent_${i}_phone`] = "Phone is required";
+    //     if (parent.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parent.email))
+    //       newErrors[`parent_${i}_email`] = "Enter valid email";
+    //   });
 
-      if (!student.emergencyContact.name)
-        newErrors.emergencyContact_name = "Contact name required";
-      if (!student.emergencyContact.relation)
-        newErrors.emergencyContact_relation = "Relation required";
-      if (!student.emergencyContact.phone)
-        newErrors.emergencyContact_phone = "Phone required";
-      if (!student.emergencyContact.address)
-        newErrors.emergencyContact_address = "Address required";
-    }
+    //   if (!student.emergencyContact.name)
+    //     newErrors.emergencyContact_name = "Contact name required";
+    //   if (!student.emergencyContact.relation)
+    //     newErrors.emergencyContact_relation = "Relation required";
+    //   if (!student.emergencyContact.phone)
+    //     newErrors.emergencyContact_phone = "Phone required";
+    //   if (!student.emergencyContact.address)
+    //     newErrors.emergencyContact_address = "Address required";
+    // }
 
-    else if (activeStep === 2) {
-      if (!student.classId) newErrors.classId = "Class is required";
-      if (!student.academicYear) newErrors.academicYear = "Academic year is required";
+    // else if (activeStep === 2) {
+    //   if (!student.classId) newErrors.classId = "Class is required";
+    //   if (!student.academicYear) newErrors.academicYear = "Academic year is required";
 
-      if (!student.documents?.aadharFront) {
-        newErrors.aadharFront = "Aadhar front is required";
-      }
+    //   if (!student.documents?.aadharFront) {
+    //     newErrors.aadharFront = "Aadhar front is required";
+    //   }
 
-      if (!student.documents?.aadharBack) {
-        newErrors.aadharBack = "Aadhar back is required";
-      }
-    }
+    //   if (!student.documents?.aadharBack) {
+    //     newErrors.aadharBack = "Aadhar back is required";
+    //   }
+    // }
 
     setErrors(newErrors);
     console.log("Validation errors:", newErrors); // helpful for debugging
@@ -253,101 +357,134 @@ export default function CreateStudentPage() {
 
   const prevStep = () => setActiveStep(prev => prev - 1);
 
-  // --- Submit ---
-  //   const handleSubmit = async (e) => {
-  //     e.preventDefault();
-  //     if (!validateStep()) return;
 
-  //     try {
-  //       const formData = new FormData();
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   if (!validateStep()) return;
 
-  //       // Add JSON fields
-  //       ["address", "parents", "guardian", "emergencyContact"].forEach(key => {
-  //         formData.append(key, JSON.stringify(student[key]));
-  //       });
+  //   try {
+  //     const formData = new FormData();
 
-  //       // Add documents
-  //       Object.keys(student.documents).forEach(docKey => {
-  //         const file = student.documents[docKey];
-  //         if (!file) return;
+  //     // Add JSON fields
+  //     ["address", "parents", "guardian", "emergencyContact"].forEach((key) => {
+  //       formData.append(key, JSON.stringify(student[key]));
+  //     });
 
-  //         if (Array.isArray(file)) {
-  //           file.forEach((f, idx) => formData.append(`${docKey}[${idx}]`, f));
-  //         } else if (file instanceof File) {
-  //           formData.append(docKey, file);
-  //         }
-  //       });
+  //     // ✅ Corrected document handling
+  //     Object.entries(student.documents).forEach(([key, value]) => {
+  //       if (!value) return;
 
-  //       // Add remaining fields
-  //       ["name", "dob", "gender", "bloodGroup", "email", "password", "phone", "classId", "academicYear", "physicalDisability", "disabilityDetails"].forEach(key => {
-  //         formData.append(key, student[key]);
-  //       });
-  // console.log("formdata",formData)
-  //       await apiPost(apiPath.studentReg,formData);
-  //       toast.success("Student created successfully ✅");
-  //       navigate(-1);
-  //     } catch (err) {
-  //       console.error(err);
-  //       toast.error("Failed to create student ❌");
+  //       if (Array.isArray(value)) {
+  //         value.forEach((file) => {
+  //           formData.append(key, file); // no [0]
+  //         });
+  //       } else if (value instanceof File) {
+  //         formData.append(key, value);
+  //       }
+  //     });
+
+  //     // Add remaining primitive fields
+  //     [
+  //       "name",
+  //       "dob",
+  //       "gender",
+  //       "bloodGroup",
+  //       "email",
+  //       "password",
+  //       "phone",
+  //       "classId",
+  //       "academicYear",
+  //       "physicalDisability",
+  //       "disabilityDetails",
+  //     ].forEach((key) => {
+  //       formData.append(key, student[key]);
+  //     });
+
+  //     // For debugging
+  //     for (let [key, value] of formData.entries()) {
+  //       console.log(key, value);
   //     }
-  //   };
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateStep()) return;
 
-    try {
-      const formData = new FormData();
+  //     const res = await apiPost(apiPath.studentReg, formData);
+  //     // console.log("res student created",res);
+  //     if (res.success == true)
+  //       toast.success("Student created successfully ✅");
+  //     navigate(-1);
+  //   } catch (err) {
+  //     console.error(err);
+  //     toast.error(err?.response?.data?.message || "Failed to add student ❌");
+  //   }
+  // };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validateStep()) return;
 
-      // Add JSON fields
-      ["address", "parents", "guardian", "emergencyContact"].forEach((key) => {
-        formData.append(key, JSON.stringify(student[key]));
-      });
+  try {
+    const formDataObj = new FormData();
 
-      // ✅ Corrected document handling
-      Object.entries(student.documents).forEach(([key, value]) => {
-        if (!value) return;
+    // Add nested JSON fields
+    ["address", "parents", "guardian", "emergencyContact"].forEach((key) => {
+      formDataObj.append(key, JSON.stringify(student[key]));
+    });
 
-        if (Array.isArray(value)) {
-          value.forEach((file) => {
-            formData.append(key, file); // no [0]
-          });
-        } else if (value instanceof File) {
-          formData.append(key, value);
-        }
-      });
-
-      // Add remaining primitive fields
-      [
-        "name",
-        "dob",
-        "gender",
-        "bloodGroup",
-        "email",
-        "password",
-        "phone",
-        "classId",
-        "academicYear",
-        "physicalDisability",
-        "disabilityDetails",
-      ].forEach((key) => {
-        formData.append(key, student[key]);
-      });
-
-      // For debugging
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value);
+    // ✅ Document uploads
+    Object.entries(student.documents).forEach(([key, value]) => {
+      if (!value) return;
+      if (Array.isArray(value)) {
+        value.forEach((file) => formDataObj.append(key, file));
+      } else if (value instanceof File) {
+        formDataObj.append(key, value);
       }
+    });
 
-      const res = await apiPost(apiPath.studentReg, formData);
-      // console.log("res student created",res);
-      if (res.success == true)
-        toast.success("Student created successfully ✅");
-      navigate(-1);
-    } catch (err) {
-      console.error(err);
-      toast.error(err?.response?.data?.message || "Failed to add student ❌");
+    // ✅ Add primitive student fields
+    [
+      "name",
+      "dob",
+      "gender",
+      "bloodGroup",
+      "email",
+      "password",
+      "phone",
+      "classId",
+      "academicYear",
+      "physicalDisability",
+      "disabilityDetails",
+    ].forEach((key) => {
+      formDataObj.append(key, student[key]);
+    });
+
+    // ✅ Add Fee Structure data together
+    formDataObj.append("feeStructureId", feesData?.results?._id || "");
+    formDataObj.append(
+      "appliedFeeHeads",
+      JSON.stringify(
+        formData.feeHeads.map((f) => ({
+          type: f.type,
+          amount: Number(f.amount),
+        }))
+      )
+    );
+    formDataObj.append("discounts", 0);
+
+    // 🧾 For debugging
+    for (let [key, value] of formDataObj.entries()) {
+      console.log(key, value);
     }
-  };
+
+    // ✅ Send single combined payload
+    const res = await apiPost(apiPath.studentReg, formDataObj);
+
+    if (res.success) {
+      toast.success("Student with fees created successfully ✅");
+      navigate(-1);
+    }
+  } catch (err) {
+    console.error(err);
+    toast.error(err?.response?.data?.message || "Failed to add student ❌");
+  }
+};
+
 
   return (
     <div className="max-w-6xl mx-auto md:p-8 p-3 bg-[var(--color-)] rounded-2xl shadow-xl">
@@ -738,59 +875,7 @@ export default function CreateStudentPage() {
         {activeStep === 2 && (
           <div className="space-y-8">
             {/* --- Academic Info --- */}
-            <div className="bg-gray-50 p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Academic Information</h2>
 
-              <div className="grid md:grid-cols-2 gap-6 bg-white p-5 rounded-xl border border-gray-200">
-                <TextField
-                  select
-                  fullWidth
-                  name="classId"
-                  label="Select Class"
-                  value={student.classId}
-                  // onChange={handleChange}
-                  onChange={(e) => {
-                    setStudent({ ...student, classId: e.target.value });
-
-                  }
-                  }
-                  error={!!errors.classId}
-                  helperText={errors.classId}
-                >
-                  <MenuItem value="">Select Class</MenuItem>
-                  {classes?.results?.docs?.map((cls) => (
-                    <MenuItem key={cls._id} value={cls._id}>
-                      {cls.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
-
-                <TextField
-                  select
-                  fullWidth
-                  name="academicYear"
-                  label="Academic Year"
-                  value={student.academicYear}
-                  onChange={(e) => {
-                    setStudent({ ...student, academicYear: e.target.value });
-                    setErrors((prev) => ({ ...prev, academicYear: "" }));
-                  }}
-                  error={!!errors.academicYear}
-                  helperText={errors.academicYear}
-                >
-                  {Array.from({ length: 1 }).map((_, i) => {
-                    const startYear = new Date().getFullYear() + i;
-                    const endYear = startYear + 1;
-                    const yearString = `${startYear}-${endYear}`;
-                    return (
-                      <MenuItem key={yearString} value={yearString}>
-                        {yearString}
-                      </MenuItem>
-                    );
-                  })}
-                </TextField>
-              </div>
-            </div>
 
             {/* --- Disability Section --- */}
             <div className="bg-gray-50 p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -961,8 +1046,173 @@ export default function CreateStudentPage() {
 
           </div>
         )}
+        {/* step 4 */}
+        {
+          activeStep === 3 && (
+            <div className="space-y-8">
+              <div className="bg-gray-50 p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Academic Information</h2>
 
+                <div className="grid md:grid-cols-2 gap-6 bg-white p-5 rounded-xl border border-gray-200">
+                  <TextField
+                    select
+                    fullWidth
+                    name="classId"
+                    label="Select Class"
+                    value={student.classId}
+                    // onChange={handleChange}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      const selectedClassObj = classes?.results?.docs?.find(
+                        (cls) => cls._id === selectedId
+                      );
 
+                      // classId = id (for backend)
+                      // selectedClass = class name (for fetching fees)
+                      setStudent({ ...student, classId: selectedId });
+                      setSelectedClass(selectedClassObj?.name || "");
+                    }}
+                    error={!!errors.classId}
+                    helperText={errors.classId}
+                  >
+                    <MenuItem value="">Select Class</MenuItem>
+                    {classes?.results?.docs?.map((cls) => (
+                      <MenuItem key={cls._id} value={cls._id}>
+                        {cls.name}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+
+                  <TextField
+                    select
+                    fullWidth
+                    name="academicYear"
+                    label="Academic Year"
+                    value={student.academicYear}
+                    onChange={(e) => {
+                      setStudent({ ...student, academicYear: e.target.value });
+                      setErrors((prev) => ({ ...prev, academicYear: "" }));
+                    }}
+                    error={!!errors.academicYear}
+                    helperText={errors.academicYear}
+                  >
+                    {Array.from({ length: 1 }).map((_, i) => {
+                      const startYear = new Date().getFullYear() + i;
+                      const endYear = startYear + 1;
+                      const yearString = `${startYear}-${endYear}`;
+                      return (
+                        <MenuItem key={yearString} value={yearString}>
+                          {yearString}
+                        </MenuItem>
+                      );
+                    })}
+                  </TextField>
+                </div>
+              </div>
+                 <form
+                         onSubmit={(e) => {
+                           e.preventDefault();
+                           const tuition = formData.feeHeads.find((f) => f.type === "Tuition Fee");
+                           const exam = formData.feeHeads.find((f) => f.type === "Exam Fee");
+               
+                           if (!tuition?.amount || !exam?.amount) {
+                             toast.error("Tuition Fee and Exam Fee are required!");
+                             return;
+                           }
+                           handleSubmit(e);
+                         }}
+                         className="space-y-4"
+                       >
+                         {/* Academic Year */}
+                         {/* <div>
+                           <label className="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
+                           <input
+                             type="text"
+                             value={formData.academicYear}
+                             readOnly
+                             className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-sm text-gray-700 cursor-not-allowed"
+                           />
+                         </div> */}
+               
+                         {/* Fee Heads */}
+                         <div>
+                           <label className="block text-sm font-medium text-gray-700 mb-2">Fee Heads</label>
+               
+                           {formData.feeHeads.map((head, index) => {
+                             const feeTypeOptions = [
+                               { value: "Tuition Fee", label: "Tuition Fee" },
+                               { value: "Exam Fee", label: "Exam Fee" },
+                               { value: "Transport Fee", label: "Transport Fee" },
+                               { value: "Miscellaneous", label: "Miscellaneous" },
+                             ];
+                             const selectedTypes = formData.feeHeads.map((f) => f.type);
+                             const availableOptions = feeTypeOptions.map((opt) => ({
+                               ...opt,
+                               isDisabled: selectedTypes.includes(opt.value) && opt.value !== head.type,
+                             }));
+                             const isMandatory = head.type === "Tuition Fee" || head.type === "Exam Fee";
+               
+                             return (
+                               <div key={index} className="flex flex-wrap items-center gap-3 border p-3 rounded-md mb-2 bg-yellow-50 shadow-sm hover:shadow-md transition-shadow">
+                                 <div className="w-full sm:w-[260px]">
+                                   <Select
+                                     options={availableOptions}
+                                     value={head.type ? { value: head.type, label: head.type } : null}
+                                     placeholder="Select Fee Type"
+                                     onChange={(opt) => handleFeeHeadChange(index, "type", opt?.value || "")}
+                                     isDisabled={isMandatory}
+                                   />
+                                 </div>
+               
+                                 <input
+                                   type="number"
+                                   placeholder="Amount"
+                                   value={head.amount}
+                                   onChange={(e) => handleFeeHeadChange(index, "amount", Number(e.target.value))}
+                                   className="w-full sm:w-[140px] border border-gray-300 rounded-md px-2 py-1 text-xs"
+                                 />
+               
+                                 <label className="flex items-center gap-1 text-sm w-auto">
+                                   <input
+                                     type="checkbox"
+                                     checked={head.isOptional}
+                                     onChange={(e) => handleFeeHeadChange(index, "isOptional", e.target.checked)}
+                                     disabled={isMandatory}
+                                   />
+                                   Optional
+                                 </label>
+               
+                                 {!isMandatory && (
+                                   <button
+                                     type="button"
+                                     onClick={() => removeFeeHead(index)}
+                                     className="text-red-500 hover:text-red-700 text-xs"
+                                   >
+                                     ✕
+                                   </button>
+                                 )}
+                               </div>
+                             );
+                           })}
+               
+                           {formData.feeHeads.length < 4 && (
+                             <Button
+                               variant="outlined"
+                               startIcon={<FaPlusCircle />}
+                               onClick={addFeeHead}
+                               className="text-yellow-700 border-yellow-400 hover:bg-yellow-100 mt-2"
+                             >
+                               Add Optional Fee
+                             </Button>
+                           )}
+                         </div>
+               
+                         {/* Save / Cancel */}
+                       
+                       </form>
+            </div>
+          )
+        }
         {/* Navigation */}
         <div className="flex justify-between pt-6">
           {activeStep > 0 && (

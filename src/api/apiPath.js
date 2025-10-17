@@ -36,6 +36,9 @@ const apiPath = Object.freeze({
   deleteFeesStructure:"/admins/fees/delete/fee-structure",
   getAllFees:"/admins/fees/get/all",
   feestoggleFeesStructure:"/admins/fees/toggle/status/fee-structure",
+  AddFees:"/admins/fees/student",
+  getSettings:"admins/setting/school-settings",
+  getAssignments:"admins/teachers/assign-teacher"
   // getTeachers:"/admins/teachers/getAllTeacher",
 //   getTeacherDetails:"/admins/teachers/getTeacherProfile",
 //   teacherDelete:"/admins/teachers/soft-delete",

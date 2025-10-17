@@ -63,6 +63,17 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           <SiGoogleclassroom size={20} />
           <span>Subjects</span>
         </NavLink>
+         <NavLink
+          to="/admin/assign"
+          className={({ isActive }) =>
+            `flex items-center space-x-3 p-3 rounded-xl transition ${isActive ? "bg-[#1b263b] text-yellow-400" : "hover:bg-[#1b263b]"
+            }`
+          }
+          onClick={toggleSidebar}
+        >
+          <SiGoogleclassroom size={20} />
+          <span>Assign</span>
+        </NavLink>
         <NavLink
           to="/admin/students"
           className={({ isActive }) =>
