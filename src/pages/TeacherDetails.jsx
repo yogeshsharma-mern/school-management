@@ -195,7 +195,7 @@ export default function TeacherDetailPage() {
           <p><strong>Date of Joining:</strong> {new Date(teacher.dateOfJoining).toLocaleDateString()}</p>
           <p><strong>Experience:</strong> {teacher.experience} years</p>
           <p><strong>Qualifications:</strong> {teacher.qualifications?.join(", ")}</p>
-          <p><strong>Specializations:</strong> {teacher.specialization?.join(", ")}</p>
+          {/* <p><strong>Specializations:</strong> {teacher.specialization?.join(", ")}</p> */}
           <p><strong>Physical Disability:</strong> {teacher.physicalDisability ? "Yes" : "No"}</p>
           <p><strong>Emergency Contact:</strong> {teacher.emergencyContact?.name} ({teacher.emergencyContact?.phone})</p>
           <p className="col-span-2"><strong><Home className="inline w-4 h-4 mr-2" />Address:</strong> {teacher.address.street}, {teacher.address.city}, {teacher.address.state}</p>

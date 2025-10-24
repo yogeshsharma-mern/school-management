@@ -41,6 +41,7 @@ import {
 export default function CreateStudentPage() {
   const navigate = useNavigate();
 
+
   const [student, setStudent] = useState({
     name: "",
     dob: "",
@@ -72,7 +73,9 @@ export default function CreateStudentPage() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [feeStructureFound, setFeeStructureFound] = useState(false);
+const [loadingFeeHeads, setLoadingFeeHeads] = useState(false);
   const [previews, setPreviews] = useState({
     profilePic: null,
     aadharFront: null,
@@ -80,28 +83,28 @@ export default function CreateStudentPage() {
     marksheets: [],
     certificates: [],
   });
-    const currentYear = new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
   const nextYear = currentYear + 1;
-    const [formData, setFormData] = useState({
-      academicYear: `${currentYear}-${nextYear}`,
-      feeHeads: [
-        { type: "Tuition Fee", amount: 0, isOptional: false },
-        { type: "Exam Fee", amount: 0, isOptional: false },
-      ],
-      totalAmount: 0,
-    });
-     console.log("formdata",formData);
-      const addFeeHead = () =>
+  const [formData, setFormData] = useState({
+    academicYear: `${currentYear}-${nextYear}`,
+    feeHeads: [
+      { type: "Tuition Fee", amount: 0, isOptional: false },
+      { type: "Exam Fee", amount: 0, isOptional: false },
+    ],
+    totalAmount: 0,
+  });
+  console.log("formdata", formData);
+  const addFeeHead = () =>
     setFormData({
       ...formData,
       feeHeads: [...formData.feeHeads, { type: "", amount: 0, isOptional: false }],
     });
-      const removeFeeHead = (index) =>
+  const removeFeeHead = (index) =>
     setFormData({
       ...formData,
       feeHeads: formData.feeHeads.filter((_, i) => i !== index),
     });
-    const [editData, setEditData] = useState(null);
+  const [editData, setEditData] = useState(null);
   const [selectedClass, setSelectedClass] = useState(null);
   const [showSecondParent, setShowSecondParent] = useState(false);
 
@@ -109,25 +112,25 @@ export default function CreateStudentPage() {
     queryKey: ["classesForStudent"],
     queryFn: () => apiGet(apiPath.classes),
   });
-const classOptions = (() => {
-  if (!classes?.results?.docs) return [];
+  const classOptions = (() => {
+    if (!classes?.results?.docs) return [];
 
-  const uniqueMap = new Map();
+    const uniqueMap = new Map();
 
-  classes.results.docs.forEach((cls) => {
-    // Extract base class name (e.g., "10th" from "10th A" or "10th-B")
-    const baseName = cls.name.split(" ")[0].trim();
+    classes.results.docs.forEach((cls) => {
+      // Extract base class name (e.g., "10th" from "10th A" or "10th-B")
+      const baseName = cls.name.split(" ")[0].trim();
 
-    if (!uniqueMap.has(baseName)) {
-      uniqueMap.set(baseName, {
-        value: baseName, // or cls.classIdentifier if consistent
-        label: baseName,
-      });
-    }
-  });
+      if (!uniqueMap.has(baseName)) {
+        uniqueMap.set(baseName, {
+          value: baseName, // or cls.classIdentifier if consistent
+          label: baseName,
+        });
+      }
+    });
 
-  return Array.from(uniqueMap.values());
-})();
+    return Array.from(uniqueMap.values());
+  })();
 
   const selectedClassLabel =
     classOptions.find((cls) => cls.value === selectedClass)?.label || "N/A";
@@ -140,20 +143,20 @@ const classOptions = (() => {
     enabled: !!selectedClass,
   });
   useEffect(() => {
-  if (feesData?.results) {
-    // Example response: { feeHeads: [...], totalAmount: 5000, academicYear: "2025-2026" }
-    const fetched = feesData.results;
+    if (feesData?.results) {
+      // Example response: { feeHeads: [...], totalAmount: 5000, academicYear: "2025-2026" }
+      const fetched = feesData.results;
 
-    setFormData((prev) => ({
-      ...prev,
-      feeHeads: fetched.feeHeads || prev.feeHeads,
-      totalAmount: fetched.totalAmount || 0,
-      academicYear: fetched.academicYear || prev.academicYear,
-    }));
-  }
-}, [feesData]);
+      setFormData((prev) => ({
+        ...prev,
+        feeHeads: fetched.feeHeads || prev.feeHeads,
+        totalAmount: fetched.totalAmount || 0,
+        academicYear: fetched.academicYear || prev.academicYear,
+      }));
+    }
+  }, [feesData]);
 
-console.log("feesdata",feesData);
+  console.log("feesdata", feesData);
   const steps = ["Personal Details", "Parent & Guardian", "Academic & Documents", "Fees Details"];
 
   // --- Handle Input Changes ---
@@ -193,7 +196,7 @@ console.log("feesdata",feesData);
     newHeads[index][field] = value;
     setFormData({ ...formData, feeHeads: newHeads });
   };
-    const handleEdit = () => {
+  const handleEdit = () => {
     const data = feesData?.results;
     if (!data) return;
 
@@ -415,75 +418,75 @@ console.log("feesdata",feesData);
   //     toast.error(err?.response?.data?.message || "Failed to add student ❌");
   //   }
   // };
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!validateStep()) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateStep()) return;
 
-  try {
-    const formDataObj = new FormData();
+    try {
+      const formDataObj = new FormData();
 
-    // Add nested JSON fields
-    ["address", "parents", "guardian", "emergencyContact"].forEach((key) => {
-      formDataObj.append(key, JSON.stringify(student[key]));
-    });
+      // Add nested JSON fields
+      ["address", "parents", "guardian", "emergencyContact"].forEach((key) => {
+        formDataObj.append(key, JSON.stringify(student[key]));
+      });
 
-    // ✅ Document uploads
-    Object.entries(student.documents).forEach(([key, value]) => {
-      if (!value) return;
-      if (Array.isArray(value)) {
-        value.forEach((file) => formDataObj.append(key, file));
-      } else if (value instanceof File) {
-        formDataObj.append(key, value);
+      // ✅ Document uploads
+      Object.entries(student.documents).forEach(([key, value]) => {
+        if (!value) return;
+        if (Array.isArray(value)) {
+          value.forEach((file) => formDataObj.append(key, file));
+        } else if (value instanceof File) {
+          formDataObj.append(key, value);
+        }
+      });
+
+      // ✅ Add primitive student fields
+      [
+        "name",
+        "dob",
+        "gender",
+        "bloodGroup",
+        "email",
+        "password",
+        "phone",
+        "classId",
+        "academicYear",
+        "physicalDisability",
+        "disabilityDetails",
+      ].forEach((key) => {
+        formDataObj.append(key, student[key]);
+      });
+
+      // ✅ Add Fee Structure data together
+      formDataObj.append("feeStructureId", feesData?.results?._id || "");
+      formDataObj.append(
+        "appliedFeeHeads",
+        JSON.stringify(
+          formData.feeHeads.map((f) => ({
+            type: f.type,
+            amount: Number(f.amount),
+          }))
+        )
+      );
+      formDataObj.append("discounts", 0);
+
+      // 🧾 For debugging
+      for (let [key, value] of formDataObj.entries()) {
+        console.log(key, value);
       }
-    });
 
-    // ✅ Add primitive student fields
-    [
-      "name",
-      "dob",
-      "gender",
-      "bloodGroup",
-      "email",
-      "password",
-      "phone",
-      "classId",
-      "academicYear",
-      "physicalDisability",
-      "disabilityDetails",
-    ].forEach((key) => {
-      formDataObj.append(key, student[key]);
-    });
+      // ✅ Send single combined payload
+      const res = await apiPost(apiPath.studentReg, formDataObj);
 
-    // ✅ Add Fee Structure data together
-    formDataObj.append("feeStructureId", feesData?.results?._id || "");
-    formDataObj.append(
-      "appliedFeeHeads",
-      JSON.stringify(
-        formData.feeHeads.map((f) => ({
-          type: f.type,
-          amount: Number(f.amount),
-        }))
-      )
-    );
-    formDataObj.append("discounts", 0);
-
-    // 🧾 For debugging
-    for (let [key, value] of formDataObj.entries()) {
-      console.log(key, value);
+      if (res.success) {
+        toast.success("Student with fees created successfully ✅");
+        navigate(-1);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err?.response?.data?.message || "Failed to add student ❌");
     }
-
-    // ✅ Send single combined payload
-    const res = await apiPost(apiPath.studentReg, formDataObj);
-
-    if (res.success) {
-      toast.success("Student with fees created successfully ✅");
-      navigate(-1);
-    }
-  } catch (err) {
-    console.error(err);
-    toast.error(err?.response?.data?.message || "Failed to add student ❌");
-  }
-};
+  };
 
 
   return (
@@ -767,7 +770,7 @@ const handleSubmit = async (e) => {
                     helperText={errors[`parent_${index}_email`]}
                   />
                   <div>
-                    <label className="block text-gray-600 font-medium mb-1">Phone</label>
+                    {/* <label className="block text-gray-600 font-medium mb-1">Phone</label> */}
                     <PhoneInput
                       country="in"
                       enableSearch
@@ -808,7 +811,7 @@ const handleSubmit = async (e) => {
                   />
                 ))}
                 <div>
-                  <label className="block text-gray-600 font-medium mb-1">Phone</label>
+                  {/* <label className="block text-gray-600 font-medium mb-1">Phone</label> */}
                   <PhoneInput
                     country="in"
                     enableSearch
@@ -846,7 +849,7 @@ const handleSubmit = async (e) => {
                   />
                 ))}
                 <div>
-                  <label className="block text-gray-600 font-medium mb-1">Phone</label>
+                  {/* <label className="block text-gray-600 font-medium mb-1">Phone</label> */}
                   <PhoneInput
                     country="in"
                     enableSearch
@@ -1109,22 +1112,22 @@ const handleSubmit = async (e) => {
                   </TextField>
                 </div>
               </div>
-                 <form
-                         onSubmit={(e) => {
-                           e.preventDefault();
-                           const tuition = formData.feeHeads.find((f) => f.type === "Tuition Fee");
-                           const exam = formData.feeHeads.find((f) => f.type === "Exam Fee");
-               
-                           if (!tuition?.amount || !exam?.amount) {
-                             toast.error("Tuition Fee and Exam Fee are required!");
-                             return;
-                           }
-                           handleSubmit(e);
-                         }}
-                         className="space-y-4"
-                       >
-                         {/* Academic Year */}
-                         {/* <div>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const tuition = formData.feeHeads.find((f) => f.type === "Tuition Fee");
+                  const exam = formData.feeHeads.find((f) => f.type === "Exam Fee");
+
+                  if (!tuition?.amount || !exam?.amount) {
+                    toast.error("Tuition Fee and Exam Fee are required!");
+                    return;
+                  }
+                  handleSubmit(e);
+                }}
+                className="space-y-4"
+              >
+                {/* Academic Year */}
+                {/* <div>
                            <label className="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
                            <input
                              type="text"
@@ -1133,83 +1136,236 @@ const handleSubmit = async (e) => {
                              className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-sm text-gray-700 cursor-not-allowed"
                            />
                          </div> */}
-               
-                         {/* Fee Heads */}
-                         <div>
-                           <label className="block text-sm font-medium text-gray-700 mb-2">Fee Heads</label>
-               
-                           {formData.feeHeads.map((head, index) => {
-                             const feeTypeOptions = [
-                               { value: "Tuition Fee", label: "Tuition Fee" },
-                               { value: "Exam Fee", label: "Exam Fee" },
-                               { value: "Transport Fee", label: "Transport Fee" },
-                               { value: "Miscellaneous", label: "Miscellaneous" },
-                             ];
-                             const selectedTypes = formData.feeHeads.map((f) => f.type);
-                             const availableOptions = feeTypeOptions.map((opt) => ({
-                               ...opt,
-                               isDisabled: selectedTypes.includes(opt.value) && opt.value !== head.type,
-                             }));
-                             const isMandatory = head.type === "Tuition Fee" || head.type === "Exam Fee";
-               
-                             return (
-                               <div key={index} className="flex flex-wrap items-center gap-3 border p-3 rounded-md mb-2 bg-yellow-50 shadow-sm hover:shadow-md transition-shadow">
-                                 <div className="w-full sm:w-[260px]">
-                                   <Select
-                                     options={availableOptions}
-                                     value={head.type ? { value: head.type, label: head.type } : null}
-                                     placeholder="Select Fee Type"
-                                     onChange={(opt) => handleFeeHeadChange(index, "type", opt?.value || "")}
-                                     isDisabled={isMandatory}
-                                   />
-                                 </div>
-               
-                                 <input
-                                   type="number"
-                                   placeholder="Amount"
-                                   value={head.amount}
-                                   onChange={(e) => handleFeeHeadChange(index, "amount", Number(e.target.value))}
-                                   className="w-full sm:w-[140px] border border-gray-300 rounded-md px-2 py-1 text-xs"
-                                 />
-               
-                                 <label className="flex items-center gap-1 text-sm w-auto">
-                                   <input
-                                     type="checkbox"
-                                     checked={head.isOptional}
-                                     onChange={(e) => handleFeeHeadChange(index, "isOptional", e.target.checked)}
-                                     disabled={isMandatory}
-                                   />
-                                   Optional
-                                 </label>
-               
-                                 {!isMandatory && (
-                                   <button
-                                     type="button"
-                                     onClick={() => removeFeeHead(index)}
-                                     className="text-red-500 hover:text-red-700 text-xs"
-                                   >
-                                     ✕
-                                   </button>
-                                 )}
-                               </div>
-                             );
-                           })}
-               
-                           {formData.feeHeads.length < 4 && (
-                             <Button
-                               variant="outlined"
-                               startIcon={<FaPlusCircle />}
-                               onClick={addFeeHead}
-                               className="text-yellow-700 border-yellow-400 hover:bg-yellow-100 mt-2"
-                             >
-                               Add Optional Fee
-                             </Button>
-                           )}
-                         </div>
-               
-                         {/* Save / Cancel */}
-                       
-                       </form>
+
+                {/* Fee Heads */}
+                {/* <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Fee Heads</label>
+
+                  {formData.feeHeads.map((head, index) => {
+                    const feeTypeOptions = [
+                      { value: "Tuition Fee", label: "Tuition Fee" },
+                      { value: "Exam Fee", label: "Exam Fee" },
+                      { value: "Transport Fee", label: "Transport Fee" },
+                      { value: "Miscellaneous", label: "Miscellaneous" },
+                    ];
+                    const selectedTypes = formData.feeHeads.map((f) => f.type);
+                    const availableOptions = feeTypeOptions.map((opt) => ({
+                      ...opt,
+                      isDisabled: selectedTypes.includes(opt.value) && opt.value !== head.type,
+                    }));
+                    const isMandatory = head.type === "Tuition Fee" || head.type === "Exam Fee";
+
+                    return (
+                      <div key={index} className="flex flex-wrap items-center gap-3 border p-3 rounded-md mb-2 bg-yellow-50 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="w-full sm:w-[260px]">
+                          <Select
+                            options={availableOptions}
+                            value={head.type ? { value: head.type, label: head.type } : null}
+                            placeholder="Select Fee Type"
+                            onChange={(opt) => handleFeeHeadChange(index, "type", opt?.value || "")}
+                            isDisabled={isMandatory}
+                          />
+                        </div>
+
+                        <input
+                          type="number"
+                          placeholder="Amount"
+                          value={head.amount}
+                          onChange={(e) => handleFeeHeadChange(index, "amount", Number(e.target.value))}
+                          className="w-full sm:w-[140px] border border-gray-300 rounded-md px-2 py-1 text-xs"
+                        />
+
+                        <label className="flex items-center gap-1 text-sm w-auto">
+                          <input
+                            type="checkbox"
+                            checked={head.isOptional}
+                            onChange={(e) => handleFeeHeadChange(index, "isOptional", e.target.checked)}
+                            disabled={isMandatory}
+                          />
+                          Optional
+                        </label>
+
+                        {!isMandatory && (
+                          <button
+                            type="button"
+                            onClick={() => removeFeeHead(index)}
+                            className="text-red-500 hover:text-red-700 text-xs"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {formData.feeHeads.length < 4 && (
+                    <Button
+                      variant="outlined"
+                      startIcon={<FaPlusCircle />}
+                      onClick={addFeeHead}
+                      className="text-yellow-700 border-yellow-400 hover:bg-yellow-100 mt-2"
+                    >
+                      Add Optional Fee
+                    </Button>
+                  )}
+                </div> */}
+<div className="p-4 bg-white rounded-xl shadow-lg border border-gray-100">
+  <label className="block text-lg font-semibold text-gray-700 mb-4">
+    Fee Heads
+  </label>
+
+  {!selectedClass ? (
+    <div className="text-gray-500 text-sm bg-gray-50 p-3 rounded-md border border-gray-200">
+      Please select a class to view or add Fee Heads.
+    </div>
+  ) : !formData.feeHeads || !formData.feeHeads.length ? (
+    <div className="text-red-600 text-sm font-medium bg-red-50 p-3 rounded-md border border-red-200 flex items-center gap-2">
+      ❗ No fee structure found for this class. Please add one first.
+    </div>
+  ) : (
+    formData.feeHeads.map((head, index) => {
+      const feeTypeOptions = [
+        { value: "Tuition Fee", label: "Tuition Fee" },
+        { value: "Exam Fee", label: "Exam Fee" },
+        { value: "Transport Fee", label: "Transport Fee" },
+        { value: "Miscellaneous", label: "Miscellaneous" },
+      ];
+
+      const selectedTypes = formData.feeHeads.map((f) => f.type);
+      const availableOptions = feeTypeOptions.map((opt) => ({
+        ...opt,
+        isDisabled: selectedTypes.includes(opt.value) && opt.value !== head.type,
+      }));
+
+      const isMandatory = head.type === "Tuition Fee" || head.type === "Exam Fee";
+
+      return (
+        <div
+          key={index}
+          className="flex flex-wrap items-center gap-4 border border-gray-200 p-4 rounded-lg mb-3 bg-gradient-to-r from-yellow-50 to-yellow-100 shadow-sm hover:shadow-md transition-shadow transform hover:-translate-y-1"
+        >
+          <div className="w-full sm:w-[260px]">
+            <Select
+              options={availableOptions}
+              value={head.type ? { value: head.type, label: head.type } : null}
+              placeholder="Select Fee Type"
+              onChange={(opt) => handleFeeHeadChange(index, "type", opt?.value || "")}
+              isDisabled={isMandatory}
+              className="rounded-md"
+            />
+          </div>
+
+          <input
+            type="number"
+            placeholder="Amount"
+            value={head.amount}
+            onChange={(e) => handleFeeHeadChange(index, "amount", Number(e.target.value))}
+            className="w-full sm:w-[140px] border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+          />
+
+          <label className="flex items-center gap-2 text-sm w-auto">
+            <input
+              type="checkbox"
+              checked={head.isOptional}
+              onChange={(e) => handleFeeHeadChange(index, "isOptional", e.target.checked)}
+              disabled={isMandatory}
+              className="h-4 w-4 text-yellow-500 border-gray-300 rounded focus:ring-yellow-300"
+            />
+            Optional
+          </label>
+
+          {!isMandatory && (
+            <button
+              type="button"
+              onClick={() => removeFeeHead(index)}
+              className="text-red-500 hover:text-red-700 text-sm font-medium transition-colors"
+              title="Remove Fee Head"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      );
+    })
+  )}
+
+  {selectedClass && formData?.feeHeads?.length < 4 && (
+    <Button
+      variant="contained"
+      startIcon={<FaPlusCircle />}
+      onClick={addFeeHead}
+      className="bg-yellow-400 hover:bg-yellow-500 text-white font-semibold rounded-lg mt-3 shadow-md"
+    >
+      Add Optional Fee
+    </Button>
+  )}
+</div>
+
+
+
+                {/* <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">Fee Heads</label>
+
+  {feesLoading ? (
+    <div className="text-gray-500 text-sm">Loading fee structure...</div>
+  ) : !feesData?.feeHeads?.length ? (
+    <div className="text-red-600 text-sm font-medium bg-red-50 p-2 rounded-md">
+      ❗ No fee structure found for this class. Please add one first.
+    </div>
+  ) : (
+    feesData?.feeHeads?.map((head, index) => (
+      <div key={index} className="flex flex-wrap items-center gap-3 border p-3 rounded-md mb-2 bg-yellow-50 shadow-sm hover:shadow-md transition-shadow">
+        <div className="w-full sm:w-[260px]">
+          <Select
+            options={[
+              { value: "Tuition Fee", label: "Tuition Fee" },
+              { value: "Exam Fee", label: "Exam Fee" },
+              { value: "Transport Fee", label: "Transport Fee" },
+              { value: "Miscellaneous", label: "Miscellaneous" },
+            ]}
+            value={head.type ? { value: head.type, label: head.type } : null}
+            placeholder="Select Fee Type"
+            onChange={(opt) => handleFeeHeadChange(index, "type", opt?.value || "")}
+            isDisabled={head.type === "Tuition Fee" || head.type === "Exam Fee"}
+          />
+        </div>
+
+        <input
+          type="number"
+          placeholder="Amount"
+          value={head.amount}
+          onChange={(e) => handleFeeHeadChange(index, "amount", Number(e.target.value))}
+          className="w-full sm:w-[140px] border border-gray-300 rounded-md px-2 py-1 text-xs"
+        />
+
+        <label className="flex items-center gap-1 text-sm w-auto">
+          <input
+            type="checkbox"
+            checked={head.isOptional}
+            onChange={(e) => handleFeeHeadChange(index, "isOptional", e.target.checked)}
+            disabled={head.type === "Tuition Fee" || head.type === "Exam Fee"}
+          />
+          Optional
+        </label>
+
+        {!(head.type === "Tuition Fee" || head.type === "Exam Fee") && (
+          <button
+            type="button"
+            onClick={() => removeFeeHead(index)}
+            className="text-red-500 hover:text-red-700 text-xs"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+    ))
+  )}
+</div> */}
+
+
+                {/* Save / Cancel */}
+
+              </form>
             </div>
           )
         }
@@ -1237,7 +1393,7 @@ const handleSubmit = async (e) => {
             <button
               type="submit"
               // variant="contained"
-              style={{ backgroundColor: "#4caf50", color: "white" }}
+              style={{ backgroundColor: "#f4f14fff", color: "black" }}
               className="px-6 py-2 rounded-lg hover:bg-green-600 cursor-pointer"
             >
               Submit

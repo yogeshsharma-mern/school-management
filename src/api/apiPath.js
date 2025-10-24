@@ -22,7 +22,7 @@ const apiPath = Object.freeze({
   getParticularTeacher:"/admins/teachers/getTeacherProfile",
   updateTeacher:"/admins/teachers/update-teacher",
   deleteTeacher:"/admins/teachers/soft-delete",
-  getParticularTeacher:"/admins/teachers/getProfile",
+  getParticularTeacher:"/admins/teachers/get-profile",
   dashboardData:"/admins/dashboard",
   SchoolSettings:"/admins/setting/school-settings",
   createSchoolSettings:"/admins/setting/school-settings",
@@ -38,7 +38,9 @@ const apiPath = Object.freeze({
   feestoggleFeesStructure:"/admins/fees/toggle/status/fee-structure",
   AddFees:"/admins/fees/student",
   getSettings:"admins/setting/school-settings",
-  getAssignments:"admins/teachers/assign-teacher"
+  getAssignments:"admins/timetable",
+  postAssignmentBulk:"admins/timetable/assign",
+  verifyAssignment:"admins/timetable/check"
   // getTeachers:"/admins/teachers/getAllTeacher",
 //   getTeacherDetails:"/admins/teachers/getTeacherProfile",
 //   teacherDelete:"/admins/teachers/soft-delete",
