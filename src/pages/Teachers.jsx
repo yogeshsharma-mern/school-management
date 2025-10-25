@@ -124,7 +124,7 @@ export default function StudentPage() {
         header: "Profile Pic",
         cell: ({ row }) => (
           <img
-            src={`${BASE_URL}${row.original.profilePic?.fileUrl}` || "/default-avatar.png"}
+            src={`${row.original.profilePic?.fileUrl}` || "/default-avatar.png"}
             alt={row.original.name}
             className="w-10 h-10 rounded-full object-cover border"
           />

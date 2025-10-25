@@ -29,6 +29,7 @@ const ChangePassword = lazy(() => import("./components/ChangePasswoord.jsx"));
 const EditTeacher=lazy(()=>import("./pages/EditTeacher.jsx"));
 const ResetPassword=lazy(()=>import("./components/ResetPassword.jsx"));
 const ResetPasswordId=lazy(()=>import("./pages/ResetPasswordId.jsx"));
+const TeacherAttendance=lazy(()=>import("./pages/TeacherAttendance.jsx"));
 // const EditFeesForm=lazy(()=>import('./pages/EditFeesForm.jsx'));
 const Assign = lazy(()=>import('./pages/Assign.jsx'));
 
@@ -70,6 +71,9 @@ export default function App() {
             <Route path="fees" element={<Fees />} />
             <Route path="subjects" element={<Subject />} />
             <Route path="teachers/:id" element={<TeacherDetails />} />
+            {/* admin/teachers/attendance */}
+            <Route path="teacher/attendance" element={<TeacherAttendance />} />
+            
             {/* <Route path="teachers/:id" element={<TeacherDetails />} /> */}
             <Route path="teachers/edit/:id" element={<EditTeacher />} />
             <Route path="settings" element={<AdminSettings />} />

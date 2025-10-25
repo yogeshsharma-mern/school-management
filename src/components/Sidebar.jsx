@@ -94,7 +94,18 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           onClick={toggleSidebar}
         >
           <FaChalkboardTeacher size={20} />
-          <span>Teachers</span>
+          <span>Teachers </span>
+        </NavLink>
+             <NavLink
+          to="/admin/teacher/attendance"
+          className={({ isActive }) =>
+            `flex items-center space-x-3 p-3 rounded-xl transition ${isActive ? "bg-[#1b263b] text-yellow-400" : "hover:bg-[#1b263b]"
+            }`
+          }
+          onClick={toggleSidebar}
+        >
+          <FaChalkboardTeacher size={20} />
+          <span>Teachers Attendance</span>
         </NavLink>
         {/* <NavLink
           to="/admin/assignments"
