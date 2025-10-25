@@ -15,7 +15,6 @@ export default function TeacherAttendancePage() {
     const [sorting, setSorting] = useState([]);
     const [globalFilter, setGlobalFilter] = useState("");
     const [columnFilters, setColumnFilters] = useState([]);
-    const [markedTeachers, setMarkedTeachers] = useState({});
 
 
     const debouncedSearch = useDebounce(globalFilter, 500);
@@ -44,6 +43,11 @@ const {data:teachersData,isLoading,isFetching,error}= useQuery({
             name:debouncedSearch,
         }),
 })
+  const { data: dashboardData, isLoading:loading, error:err } = useQuery({
+    queryKey: ["dashboardData"],
+    queryFn: () => apiGet(apiPath.dashboardData),
+  });
+  console.log("dashboarddata",dashboardData);
     // 🧩 Mutation to mark attendance
     // 🧩 Mutation to mark attendance
     // const attendanceMutation = useMutation({
@@ -64,18 +68,19 @@ const {data:teachersData,isLoading,isFetching,error}= useQuery({
     //     },
     // });
 const attendanceMutation = useMutation({
-    mutationFn: async ({ teacherId, status }) => {
-        return apiPost(apiPath.teacherAttendance, { teacherId, status });
-    },
-    onSuccess: (data, { teacherId }) => {
-        toast.success(data.message || "Attendance marked successfully ✅");
-        // Mark teacher as successfully updated
-        setMarkedTeachers(prev => ({ ...prev, [teacherId]: true }));
-    },
-    onError: (err) => {
-        toast.error(err?.response?.data?.message || "Failed to mark attendance ❌");
-    },
+  mutationFn: async ({ teacherId, status }) => {
+    return apiPost(apiPath.teacherAttendance, { teacherId, status });
+  },
+  onSuccess: (data) => {
+    toast.success(data.message || "Attendance marked successfully ✅");
+    // ✅ Refetch teachers to get updated todayAttendance
+    queryClient.invalidateQueries(["teachers"]);
+  },
+  onError: (err) => {
+    toast.error(err?.response?.data?.message || "Failed to mark attendance ❌");
+  },
 });
+
 
 
     // 🧮 Calculate stats
@@ -84,7 +89,7 @@ const attendanceMutation = useMutation({
     const presentCount = teachers.filter((t) => t.attendance?.includes("present")).length;
     const absentCount = teachers.filter((t) => t.attendance?.includes("absent")).length;
     const attendanceRate =
-        totalTeachers > 0 ? Math.round((presentCount / totalTeachers) * 100) : 0;
+        totalTeachers > 0 ? Math.round((dashboardData?.results?.teachersPresentToday / totalTeachers) * 100) : 0;
 
     // 🧱 Define table columns
     const columns = useMemo(
@@ -138,7 +143,7 @@ const attendanceMutation = useMutation({
             {
                 header: "Status",
                 cell: ({ row }) => {
-                    const status = row.original.attendance?.[0]?.status || "Not Marked";
+                    const status = row.original?.todayAttendance?.status || "Not Marked";
                     return (
                         <span
                             className={`px-2 py-1 text-xs rounded-full font-medium ${status === "present"
@@ -153,63 +158,71 @@ const attendanceMutation = useMutation({
                     );
                 },
             },
-          {
-    accessorKey: "actions",
-    header: "Actions",
-    cell: ({ row }) => {
-        const teacherId = row.original._id;
-        const isMarked = markedTeachers[teacherId] || false; // Local state tracking
+{
+  accessorKey: "actions",
+  header: "Actions",
+  cell: ({ row }) => {
+    const teacherId = row.original._id;
+    const todayStatus = row.original.todayAttendance?.status || "not_marked";
 
-        return (
-            <div className="flex gap-2 w-[100%]">
-                {/* Present Button */}
-                <button
-                    className={`flex items-center gap-1 px-3 py-1 text-sm rounded-lg transition-all ${
-                        isMarked
-                            ? "bg-gray-200 text-gray-600 cursor-not-allowed"
-                            : "bg-green-50 text-green-600 hover:bg-green-100"
-                    }`}
-                    onClick={() =>
-                        attendanceMutation.mutate({
-                            teacherId,
-                            status: "Present",
-                        })
-                    }
-                    disabled={attendanceMutation.isLoading || isMarked}
-                >
-                    <CheckCircle size={16} />
-                    Present
-                </button>
+    const isMarked = todayStatus !== "not_marked";
+    const statusLabel =
+      todayStatus === "not_marked"
+        ? "Not Marked"
+        : todayStatus.charAt(0).toUpperCase() + todayStatus.slice(1);
 
-                {/* Absent Button */}
-                <button
-                    className={`flex items-center gap-1 px-3 py-1 text-sm rounded-lg transition-all ${
-                        isMarked
-                            ? "bg-gray-200 text-gray-600 cursor-not-allowed"
-                            : "bg-red-50 text-red-600 hover:bg-red-100"
-                    }`}
-                    onClick={() =>
-                        attendanceMutation.mutate({
-                            teacherId,
-                            status: "Absent",
-                        })
-                    }
-                    disabled={attendanceMutation.isLoading || isMarked}
-                >
-                    <XCircle size={16} />
-                    Absent
-                </button>
+    return (
+      <div className="flex items-center gap-2 w-full">
+        {/* ✅ Present Button */}
+        <button
+          className={`flex items-center gap-1 px-3 cursor-pointer py-1 text-sm rounded-lg transition-all ${
+            todayStatus === "Present"
+              ? "bg-green-100 text-green-700 cursor-not-allowed"
+              : "bg-green-50 text-green-600 hover:bg-green-100"
+          }`}
+          onClick={() =>
+            attendanceMutation.mutate({
+              teacherId,
+              status: "Present",
+            })
+          }
+          disabled={attendanceMutation.isLoading || isMarked}
+        >
+          <CheckCircle size={16} />
+          Present
+        </button>
 
-                {/* Marked Indicator */}
-                {isMarked && (
-                    <span className="px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded-lg">
-                        Marked
-                    </span>
-                )}
-            </div>
-        );
-    },
+        {/* ❌ Absent Button */}
+        <button
+          className={`flex items-center gap-1 px-3 cursor-pointer py-1 text-sm rounded-lg transition-all ${
+            todayStatus === "Absent"
+              ? "bg-red-100 text-red-700 cursor-not-allowed"
+              : "bg-red-50 text-red-600 hover:bg-red-100"
+          }`}
+          onClick={() =>
+            attendanceMutation.mutate({
+              teacherId,
+              status: "Absent",
+            })
+          }
+          disabled={attendanceMutation.isLoading || isMarked}
+        >
+          <XCircle size={16} />
+          Absent
+        </button>
+
+        {/* 📘 Marked Indicator */}
+        {isMarked && (
+          <span className="px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded-lg font-medium">
+            Marked ({statusLabel})
+          </span>
+        )}
+      </div>
+    );
+  },
 }
+
+
 
 
 
@@ -271,7 +284,7 @@ const attendanceMutation = useMutation({
                     className="bg-white rounded-2xl shadow-sm p-5 border-t-4 border-green-500"
                 >
                     <p className="text-sm text-gray-500">Present</p>
-                    <h2 className="text-2xl font-bold text-green-600">{presentCount}</h2>
+                    <h2 className="text-2xl font-bold text-green-600">{dashboardData?.results?.teachersPresentToday}</h2>
                 </motion.div>
 
                 <motion.div
@@ -279,7 +292,7 @@ const attendanceMutation = useMutation({
                     className="bg-white rounded-2xl shadow-sm p-5 border-t-4 border-red-500"
                 >
                     <p className="text-sm text-gray-500">Absent</p>
-                    <h2 className="text-2xl font-bold text-red-600">{absentCount}</h2>
+                    <h2 className="text-2xl font-bold text-red-600">{totalTeachers-(dashboardData?.results?.teachersPresentToday)}</h2>
                 </motion.div>
 
                 <motion.div

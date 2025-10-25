@@ -104,7 +104,7 @@ export default function Dashboard() {
           <CardContent className="flex items-center gap-4">
             <FaSchool size={32} className="text-blue-600" />
             <div>
-              <p className="text-2xl font-bold">{results.percentageTeachersPresentToday ??  0}</p>
+              <p className="text-2xl font-bold">{results.teachersPresentToday ??  0}</p>
               <p>Today Present Teachers</p>
             </div>
           </CardContent>
