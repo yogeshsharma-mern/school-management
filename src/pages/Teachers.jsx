@@ -12,6 +12,8 @@ import { RiImageEditLine } from "react-icons/ri";
 import { FaRegEye } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { MdDelete } from "react-icons/md";
+import { IoIosAddCircleOutline } from "react-icons/io";
+
 
 export default function StudentPage() {
   const queryClient = useQueryClient();
@@ -187,6 +189,7 @@ export default function StudentPage() {
             >
               <MdDelete />
             </button>
+           
           </div>
         ),
       },

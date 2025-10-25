@@ -40,7 +40,8 @@ const apiPath = Object.freeze({
   getSettings:"admins/setting/school-settings",
   getAssignments:"admins/timetable",
   postAssignmentBulk:"admins/timetable/assign",
-  verifyAssignment:"admins/timetable/check"
+  verifyAssignment:"admins/timetable/check",
+  resetAssign:"admins/timetable/reset"
   // getTeachers:"/admins/teachers/getAllTeacher",
 //   getTeacherDetails:"/admins/teachers/getTeacherProfile",
 //   teacherDelete:"/admins/teachers/soft-delete",

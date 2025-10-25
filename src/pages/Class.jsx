@@ -10,6 +10,9 @@ import toast from "react-hot-toast";
 import Loader from "../components/Loading";
 import { RiImageEditLine } from "react-icons/ri";
 import ToggleButton from "../components/ToggleButton";
+import { IoIosAddCircleOutline } from "react-icons/io";
+import Select from "react-select";
+
 
 export default function ClassPage() {
   const queryClient = useQueryClient();
@@ -19,7 +22,16 @@ export default function ClassPage() {
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState([]);
+  const [addclassTeacherModal,setClassTeacherModal] = useState(false);
+  const [selectedTeacher,setSelectedTeacher] = useState(null);
+  console.log("selectedteacher",selectedTeacher);
 
+
+  const handleteacherChange=(item)=>
+  {
+// console.log("item",item.value);
+setSelectedTeacher(item.value);
+  }
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
@@ -42,7 +54,41 @@ export default function ClassPage() {
         name: debouncedSearch,
       }),
   });
-console.log("classdata",classesData)
+    const { data: TeachersData, isLoading:teacherLoading, isFetching:teacherFetching, error :err} = useQuery({
+    queryKey: ["teacherss"],
+    queryFn: () =>
+      apiGet(apiPath.getTeachers),
+  });
+console.log("teacherdata",TeachersData);
+// Get all teacher IDs already assigned as class teachers
+const assignedTeacherIds = classesData?.results?.docs
+  ?.filter(cls => cls.classTeacher?._id)
+  ?.map(cls => cls.classTeacher._id) || [];
+
+// Filter teachers who are NOT already assigned
+const availableTeachers = TeachersData?.results?.docs?.filter(
+  teacher => !assignedTeacherIds.includes(teacher._id)
+);
+
+const teacherOptions = availableTeachers?.map((t) => ({
+  value: t._id,
+  label: t.name,
+}));
+
+
+const assignClassTeacherMutation = useMutation({
+  mutationFn: (payload) => apiPost("/admins/teachers/class-teacherOf", payload),
+  onSuccess: (data) => {
+    toast.success(data.message || "Class teacher assigned successfully!");
+    queryClient.invalidateQueries({ queryKey: ["classes"] });
+    queryClient.invalidateQueries({ queryKey: ["teacherss"] });
+    setClassTeacherModal(false);
+    setSelectedTeacher(null);
+  },
+  onError: (error) => {
+    toast.error(error?.response?.data?.message || "Failed to assign class teacher.");
+  },
+});
   // Convert 24h -> 12h for API
   const formatTo12Hour = (time) => {
     if (!time) return "";
@@ -236,6 +282,19 @@ const handleSubmit = (e) => {
             >
               <RiImageEditLine />
             </button>
+                  <button
+              // onClick={() => openDeleteModal(row.original)}
+            onClick={() => {
+  const cls = row.original;
+  setEditingClass(cls);
+  setClassTeacherModal(true);
+}}
+
+              className="text-blue-600 cursor-pointer text-[20px] hover:text-blue-700"
+              title="Delete"
+            >
+             <IoIosAddCircleOutline />
+            </button>
           </div>
         ),
       },
@@ -283,7 +342,45 @@ const handleSubmit = (e) => {
         />
         {(isLoading || isFetching) && <Loader />}
       </div>
+<Modal isOpen={addclassTeacherModal} title="Add Class Teacher" onClose={()=>
+  {
+    setClassTeacherModal(false)
+  }
+}>
+       <Select
+              options={teacherOptions}
+              // value={head.type ? { value: head.type, label: head.type } : null}
+              placeholder="Select Teachers"
+              // onChange={(opt) => handleFeeHeadChange(index, "type", opt?.value || "")}
+              onChange={handleteacherChange}
+              // value={setSelectedTeacher}
+              // isDisabled={isMandatory}
+              // className="rounded-md"
+            />
+          <button
+  className="bg-yellow-500 py-2 px-4 rounded-md mt-4 ml-auto block cursor-pointer"
+  disabled={assignClassTeacherMutation.isLoading}
+  onClick={() => {
+    if (!selectedTeacher) {
+      toast.error("Please select a teacher first!");
+      return;
+    }
 
+    if (!editingClass?._id) {
+      toast.error("No class selected for assignment!");
+      return;
+    }
+
+    assignClassTeacherMutation.mutate({
+      teacherId: selectedTeacher,
+      classId: editingClass._id,
+    });
+  }}
+>
+  {assignClassTeacherMutation.isLoading ? "Assigning..." : "Submit"}
+</button>
+
+</Modal>
       {/* Modal */}
       <Modal
         isOpen={isModalOpen}

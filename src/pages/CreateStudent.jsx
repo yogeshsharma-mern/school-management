@@ -53,7 +53,7 @@ export default function CreateStudentPage() {
     address: { street: "", city: "", state: "", zip: "", country: "" },
     parents: [
       { name: "", occupation: "", phone: "", email: "" },
-      { name: "", occupation: "", phone: "", email: "" },
+      // { name: "", occupation: "", phone: "", email: "" },
     ],
     guardian: { name: "", relation: "", occupation: "", phone: "", email: "" },
     emergencyContact: { name: "", relation: "", phone: "", address: "" },
@@ -293,60 +293,66 @@ const [loadingFeeHeads, setLoadingFeeHeads] = useState(false);
   const validateStep = () => {
     const newErrors = {};
 
-    // if (activeStep === 0) {
-    //   if (!student.name.trim()) {
-    //     newErrors.name = "Name is required";
-    //   } else if (!/^[A-Za-z\s]+$/.test(student.name)) {
-    //     newErrors.name = "Name must not contain numbers or special characters";
-    //   }
-    //   if (!student.dob) newErrors.dob = "Date of Birth is required";
-    //   if (!student.gender) newErrors.gender = "Gender is required";
-    //   if (!student.bloodGroup) newErrors.bloodGroup = "Blood group is required";
-    //   if (!student.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email))
-    //     newErrors.email = "Valid email is required";
-    //   if (!student.password || student.password.length < 6)
-    //     newErrors.password = "Password must be at least 6 characters";
-    //   if (!student.phone || student.phone.replace(/\D/g, "").length < 10)
-    //     newErrors.phone = "Valid phone number required";
-    //   if (!student.documents || !student.documents.profilePic) {
-    //     newErrors.documents = { ...(newErrors.documents || {}), profilePic: "Profile picture is required" };
-    //   }
-    // }
+    if (activeStep === 0) {
+      if (!student.name.trim()) {
+        newErrors.name = "Name is required";
+      } else if (!/^[A-Za-z\s]+$/.test(student.name)) {
+        newErrors.name = "Name must not contain numbers or special characters";
+      }
+      if (!student.dob) newErrors.dob = "Date of Birth is required";
+      if (!student.gender) newErrors.gender = "Gender is required";
+      if (!student.bloodGroup) newErrors.bloodGroup = "Blood group is required";
+      if (!student.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email))
+        newErrors.email = "Valid email is required";
+      if (!student.password || student.password.length < 6)
+        newErrors.password = "Password must be at least 6 characters";
+      if (!student.phone || student.phone.replace(/\D/g, "").length < 10)
+        newErrors.phone = "Valid phone number required";
+      if (!student.documents || !student.documents.profilePic) {
+        newErrors.documents = { ...(newErrors.documents || {}), profilePic: "Profile picture is required" };
+      }
+    }  else if (activeStep === 1) {
+      student.parents.forEach((parent, i) => {
+        if (!parent.name)
+          newErrors[`parent_${i}_name`] = "Parent name is required";
+        if (!parent.occupation)
+          newErrors[`parent_${i}_occupation`] = "Occupation required";
+        if (!parent.phone)
+          newErrors[`parent_${i}_phone`] = "Phone is required";
+       if (!parent.email) {
+  newErrors[`parent_${i}_email`] = "Email is required";
+} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parent.email)) {
+  newErrors[`parent_${i}_email`] = "Enter valid email";
+}
+      });
 
-    // else if (activeStep === 1) {
-    //   student.parents.forEach((parent, i) => {
-    //     if (!parent.name)
-    //       newErrors[`parent_${i}_name`] = "Parent name is required";
-    //     if (!parent.occupation)
-    //       newErrors[`parent_${i}_occupation`] = "Occupation required";
-    //     if (!parent.phone)
-    //       newErrors[`parent_${i}_phone`] = "Phone is required";
-    //     if (parent.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parent.email))
-    //       newErrors[`parent_${i}_email`] = "Enter valid email";
-    //   });
+      if (!student.emergencyContact.name)
+        newErrors.emergencyContact_name = "Contact name required";
+      if (!student.emergencyContact.relation)
+        newErrors.emergencyContact_relation = "Relation required";
+      if (!student.emergencyContact.phone)
+        newErrors.emergencyContact_phone = "Phone required";
+      if (!student.emergencyContact.address)
+        newErrors.emergencyContact_address = "Address required";
+    }
 
-    //   if (!student.emergencyContact.name)
-    //     newErrors.emergencyContact_name = "Contact name required";
-    //   if (!student.emergencyContact.relation)
-    //     newErrors.emergencyContact_relation = "Relation required";
-    //   if (!student.emergencyContact.phone)
-    //     newErrors.emergencyContact_phone = "Phone required";
-    //   if (!student.emergencyContact.address)
-    //     newErrors.emergencyContact_address = "Address required";
-    // }
+    else if (activeStep === 2) {
+      // if (!student.classId) newErrors.classId = "Class is required";
+      // if (!student.academicYear) newErrors.academicYear = "Academic year is required";
 
-    // else if (activeStep === 2) {
-    //   if (!student.classId) newErrors.classId = "Class is required";
-    //   if (!student.academicYear) newErrors.academicYear = "Academic year is required";
+      if (!student.documents?.aadharFront) {
+        newErrors.aadharFront = "Aadhar front is required";
+      }
 
-    //   if (!student.documents?.aadharFront) {
-    //     newErrors.aadharFront = "Aadhar front is required";
-    //   }
-
-    //   if (!student.documents?.aadharBack) {
-    //     newErrors.aadharBack = "Aadhar back is required";
-    //   }
-    // }
+      if (!student.documents?.aadharBack) {
+        newErrors.aadharBack = "Aadhar back is required";
+      }
+    }
+    else if(activeStep === 3)
+    {
+          if (!student.classId) newErrors.classId = "Class is required";
+      if (!student.academicYear) newErrors.academicYear = "Academic year is required";
+    }
 
     setErrors(newErrors);
     console.log("Validation errors:", newErrors); // helpful for debugging
@@ -1066,6 +1072,10 @@ const [loadingFeeHeads, setLoadingFeeHeads] = useState(false);
                     // onChange={handleChange}
                     onChange={(e) => {
                       const selectedId = e.target.value;
+             setErrors((prev)=>(
+            {...prev,
+              classId:""
+            }));
                       const selectedClassObj = classes?.results?.docs?.find(
                         (cls) => cls._id === selectedId
                       );

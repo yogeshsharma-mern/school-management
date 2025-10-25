@@ -225,13 +225,13 @@ console.log("subject",subject);
           onToggle={handleToggle}
           disabled={toggleMutation.isLoading}
         />
-        <span
+        {/* <span
           className={`text-sm font-medium ${
             subject.status ==="active"? "text-green-600" : "text-red-600"
           }`}
         >
           {subject.status==="active" ? "Active" : "Inactive"}
-        </span>
+        </span> */}
       </div>
     );
   },

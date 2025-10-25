@@ -466,7 +466,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Box, Button, Typography, Paper } from "@mui/material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiGet, apiPost } from "../api/apiFetch";
+import { apiDelete, apiGet, apiPost, apiPut } from "../api/apiFetch";
 import apiPath from "../api/apiPath";
 import AddAssignmentModal from "../components/AddAssignmentModal";
 import toast from "react-hot-toast";
@@ -565,7 +565,23 @@ export default function TimetableManager() {
       ),
     enabled: !!selectedClassId,
   });
-
+const resetMutation = useMutation({
+  mutationFn: async (classId) => {
+    return apiDelete(
+      `${apiPath.resetAssign || "/api/admins/teachers/assign-teacher"}/${classId}`
+    );
+  },
+  onSuccess: (res) => {
+    toast.success(res?.message || "Assignments reset successfully!");
+    // Invalidate assignment data to refresh UI
+    queryClient.invalidateQueries(["assignments", selectedClassId]);
+    setLocalAssignments({});
+  },
+  onError: (err) => {
+    console.error(err);
+    toast.error(err.response?.data?.message || "Failed to reset assignments");
+  },
+});
   // 🔹 Data extraction
   const classes = classesQuery.data?.results?.docs || classesQuery.data || [];
   const teachers = teachersQuery.data?.results?.docs || teachersQuery.data || [];
@@ -579,6 +595,9 @@ export default function TimetableManager() {
       setSelectedClassId(classes[0]._id || classes[0].id);
     }
   }, [classes, selectedClassId]);
+  function handleReset(){
+   resetMutation.mutate(selectedClassId);
+  }
 
   // 🔹 Reset when class changes
   useEffect(() => {
@@ -768,7 +787,10 @@ useEffect(() => {
             <Button
               variant="outlined"
               className="border-indigo-400 text-indigo-600"
-              onClick={() => setLocalAssignments({})}
+              onClick={() => {
+                setLocalAssignments({});
+        handleReset()
+              }}
             >
               Reset
             </Button>
