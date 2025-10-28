@@ -508,12 +508,12 @@ export default function Login() {
               {!loading && <FaArrowRight className="ml-2" />}
             </button>
 
-            <p className="text-center text-gray-500 text-sm mt-4">
+            {/* <p className="text-center text-gray-500 text-sm mt-4">
               Don’t have an account?{" "}
               <a href="#" className="text-yellow-500 hover:underline font-medium">
                 Sign Up
               </a>
-            </p>
+            </p> */}
           </form>
         </div>
       </div>

@@ -25,12 +25,12 @@ export default function ResetPassword() {
   const mutation = useMutation({
     mutationFn: async () => {
       const res = await apiPost(`${apiPath.LinkresetApi}/${id}`, { password });
-      return res.data;
+      return res;
     },
     onSuccess: (data) => {
       // alert("🎉 Password reset successful! Please log in again.");
       toast.success(data.message);
-      navigate("/login");
+      navigate("/");
     },
     onError: (err) => {
       // setError(err.response?.data?.message || "Something went wrong!");

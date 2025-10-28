@@ -65,25 +65,25 @@ export default function CreateTeacherPage() {
         { value: "B.Ed", label: "B.Ed" },
         { value: "M.Ed", label: "M.Ed" },
         { value: "PhD", label: "PhD" },
-        {value:"BA",label:"BA"},
-        {value:"MA",label:"MA"},
-        {value:"BCA",label:"BCA"},
-        {value:"MCA",label:"MCA"},
-        {value:"BSC",label:"BSC"},
-        {value:"MSC",label:"MSC"},
-        {value:"BCOM",label:"BCOM"},
-        {value:"MCOM",label:"MCOM"}
+        { value: "BA", label: "BA" },
+        { value: "MA", label: "MA" },
+        { value: "BCA", label: "BCA" },
+        { value: "MCA", label: "MCA" },
+        { value: "BSC", label: "BSC" },
+        { value: "MSC", label: "MSC" },
+        { value: "BCOM", label: "BCOM" },
+        { value: "MCOM", label: "MCOM" }
     ];
 
     const specializationOptions = [
         { value: "Mathematics", label: "Mathematics" },
         { value: "Physics", label: "Physics" },
         { value: "Computer Science", label: "Computer Science" },
-        {value:"Chemistry",label:"Chemistry"},
-        {value:"SST",label:"SST"},
-        {value:"English",label:"English"},
-        {value:"Hindi",label:"Hindi"},
-        {value:"Sanskrit",label:"Sanskrit"}
+        { value: "Chemistry", label: "Chemistry" },
+        { value: "SST", label: "SST" },
+        { value: "English", label: "English" },
+        { value: "Hindi", label: "Hindi" },
+        { value: "Sanskrit", label: "Sanskrit" }
 
     ];
 

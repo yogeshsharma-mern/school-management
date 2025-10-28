@@ -22,7 +22,7 @@ import PhoneInput from "react-phone-input-2";
 import Select from "react-select";
 import ToggleButton from "../components/ToggleButton";
 import "react-phone-input-2/lib/material.css";
-import { apiPut,apiGet,apiPatch,apiDelete,apiPost } from "../api/apiFetch";
+import { apiPut, apiGet, apiPatch, apiDelete, apiPost } from "../api/apiFetch";
 import apiPath from "../api/apiPath";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
@@ -60,144 +60,146 @@ export default function SchoolSettings() {
   });
   const [logoPreview, setLogoPreview] = useState(null);
   const formatDateForInput = (isoDate) => {
-  if (!isoDate) return "";
-  return isoDate.split("T")[0]; // "2025-10-13"
-};
+    if (!isoDate) return "";
+    return isoDate.split("T")[0]; // "2025-10-13"
+  };
 
   // GET existing settings
-// const { data:schData, isLoading } = useQuery({
-//   queryKey: ["school-settings"],
-//   queryFn: async () => {
-//     const res = await apiGet(apiPath.SchoolSettings);
-//     return res.data.results || {};
-//   },
-//   onSuccess: (data) => {
-//     // console.log("data",data)
-//     setSchoolData(data);
-//     if (data.schoolLogo) setLogoPreview(data.schoolLogo);
-//   },
-// });
-// console.log("schdata",schData);
-const { data: studentData, isLoading } = useQuery({
+  // const { data:schData, isLoading } = useQuery({
+  //   queryKey: ["school-settings"],
+  //   queryFn: async () => {
+  //     const res = await apiGet(apiPath.SchoolSettings);
+  //     return res.data.results || {};
+  //   },
+  //   onSuccess: (data) => {
+  //     // console.log("data",data)
+  //     setSchoolData(data);
+  //     if (data.schoolLogo) setLogoPreview(data.schoolLogo);
+  //   },
+  // });
+  // console.log("schdata",schData);
+  const { data: studentData, isLoading } = useQuery({
     queryKey: ["school-settings"],
     queryFn: () => apiGet(apiPath.SchoolSettings) // only fetch if id exists
   });
-console.log("first",studentData);
+  console.log("first", studentData);
   // Update state whenever query data changes
-useEffect(() => {
-  if (!studentData?.results) return;
+  useEffect(() => {
+    if (!studentData?.results) return;
 
-  const s = studentData.results;
+    const s = studentData.results;
 
-  const formatDateForInput = (isoDate) => isoDate ? isoDate.split("T")[0] : "";
+    const formatDateForInput = (isoDate) => isoDate ? isoDate.split("T")[0] : "";
 
-  setSchoolData({
-    schoolName: s.schoolName || "",
-    status: s.status || "inactive",
-    address: {
-      street: s.address?.street || "",
-      city: s.address?.city || "",
-      state: s.address?.state || "",
-      zip: s.address?.zip || "",
-      country: s.address?.country || "",
-    },
-    contact: {
-      phone: s.contact?.phone || "",
-      email: s.contact?.email || "",
-      website: s.contact?.website || "",
-    },
-    schoolTiming: {
-      startTime: s.schoolTiming?.startTime || "09:00",
-      endTime: s.schoolTiming?.endTime || "15:00",
-    },
-    periods: {
-      totalPeriods: s.periods?.totalPeriods || "",
-      periodDuration: s.periods?.periodDuration || "",
-      breakDuration: s.periods?.breakDuration || "",
-      lunchBreak: {
-        isEnabled: s.periods?.lunchBreak?.isEnabled || false,
-        time: s.periods?.lunchBreak?.time || "",
-        duration: s.periods?.lunchBreak?.duration || "",
+    setSchoolData({
+      schoolName: s.schoolName || "",
+      status: s.status || "inactive",
+      address: {
+        street: s.address?.street || "",
+        city: s.address?.city || "",
+        state: s.address?.state || "",
+        zip: s.address?.zip || "",
+        country: s.address?.country || "",
       },
-    },
-    academicSession: {
-      startDate: formatDateForInput(s.academicSession?.startDate),
-      endDate: formatDateForInput(s.academicSession?.endDate),
-      currentSession: s.academicSession?.currentSession || "",
-    },
-    schoolLogo: null, // keep null, preview handled separately
-  });
+      contact: {
+        phone: s.contact?.phone || "",
+        email: s.contact?.email || "",
+        website: s.contact?.website || "",
+      },
+      schoolTiming: {
+        startTime: s.schoolTiming?.startTime || "09:00",
+        endTime: s.schoolTiming?.endTime || "15:00",
+      },
+      periods: {
+        totalPeriods: s.periods?.totalPeriods || "",
+        periodDuration: s.periods?.periodDuration || "",
+        breakDuration: s.periods?.breakDuration || "",
+        lunchBreak: {
+          isEnabled: s.periods?.lunchBreak?.isEnabled || false,
+          time: s.periods?.lunchBreak?.time || "",
+          duration: s.periods?.lunchBreak?.duration || "",
+        },
+      },
+      academicSession: {
+        startDate: formatDateForInput(s.academicSession?.startDate),
+        endDate: formatDateForInput(s.academicSession?.endDate),
+        currentSession: s.academicSession?.currentSession || "",
+      },
+      schoolLogo: null, // keep null, preview handled separately
+    });
 
-  if (s.schoolLogo) setLogoPreview(`${s.schoolLogo}`);
+    if (s.schoolLogo) setLogoPreview(`${s.schoolLogo}`);
 
-}, [studentData]);
+  }, [studentData]);
 
 
   // POST / PUT Save
-const mutation = useMutation({
-  mutationFn: (formData) => {
-    // Use PUT if data exists, POST otherwise
-    return studentData?.results
-      ? apiPut(apiPath.updateSchoolSettings, formData)
-      : apiPost(apiPath.createSchoolSettings, formData);
-  },
-  onSuccess: (data) =>{ queryClient.invalidateQueries(["school-settings"])
-    toast.success(data.message || "Settings saved successfully");
-  },
-});
+  const mutation = useMutation({
+    mutationFn: (formData) => {
+      // Use PUT if data exists, POST otherwise
+      return studentData?.results
+        ? apiPut(apiPath.updateSchoolSettings, formData)
+        : apiPost(apiPath.createSchoolSettings, formData);
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(["school-settings"])
+      toast.success(data.message || "Settings saved successfully");
+    },
+  });
 
   // PATCH Reset Defaults
   const resetMutation = useMutation({
     mutationFn: async () => apiPatch(apiPath.resetSchoolSettings),
-    onSuccess: (data) =>{ queryClient.invalidateQueries(["school-settings"])
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(["school-settings"])
       toast.success(data.message || "Settings reset to defaults");
     },
   });
-const generateSessionOptions = (startDate, endDate) => {
-  if (!startDate || !endDate) return [];
+  const generateSessionOptions = (startDate, endDate) => {
+    if (!startDate || !endDate) return [];
 
-  const startYear = new Date(startDate).getFullYear();
-  const endYear = new Date(endDate).getFullYear();
+    const startYear = new Date(startDate).getFullYear();
+    const endYear = new Date(endDate).getFullYear();
 
-  if (startYear > endYear) return [];
+    if (startYear > endYear) return [];
 
-  const session = `${startYear}-${endYear}`;
-  return [{ value: session, label: session }];
-};
+    const session = `${startYear}-${endYear}`;
+    return [{ value: session, label: session }];
+  };
 
-// Helper to get currentSession default value
-const getCurrentSessionValue = (session) => {
-  return session
-    ? { value: session, label: session }
-    : null;
-};
+  // Helper to get currentSession default value
+  const getCurrentSessionValue = (session) => {
+    return session
+      ? { value: session, label: session }
+      : null;
+  };
 
 
   // Nested state updater
-const handleChange = (path, value) => {
-  setSchoolData((prev) => {
-    const newData = { ...prev };
-    const keys = path.split(".");
-    let temp = newData;
-    for (let i = 0; i < keys.length - 1; i++) temp = temp[keys[i]];
+  const handleChange = (path, value) => {
+    setSchoolData((prev) => {
+      const newData = { ...prev };
+      const keys = path.split(".");
+      let temp = newData;
+      for (let i = 0; i < keys.length - 1; i++) temp = temp[keys[i]];
 
-    // Validation for school timing (08:00 - 16:00)
-    if (keys[0] === "schoolTiming") {
-      const time = value;
-      const [h, m] = time.split(":").map(Number);
-      if (h < 8 || h > 16) return prev; // ignore invalid
-    }
+      // Validation for school timing (08:00 - 16:00)
+      if (keys[0] === "schoolTiming") {
+        const time = value;
+        const [h, m] = time.split(":").map(Number);
+        if (h < 8 || h > 16) return prev; // ignore invalid
+      }
 
-    // Validation for lunch duration <= 60
-    if (path === "periods.lunchBreak.duration" && Number(value) > 60) return prev;
+      // Validation for lunch duration <= 60
+      if (path === "periods.lunchBreak.duration" && Number(value) > 60) return prev;
 
-    // Prevent negative values for periods/duration
-    if (["periods.totalPeriods","periods.periodDuration","periods.breakDuration"].includes(path) && Number(value) < 0) return prev;
+      // Prevent negative values for periods/duration
+      if (["periods.totalPeriods", "periods.periodDuration", "periods.breakDuration"].includes(path) && Number(value) < 0) return prev;
 
-    temp[keys[keys.length - 1]] = value;
-    return newData;
-  });
-};
+      temp[keys[keys.length - 1]] = value;
+      return newData;
+    });
+  };
 
 
   const handleSubmit = (e) => {
@@ -220,21 +222,21 @@ const handleChange = (path, value) => {
       // <Box display="flex" justifyContent="center" mt={8}>
       //   <CircularProgress />
       // </Box>
-       <div className="h-[70vh] inset-0 flex items-center justify-center bg-white bg-opacity-70 z-50">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
-    </div>
+      <div className="h-[70vh] inset-0 flex items-center justify-center bg-white bg-opacity-70 z-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+      </div>
     );
 
   return (
     <Box className="p-6" >
-  <Typography
-  className="text-yellow-500  font-bold tracking-wide"
-  variant="h5"
-  align="center"
-  gutterBottom
->
-  🏫 School Settings
-</Typography>
+      <Typography
+        className="text-yellow-500  font-bold tracking-wide"
+        variant="h5"
+        align="center"
+        gutterBottom
+      >
+        🏫 School Settings
+      </Typography>
 
       <form onSubmit={handleSubmit}>
         {/* Basic Info + Status */}
@@ -328,11 +330,15 @@ const handleChange = (path, value) => {
               <Grid item xs={12} sm={6}>
                 <Select
                   options={stateOptions}
-                  value={stateOptions.find(
-                    (s) => s.value === schoolData.address.state
-                  )}
+                  value={stateOptions.find((s) => s.value === schoolData.address.state)}
                   onChange={(option) => handleChange("address.state", option.value)}
+                  menuPortalTarget={document.body} // ✅ renders dropdown at body level
+                  styles={{
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 }), // ✅ ensures visible on top
+                    menu: (base) => ({ ...base, zIndex: 9999 }),       // optional double safety
+                  }}
                 />
+
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Select
@@ -340,6 +346,11 @@ const handleChange = (path, value) => {
                   value={countryOptions.find(
                     (c) => c.value === schoolData.address.country
                   )}
+                  menuPortalTarget={document.body} // ✅ renders dropdown at body level
+                  styles={{
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 }), // ✅ ensures visible on top
+                    menu: (base) => ({ ...base, zIndex: 9999 }),       // optional double safety
+                  }}
                   onChange={(option) =>
                     handleChange("address.country", option.value)
                   }
@@ -479,78 +490,84 @@ const handleChange = (path, value) => {
           </CardContent>
         </Card>
 
-{/* // Add this snippet inside your <form> before the buttons section */}
-{/* Academic Session */}
-{/* Academic Session */}
-{/* Academic Session */}
-<Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-  <CardContent>
-    <Typography variant="h6" gutterBottom>
-      🎓 Academic Session
-    </Typography>
-    <Grid container spacing={2}>
-      {/* Start Date */}
-      <Grid item xs={12} sm={4}>
-        <TextField
-          type="date"
-          label="Start Date"
-          value={schoolData.academicSession.startDate || ""}
-          onChange={(e) => {
-            handleChange("academicSession.startDate", e.target.value);
-            handleChange("academicSession.currentSession", "");
-          }}
-          fullWidth
-          InputLabelProps={{ shrink: true }}
-          sx={{ height: 55 }}
-          required
-        />
-      </Grid>
+        {/* // Add this snippet inside your <form> before the buttons section */}
+        {/* Academic Session */}
+        {/* Academic Session */}
+        {/* Academic Session */}
+        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              🎓 Academic Session
+            </Typography>
+            <Grid container spacing={2}>
+              {/* Start Date */}
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  type="date"
+                  label="Start Date"
+                  value={schoolData.academicSession.startDate || ""}
+                  onChange={(e) => {
+                    handleChange("academicSession.startDate", e.target.value);
+                    handleChange("academicSession.currentSession", "");
+                  }}
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ height: 55 }}
+                  required
+                />
+              </Grid>
 
-      {/* End Date */}
-      <Grid item xs={12} sm={4}>
-        <TextField
-          type="date"
-          label="End Date"
-          value={schoolData.academicSession.endDate || ""}
-          onChange={(e) => {
-            handleChange("academicSession.endDate", e.target.value);
-            handleChange("academicSession.currentSession", "");
-          }}
-          fullWidth
-          InputLabelProps={{ shrink: true }}
-          sx={{ height: 55 }}
-          required
-        />
-      </Grid>
+              {/* End Date */}
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  type="date"
+                  label="End Date"
+                  value={schoolData.academicSession.endDate || ""}
+                  onChange={(e) => {
+                    handleChange("academicSession.endDate", e.target.value);
+                    handleChange("academicSession.currentSession", "");
+                  }}
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ height: 55 }}
+                  required
+                />
+              </Grid>
 
-      {/* Current Session */}
-      <Grid item xs={12} sm={4}>
-        <Select
-          options={generateSessionOptions(
-            schoolData.academicSession.startDate,
-            schoolData.academicSession.endDate
-          )}
-          value={getCurrentSessionValue(
-            schoolData.academicSession.currentSession
-          )}
-          onChange={(option) =>
-            handleChange("academicSession.currentSession", option.value)
-          }
-          placeholder="Select Current Session"
-          isSearchable={false}
-          styles={{
-            container: (base) => ({ ...base, minHeight: 55 }),
-          }}
-        />
-        {!schoolData.academicSession.currentSession && (
-          <Typography variant="body2" color="error" mt={1}>
-            Current Session is required.
-          </Typography>
-        )}
-      </Grid>
-    </Grid>
-  </CardContent>
-</Card>
+              {/* Current Session */}
+              <Grid item xs={12} sm={4}>
+                <Select
+
+                  options={generateSessionOptions(
+                    schoolData.academicSession.startDate,
+                    schoolData.academicSession.endDate
+                  )}
+
+                  value={getCurrentSessionValue(
+                    schoolData.academicSession.currentSession
+                  )}
+
+                  onChange={(option) =>
+                    handleChange("academicSession.currentSession", option.value)
+                  }
+                  menuPortalTarget={document.body} // ✅ renders dropdown at body level
+                  styles={{
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 }), // ✅ ensures visible on top
+                    menu: (base) => ({ ...base, zIndex: 9999 }),       // optional double safety
+                  }}
+
+                  placeholder="Select Current Session"
+             
+                />
+                {!schoolData.academicSession.currentSession && (
+                  <Typography variant="body2" color="error" mt={1}>
+                    Current Session is required.
+                  </Typography>
+                )}
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
 
 
 

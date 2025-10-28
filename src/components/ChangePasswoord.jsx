@@ -26,11 +26,12 @@ const ResetPassword = () => {
   const mutation = useMutation({
     mutationFn: async (data) => {
       const res = await apiPost(`${BASE_URL}/admins/auth/change-password`, data);
-      return res.data;
+      return res;
     },
     onSuccess: (data) => {
       // console.log(data);
-      toast.success("Password changed successfully! Please login again.");
+      // toast.success("Password changed successfully! Please login again.");
+      toast.success(data?.message);
       setForm({ oldPassword: "", password: "", confirmPassword: "" });
       dispatch(logout());
     },
@@ -60,7 +61,7 @@ const ResetPassword = () => {
 
   return (
     <div className="h-[85vh]  flex items-center justify-center  ">
-      <Toaster position="top-right" />
+      {/* <Toaster position="top-right" /> */}
       <div className="w-full max-w-md bg-white/80 backdrop-blur-xl  rounded-3xl border border-gray-100 p-8 transition-all duration-300 hover:shadow-[0_0_30px_rgba(59,130,246,0.2)]">
         {/* Header */}
         <div className="flex flex-col cursor-pointer items-center mb-8">
@@ -160,8 +161,8 @@ const ResetPassword = () => {
             type="submit"
             disabled={mutation.isPending}
             className={`w-full h-12 rounded-xl text-white font-semibold text-lg transition-all duration-200 shadow-md ${mutation.isPending
-                ? "bg-blue-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-yellow-500 to-yellow-500 cursor-pointer hover:from-yellow-500 hover:to-orange-300"
+                ? "bg-yellow-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-yellow-500 to-yellow-500 cursor-pointer hover:from-yellow-500 hover:to-yellow-500"
               }`}
           >
             {mutation.isPending ? "Updating..." : "Change Password"}

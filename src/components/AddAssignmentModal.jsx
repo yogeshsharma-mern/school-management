@@ -689,8 +689,14 @@ useEffect(() => {
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} disabled={loading}>Cancel</Button>
-        <Button type="submit" form="assign-form" variant="contained" disabled={loading}>
+        <Button onClick={onClose} sx={{
+      // backgroundColor: '#e4e40dff',
+      color: '#84782bff',
+    }}  disabled={loading}>Cancel</Button>
+        <Button type="submit" sx={{
+      backgroundColor: '#eab308',
+      color: '#333',
+    }} form="assign-form" variant="contained" disabled={loading}>
           {loading ? "Checking..." : existing ? "Update" : "Create"}
         </Button>
       </DialogActions>
