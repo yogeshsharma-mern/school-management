@@ -16,15 +16,20 @@ export default function ForgotPassword() {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const res = await apiPost("http://localhost:5000/api/forgot-password", { email });
-      return res.data;
+      const res = await apiPost(apiPath.resetPassword, { email });
+      return res;
     },
     onSuccess: (data) => {
-      setMessage(data.message || "Password reset link sent successfully!");
+      // setMessage(data.message || "Password reset link sent successfully!");
+      console.log(
+        "data",data
+      );
+      toast.success(data.message);
       setError("");
     },
     onError: (err) => {
-      setError(err.response?.data?.message || "Something went wrong!");
+      // setError(err.response?.data?.message || "Something went wrong!");
+      toast.error(err.response?.data?.message);
       setMessage("");
     },
   });
@@ -49,7 +54,7 @@ export default function ForgotPassword() {
       >
         <div className="text-center mb-6">
           <div className="flex justify-center items-center mb-2">
-            <Mail className="text-indigo-600 w-10 h-10" />
+            <Mail className="text-yellow-500 w-10 h-10" />
           </div>
           <h2 className="text-2xl font-bold text-gray-800">Forgot Password?</h2>
           <p className="text-gray-500 text-sm">
@@ -79,7 +84,7 @@ export default function ForgotPassword() {
           <button
             type="submit"
             disabled={mutation.isLoading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition-all duration-200 shadow-md flex items-center justify-center gap-2"
+            className="w-full bg-yellow-500 hover:bg-yellow-500 cursor-pointer text-white font-semibold py-2.5 rounded-lg transition-all duration-200 shadow-md flex items-center justify-center gap-2"
           >
             {mutation.isLoading ? "Sending..." : <>
               <Send className="w-4 h-4" /> Send Reset Link
@@ -91,7 +96,7 @@ export default function ForgotPassword() {
           Remembered your password?{" "}
           <span
             onClick={() => navigate("/")}
-            className="text-indigo-600 hover:underline cursor-pointer font-medium"
+            className="text-yellow-500 hover:underline cursor-pointer font-medium"
           >
             Go back to login
           </span>
