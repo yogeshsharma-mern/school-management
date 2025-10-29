@@ -8,6 +8,7 @@ import "react-phone-input-2/lib/style.css";
 import apiPath from "../api/apiPath";
 import { QueryClient, useQuery } from "@tanstack/react-query";
 import { SettingsSuggestOutlined, Visibility, VisibilityOff } from "@mui/icons-material";
+import { FaPlusCircle } from "react-icons/fa";
 import {
   InputAdornment,
   IconButton,
@@ -28,6 +29,7 @@ const countries = countryList().getData();
 
 
 export default function CreateStudentPage() {
+  const [selectedClass, setSelectedClass] = useState(null);
   const navigate = useNavigate();
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [student, setStudent] = useState({
@@ -93,60 +95,62 @@ export default function CreateStudentPage() {
   });
 
   // Update state whenever query data changes
-  useEffect(() => {
-    if (!studentData?.results?.length) return;
+useEffect(() => {
+  if (!studentData?.results?.length) return;
 
-    const s = studentData.results[0];
+  const s = studentData.results[0];
+  setStudent(prev => ({
+    ...prev,
+    ...s,
+    dob: s.dob ? s.dob.split("T")[0] : "",
+    admissionDate: s.admissionDate ? s.admissionDate.split("T")[0] : "",
+    address: s.address || prev.address,
+    guardian: s.guardian || prev.guardian,
+    emergencyContact: s.emergencyContact || prev.emergencyContact,
+    parents: s.parentDetails?.length ? s.parentDetails : prev.parents,
+    documents: {
+      ...prev.documents,
+      profilePic: s.profilePic || null,
+      aadharFront: s.aadharFront || null,
+      aadharBack: s.aadharBack || null,
+      certificates: s.certificates || [],
+      marksheets: s.marksheets || [],
+    },
+    classId: s.classId || "",
+    academicYear: s.enrollmentDetails?.[0]?.academicYear || "",
+  }));
 
-    setStudent(prev => ({
-      ...prev,
-      ...s,
+  setPreviews({
+    profilePic: s.profilePic ? `${s.profilePic}` : null,
+    aadharFront: s.aadharFront ? `${s.aadharFront}` : null,
+    aadharBack: s.aadharBack ? `${s.aadharBack}` : null,
+    certificates: s.certificates?.map(c => (c.fileUrl ? c.fileUrl : c)) || [],
+    marksheets: s.marksheets?.map(c => (c.fileUrl ? c.fileUrl : c)) || [],
+  });
 
-      // Format date fields for <input type="date">
-      dob: s.dob ? s.dob.split("T")[0] : "",
-      admissionDate: s.admissionDate ? s.admissionDate.split("T")[0] : "",
+  // ✅ set selectedClass from classId so fees query triggers
+  if (s.classId) {
+    setSelectedClass(s?.enrollments[0].classInfo?.name);
+  }
+}, [studentData]);
 
-      // Optional nested mappings
-      address: s.address || prev.address,
-      guardian: s.guardian || prev.guardian,
-      emergencyContact: s.emergencyContact || prev.emergencyContact,
-      parents: s.parentDetails?.length ? s.parentDetails : prev.parents,
 
-      // Documents
-      documents: {
-        ...prev.documents,
-        profilePic: s.profilePic || null,
-        aadharFront: s.aadharFront || null,
-        aadharBack: s.aadharBack || null,
-        certificates: s.certificates || [],
-        marksheets: s.marksheets || [],
-      },
-
-      classId: s.classId || "",
-      academicYear: s.enrollmentDetails?.[0]?.academicYear || "",
-    }));
-
-    // ✅ Set image/file previews (with base URL)
-    setPreviews({
-      profilePic: s.profilePic ? `${s.profilePic}` : null,
-      aadharFront: s.aadharFront ? `${s.aadharFront}` : null,
-      aadharBack: s.aadharBack ? `${s.aadharBack}` : null,
-      certificates: s.certificates?.map(c =>
-        c.fileUrl ? `${c.fileUrl}` : `${c}`
-      ) || [],
-      marksheets: s.marksheets?.map(c =>
-        c.fileUrl ? `${c.fileUrl}` : `${c}`
-      ) || [],
+  const addFeeHead = () =>
+    setFormData({
+      ...formData,
+      feeHeads: [...formData.feeHeads, { type: "", amount: 0, isOptional: false }],
     });
-  }, [studentData]);
-
-
+  const removeFeeHead = (index) =>
+    setFormData({
+      ...formData,
+      feeHeads: formData.feeHeads.filter((_, i) => i !== index),
+    });
 
   console.log("query data", studentData, "loading:", isFetching, "error:", err);
 
   console.log("studentdata", studentData);
 
-  const steps = ["Personal Details", "Parent & Guardian", "Academic & Documents"];
+  const steps = ["Personal Details", "Parent & Guardian", "Academic & Documents", "Fees Details"];
 
   // --- Handle Input Changes ---
   // const handleChange = (e, parentIndex = null, section = null) => {
@@ -247,7 +251,46 @@ export default function CreateStudentPage() {
       setPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
     }
   };
+  const { data: feesData, isLoading: feesLoading } = useQuery({
+    queryKey: ["feesStructuredata", selectedClass],
+    queryFn: () =>
+      apiGet(`${apiPath.getFeesStructure}?classIdentifier=${selectedClass}`),
+    enabled: !!selectedClass,
+  });
+// 🔄 Sync fees data into formData whenever it changes
+useEffect(() => {
+  if (feesData?.success && feesData?.results?.feeHeads?.length) {
+    setFormData(prev => ({
+      ...prev,
+      feeStructureId: feesData.results._id, // ✅ store the structure id
+      feeHeads: feesData.results.feeHeads.map(f => ({
+        type: f.type,
+        amount: f.amount || 0,
+        isOptional: f.isOptional || false,
+      })),
+    }));
+  } else if (selectedClass) {
+    setFormData(prev => ({
+      ...prev,
+      feeStructureId: null,
+      feeHeads: [],
+    }));
+  }
+}, [feesData, selectedClass]);
 
+
+
+
+  const currentYear = new Date().getFullYear();
+  const nextYear = currentYear + 1;
+  const [formData, setFormData] = useState({
+    academicYear: `${currentYear}-${nextYear}`,
+    feeHeads: [
+      { type: "Tuition Fee", amount: 0, isOptional: false },
+      { type: "Exam Fee", amount: 0, isOptional: false },
+    ],
+    totalAmount: 0,
+  });
 
   // --- Validation Function ---
   const validateStep = () => {
@@ -353,90 +396,145 @@ export default function CreateStudentPage() {
   //       toast.error("Failed to create student ❌");
   //     }
   //   };
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateStep()) return;
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   if (!validateStep()) return;
 
-    try {
-      const formData = new FormData();
+  //   try {
+  //     const formData = new FormData();
 
-      // 🔹 Add simple primitive fields
-      [
-        "name",
-        "dob",
-        "gender",
-        "bloodGroup",
-        "email",
-        "password",
-        "phone",
-        "classId",
-        "academicYear",
-        "physicalDisability",
-        "disabilityDetails",
-      ].forEach((key) => {
-        formData.append(key, student[key]);
-      });
+  //     // 🔹 Add simple primitive fields
+  //     [
+  //       "name",
+  //       "dob",
+  //       "gender",
+  //       "bloodGroup",
+  //       "email",
+  //       "password",
+  //       "phone",
+  //       "classId",
+  //       "academicYear",
+  //       "physicalDisability",
+  //       "disabilityDetails",
+  //     ].forEach((key) => {
+  //       formData.append(key, student[key]);
+  //     });
 
-      // 🔹 Add nested JSON fields
-      ["address", "parents", "guardian", "emergencyContact"].forEach((key) => {
-        formData.append(key, JSON.stringify(student[key]));
-      });
+  //     // 🔹 Add nested JSON fields
+  //     ["address", "parents", "guardian", "emergencyContact"].forEach((key) => {
+  //       formData.append(key, JSON.stringify(student[key]));
+  //     });
 
-      // 🔹 Add document fields (handle both files & URLs)
-      Object.entries(student.documents).forEach(([key, value]) => {
+  //     // 🔹 Add document fields (handle both files & URLs)
+  //     Object.entries(student.documents).forEach(([key, value]) => {
 
-        if (!value) return;
-        if (Array.isArray(value)) {
-          value.forEach(item => {
-            if (item instanceof File) {
-              formData.append(key, item); // new file → binary
-            } else if (item && typeof item === "object" && item.fileUrl) {
-              formData.append(key, "null"); // existing file → null placeholder
-            } else {
-              formData.append(key, "null"); // fallback
-            }
-          });
-        }
-        else {
-          if (value instanceof File) {
-            formData.append(key, value);
-          } else if (typeof value === "string") {
-            formData.append(key, null);
+  //       if (!value) return;
+  //       if (Array.isArray(value)) {
+  //         value.forEach(item => {
+  //           if (item instanceof File) {
+  //             formData.append(key, item); // new file → binary
+  //           } else if (item && typeof item === "object" && item.fileUrl) {
+  //             formData.append(key, "null"); // existing file → null placeholder
+  //           } else {
+  //             formData.append(key, "null"); // fallback
+  //           }
+  //         });
+  //       }
+  //       else {
+  //         if (value instanceof File) {
+  //           formData.append(key, value);
+  //         } else if (typeof value === "string") {
+  //           formData.append(key, null);
+  //         }
+  //       }
+  //     });
+
+  //     // 🔹 Debug — check payload
+  //     for (let [key, val] of formData.entries()) {
+  //       console.log("entries>>>>",
+  //         formData.entries()
+  //       );
+  //     }
+
+  //     // 🔹 Call API (you can switch this depending on edit/create)
+  //     if (student._id) {
+  //       const res = await apiPut(`${apiPath.updateStudent}/${student._id}`, formData);
+  //       // console.log("responsestudent",res);
+  //       if (res.success === true) {
+  //         toast.success(res.message);
+  //       }
+
+  //     } else {
+  //       const res = await apiPost(apiPath.studentReg, formData);
+  //       if (res.success === true) {
+  //         toast.success(res.message);
+  //       }
+
+  //     }
+
+  //     navigate(-1);
+  //   } catch (err) {
+  //     console.error(err);
+  //     toast.error("Something went wrong ❌");
+  //   }
+  // };
+
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validateStep()) return;
+
+  try {
+    const formDataToSend = new FormData();
+
+    // 🔹 Add simple fields
+    [
+      "name", "dob", "gender", "bloodGroup", "email", "password", "phone",
+      "classId", "academicYear", "physicalDisability", "disabilityDetails",
+    ].forEach((key) => {
+      formDataToSend.append(key, student[key]);
+    });
+
+    // 🔹 Add nested objects
+    ["address", "parents", "guardian", "emergencyContact"].forEach((key) => {
+      formDataToSend.append(key, JSON.stringify(student[key]));
+    });
+
+    // 🔹 Add documents
+    Object.entries(student.documents).forEach(([key, value]) => {
+      if (!value) return;
+      if (Array.isArray(value)) {
+        value.forEach(item => {
+          if (item instanceof File) {
+            formDataToSend.append(key, item);
           }
-        }
-      });
-
-      // 🔹 Debug — check payload
-      for (let [key, val] of formData.entries()) {
-        console.log("entries>>>>",
-          formData.entries()
-        );
+        });
+      } else if (value instanceof File) {
+        formDataToSend.append(key, value);
       }
+    });
 
-      // 🔹 Call API (you can switch this depending on edit/create)
-      if (student._id) {
-        const res = await apiPut(`${apiPath.updateStudent}/${student._id}`, formData);
-        // console.log("responsestudent",res);
-        if (res.success === true) {
-          toast.success(res.message);
-        }
+    // ✅ Add fee structure info
+    if (formData.feeStructureId)
+      formDataToSend.append("feeStructureId", formData.feeStructureId);
 
-      } else {
-        const res = await apiPost(apiPath.studentReg, formData);
-        if (res.success === true) {
-          toast.success(res.message);
-        }
+    if (formData.feeHeads?.length)
+      formDataToSend.append("appliedFeeHeads", JSON.stringify(formData.feeHeads));
 
-      }
+    // 🔹 API call
+    const res = student._id
+      ? await apiPut(`${apiPath.updateStudent}/${student._id}`, formDataToSend)
+      : await apiPost(apiPath.studentReg, formDataToSend);
 
+    if (res.success) {
+      toast.success(res.message || "Student saved successfully ✅");
       navigate(-1);
-    } catch (err) {
-      console.error(err);
-      toast.error("Something went wrong ❌");
     }
-  };
-
-
+  } catch (err) {
+    console.error(err);
+    toast.error("Something went wrong ❌");
+  }
+};
 
 
 
@@ -841,64 +939,12 @@ export default function CreateStudentPage() {
 
         {/* Step 3 */}
         {activeStep === 2 && (
-          <div className="space-y-8">
-            {/* --- Academic Info --- */}
-            <div className="bg-gray-50 p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Academic Information</h2>
-
-              <div className="grid md:grid-cols-2 gap-6 bg-white p-5 rounded-xl border border-gray-200">
-                <TextField
-                  select
-                  fullWidth
-                  name="classId"
-                  label="Select Class"
-                  value={student.classId}
-                  // onChange={handleChange}
-                  onChange={(e) => {
-                    setStudent({ ...student, classId: e.target.value });
-
-                  }
-                  }
-                  error={!!errors.classId}
-                  helperText={errors.classId}
-                >
-                  <MenuItem value="">Select Class</MenuItem>
-                  {classes?.results?.docs?.map((cls) => (
-                    <MenuItem key={cls._id} value={cls._id}>
-                      {cls.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
-
-                <TextField
-                  select
-                  fullWidth
-                  name="academicYear"
-                  label="Academic Year"
-                  value={student.academicYear}
-                  onChange={(e) => {
-                    setStudent({ ...student, academicYear: e.target.value });
-                    setErrors((prev) => ({ ...prev, academicYear: "" }));
-                  }}
-                  error={!!errors.academicYear}
-                  helperText={errors.academicYear}
-                >
-                  {Array.from({ length: 5 }).map((_, i) => {
-                    const startYear = new Date().getFullYear() + i;
-                    const endYear = startYear + 1;
-                    const yearString = `${startYear}-${endYear}`;
-                    return (
-                      <MenuItem key={yearString} value={yearString}>
-                        {yearString}
-                      </MenuItem>
-                    );
-                  })}
-                </TextField>
-              </div>
-            </div>
-
-            {/* --- Disability Section --- */}
-            <div className="bg-gray-50 p-6 rounded-2xl shadow-sm border border-gray-100">
+          <div className="space-y-10">
+            {/* 🧠 Disability Section */}
+            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-800 mb-3">
+                Special Information
+              </h2>
               <FormControlLabel
                 control={
                   <Checkbox
@@ -923,68 +969,108 @@ export default function CreateStudentPage() {
                   label="Disability Details"
                   value={student.disabilityDetails}
                   onChange={handleChange}
-                  className="mt-3"
+                  className="mt-4"
                 />
               )}
             </div>
 
-            {/* --- Aadhaar Card Upload --- */}
-            <div className="bg-gray-50 p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Aadhaar Card Upload</h2>
+            {/* 🪪 Aadhaar Upload */}
+            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
+                <span>Upload Aadhaar Card</span>
+                <span className="text-sm text-gray-500">(Front & Back)</span>
+              </h2>
+
               <div className="grid md:grid-cols-2 gap-6">
                 {["aadharFront", "aadharBack"].map((side) => (
-                  <div key={side} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                  <div
+                    key={side}
+                    className="border-2 border-dashed border-gray-300 rounded-xl p-5 text-center hover:border-yellow-400 transition relative"
+                  >
                     <label className="block text-gray-700 font-medium mb-2">
-                      {side === "aadharFront" ? "Aadhaar Front" : "Aadhaar Back"} <span className="text-red-500">*</span>
+                      {side === "aadharFront" ? "Aadhaar Front" : "Aadhaar Back"}{" "}
+                      <span className="text-red-500">*</span>
                     </label>
+
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => handleFileUpload(e, side, "documents")}
+                      onChange={(e) => {
+                        handleFileUpload(e, side, "documents");
+                        setErrors((prev) => ({ ...prev, [side]: "" }));
+                      }}
+                      className="hidden"
+                      id={side}
                     />
-                    {errors[side] && (
-                      <p className="text-red-500 text-sm mt-1">{errors[side]}</p>
-                    )}
-                    {previews[side] && (
-                      <div className="mt-3 relative inline-block">
+                    <label
+                      htmlFor={side}
+                      className="cursor-pointer flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl hover:bg-yellow-50 transition"
+                    >
+                      {previews[side] ? (
                         <img
                           src={previews[side]}
                           alt={side}
                           className="w-40 h-28 object-cover rounded-lg shadow"
                         />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPreviews((p) => ({ ...p, [side]: null }));
-                            setStudent((s) => ({
-                              ...s,
-                              documents: { ...s.documents, [side]: null },
-                            }));
-                          }}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
-                        >
-                          ✕
-                        </button>
-                      </div>
+                      ) : (
+                        <>
+                          <div className="w-12 h-12 mb-2 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-2xl font-bold">
+                            +
+                          </div>
+                          <p className="text-gray-500 text-sm">
+                            Click or drag to upload
+                          </p>
+                        </>
+                      )}
+                    </label>
+
+                    {previews[side] && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPreviews((p) => ({ ...p, [side]: null }));
+                          setStudent((s) => ({
+                            ...s,
+                            documents: { ...s.documents, [side]: null },
+                          }));
+                        }}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition"
+                      >
+                        ✕
+                      </button>
+                    )}
+                    {errors[side] && (
+                      <p className="text-red-500 text-sm mt-2">{errors[side]}</p>
                     )}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* --- marksheets Upload --- */}
-            <div className="bg-gray-50 p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">marksheets Upload (Max 5)</h2>
+            {/* 📄 Marksheets Upload */}
+            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Upload Marksheets (Max 5)
+              </h2>
+              <label
+                htmlFor="marksheets"
+                className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-yellow-400 cursor-pointer bg-gray-50 hover:bg-yellow-50 transition"
+              >
+                <div className="text-gray-500 text-sm text-center">
+                  Click or drag files here
+                </div>
+              </label>
               <input
+                id="marksheets"
                 type="file"
                 multiple
                 accept="image/*,application/pdf"
                 onChange={(e) => handleFileUpload(e, "marksheets")}
-                className="mb-4"
+                className="hidden"
               />
 
               {previews.marksheets?.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mt-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mt-4">
                   {previews.marksheets.map((src, idx) => (
                     <div
                       key={idx}
@@ -992,20 +1078,27 @@ export default function CreateStudentPage() {
                     >
                       <img
                         src={src}
-                        alt={`marksheets-${idx}`}
+                        alt={`marksheet-${idx}`}
                         className="w-full h-32 object-cover"
                       />
                       <button
                         type="button"
                         className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => {
-                          const updatedFiles = student.documents.marksheets.filter((_, i) => i !== idx);
-                          const updatedPreviews = previews.marksheets.filter((_, i) => i !== idx);
+                          const updatedFiles = student.documents.marksheets.filter(
+                            (_, i) => i !== idx
+                          );
+                          const updatedPreviews = previews.marksheets.filter(
+                            (_, i) => i !== idx
+                          );
                           setStudent((prev) => ({
                             ...prev,
                             documents: { ...prev.documents, marksheets: updatedFiles },
                           }));
-                          setPreviews((prev) => ({ ...prev, marksheets: updatedPreviews }));
+                          setPreviews((prev) => ({
+                            ...prev,
+                            marksheets: updatedPreviews,
+                          }));
                         }}
                       >
                         ✕
@@ -1016,40 +1109,62 @@ export default function CreateStudentPage() {
               )}
             </div>
 
-            {/* --- Certificate Upload --- */}
-            <div className="bg-[var(--color-neutral)] p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Certificates Upload (Max 5)</h2>
+            {/* 🏅 Certificates Upload */}
+            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Upload Certificates (Max 5)
+              </h2>
+
+              <label
+                htmlFor="certificates"
+                className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-yellow-400 cursor-pointer bg-gray-50 hover:bg-yellow-50 transition"
+              >
+                <div className="text-gray-500 text-sm text-center">
+                  Click or drag files here
+                </div>
+              </label>
               <input
+                id="certificates"
                 type="file"
                 multiple
                 accept="image/*,application/pdf"
                 onChange={(e) => handleFileUpload(e, "certificates")}
-                className="mb-4"
+                className="hidden"
               />
 
               {previews.certificates?.length > 0 && (
-                <div className="flex flex-wrap gap-4 mt-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mt-4">
                   {previews.certificates.map((src, idx) => (
                     <div
                       key={idx}
-                      className="relative w-32 h-32 group border rounded-lg overflow-hidden shadow hover:scale-105 transition-transform duration-200"
+                      className="relative group border rounded-lg overflow-hidden shadow hover:scale-105 transition-transform duration-200"
                     >
                       <img
                         src={src}
-                        alt={`Certificate-${idx}`}
-                        className="w-full h-full object-cover"
+                        alt={`certificate-${idx}`}
+                        className="w-full h-32 object-cover"
                       />
                       <button
                         type="button"
                         className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => {
-                          const updatedFiles = student.documents.certificates.filter((_, i) => i !== idx);
-                          const updatedPreviews = previews.certificates.filter((_, i) => i !== idx);
+                          const updatedFiles = student.documents.certificates.filter(
+                            (_, i) => i !== idx
+                          );
+                          const updatedPreviews = previews.certificates.filter(
+                            (_, i) => i !== idx
+                          );
                           setStudent((prev) => ({
                             ...prev,
-                            documents: { ...prev.documents, certificates: updatedFiles },
+                            documents: {
+                              ...prev.documents,
+                              certificates: updatedFiles,
+                            },
                           }));
-                          setPreviews((prev) => ({ ...prev, certificates: updatedPreviews }));
+                          setPreviews((prev) => ({
+                            ...prev,
+                            certificates: updatedPreviews,
+                          }));
                         }}
                       >
                         ✕
@@ -1059,11 +1174,235 @@ export default function CreateStudentPage() {
                 </div>
               )}
             </div>
-
           </div>
         )}
+        {
+          activeStep === 3 && (
+            <div className="space-y-8">
+              {/* === Academic Information === */}
+              <div className="bg-gray-50 p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                  Academic Information
+                </h2>
 
+                <div className="grid md:grid-cols-2 gap-6 bg-white p-5 rounded-xl border border-gray-200">
+                  {/* Class Dropdown */}
+                  <TextField
+                    select
+                    fullWidth
+                    name="classId"
+                    label="Select Class"
+                    value={student.classId}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      setErrors((prev) => ({ ...prev, classId: "" }));
 
+                      const selectedClassObj = classes?.results?.docs?.find(
+                        (cls) => cls._id === selectedId
+                      );
+                      console.log("selectedclassobj", selectedClassObj);
+
+                      setStudent({ ...student, classId: selectedId });
+                      setSelectedClass(selectedClassObj?.name || "");
+                    }}
+                    error={!!errors.classId}
+                    helperText={errors.classId}
+                  >
+                    <MenuItem value="">Select Class</MenuItem>
+                    {classes?.results?.docs?.map((cls) => (
+                      <MenuItem key={cls._id} value={cls._id}>
+                        {cls.name} {cls.section}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+
+                  {/* Academic Year */}
+                  <TextField
+                    select
+                    fullWidth
+                    name="academicYear"
+                    label="Academic Year"
+                    value={student.academicYear}
+                    onChange={(e) => {
+                      setStudent({ ...student, academicYear: e.target.value });
+                      setErrors((prev) => ({ ...prev, academicYear: "" }));
+                    }}
+                    error={!!errors.academicYear}
+                    helperText={errors.academicYear}
+                  >
+                    {Array.from({ length: 1 }).map((_, i) => {
+                      const startYear = new Date().getFullYear() + i;
+                      const endYear = startYear + 1;
+                      const yearString = `${startYear}-${endYear}`;
+                      return (
+                        <MenuItem key={yearString} value={yearString}>
+                          {yearString}
+                        </MenuItem>
+                      );
+                    })}
+                  </TextField>
+                </div>
+              </div>
+
+              {/* === Form Section === */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const tuition = formData.feeHeads.find(
+                    (f) => f.type === "Tuition Fee"
+                  );
+                  const exam = formData.feeHeads.find((f) => f.type === "Exam Fee");
+
+                  if (!tuition?.amount || !exam?.amount) {
+                    toast.error("Tuition Fee and Exam Fee are required!");
+                    return;
+                  }
+
+                  handleSubmit(e);
+                }}
+                className="space-y-4"
+              >
+                {selectedClass && (
+                  <div className="p-4 bg-white rounded-xl shadow-lg border border-gray-100">
+                    <label className="block text-lg font-semibold text-gray-700 mb-4">
+                      Fee Heads
+                    </label>
+
+                    {/* 🌀 Loader */}
+                    {feesLoading ? (
+                      <div className="flex items-center gap-2 text-gray-600 text-sm bg-gray-50 p-3 rounded-md border border-gray-200">
+                        <svg
+                          className="animate-spin h-4 w-4 text-yellow-500"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v8z"
+                          ></path>
+                        </svg>
+                        Fetching fee structure...
+                      </div>
+                    ) : !feesData?.success || !feesData?.results?.feeHeads?.length ? (
+                      // ❌ Not found
+                      <div className="text-red-600 text-sm font-medium bg-red-50 p-3 rounded-md border border-red-200 flex items-center gap-2">
+                        ❗ No fee structure found for this class. Please add one first.
+                      </div>
+                    ) : (
+                      // ✅ Show fee heads if found
+                      <>
+                        {formData.feeHeads.map((head, index) => {
+                          const feeTypeOptions = [
+                            { value: "Tuition Fee", label: "Tuition Fee" },
+                            { value: "Exam Fee", label: "Exam Fee" },
+                            { value: "Transport Fee", label: "Transport Fee" },
+                            { value: "Miscellaneous", label: "Miscellaneous" },
+                          ];
+
+                          const selectedTypes = formData.feeHeads.map((f) => f.type);
+                          const availableOptions = feeTypeOptions.map((opt) => ({
+                            ...opt,
+                            isDisabled:
+                              selectedTypes.includes(opt.value) &&
+                              opt.value !== head.type,
+                          }));
+
+                          const isMandatory =
+                            head.type === "Tuition Fee" || head.type === "Exam Fee";
+
+                          return (
+                            <div
+                              key={index}
+                              className="flex flex-wrap items-center gap-4 border border-gray-200 p-4 rounded-lg mb-3 bg-gradient-to-r from-yellow-50 to-yellow-100 shadow-sm hover:shadow-md transition-shadow transform hover:-translate-y-1"
+                            >
+                              <div className="w-full sm:w-[260px]">
+                                <Select
+                                  options={availableOptions}
+                                  value={
+                                    head.type
+                                      ? { value: head.type, label: head.type }
+                                      : null
+                                  }
+                                  placeholder="Select Fee Type"
+                                  onChange={(opt) =>
+                                    handleFeeHeadChange(index, "type", opt?.value || "")
+                                  }
+                                  isDisabled={isMandatory}
+                                />
+                              </div>
+
+                              <input
+                                type="number"
+                                placeholder="Amount"
+                                value={head.amount}
+                                onChange={(e) =>
+                                  handleFeeHeadChange(
+                                    index,
+                                    "amount",
+                                    Number(e.target.value)
+                                  )
+                                }
+                                className="w-full sm:w-[140px] border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                              />
+
+                              <label className="flex items-center gap-2 text-sm w-auto">
+                                <input
+                                  type="checkbox"
+                                  checked={head.isOptional}
+                                  onChange={(e) =>
+                                    handleFeeHeadChange(
+                                      index,
+                                      "isOptional",
+                                      e.target.checked
+                                    )
+                                  }
+                                  disabled={isMandatory}
+                                  className="h-4 w-4 text-yellow-500 border-gray-300 rounded focus:ring-yellow-300"
+                                />
+                                Optional
+                              </label>
+
+                              {!isMandatory && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeFeeHead(index)}
+                                  className="text-red-500 hover:text-red-700 text-sm font-medium transition-colors"
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+
+                        {formData.feeHeads.length < 4 && (
+                          <Button
+                            variant="contained"
+                            startIcon={<FaPlusCircle />}
+                            onClick={addFeeHead}
+                            className="bg-yellow-400 hover:bg-yellow-500 text-white font-semibold rounded-lg mt-3 shadow-md"
+                          >
+                            Add Optional Fee
+                          </Button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+              </form>
+            </div>
+          )
+        }
         {/* Navigation */}
         <div className="flex justify-between pt-6">
           {activeStep > 0 && (
