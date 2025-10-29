@@ -189,6 +189,9 @@ import { NavLink } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../redux/features/auth/authslice";
 import { useState } from "react";
+import { MdAssignmentAdd } from "react-icons/md";
+import { LuNotebookTabs } from "react-icons/lu";
+
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
   const dispatch = useDispatch();
@@ -229,12 +232,12 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         </NavLink>
 
         <NavLink to="/admin/subjects" className={navItemClass} onClick={toggleSidebar}>
-          <SiGoogleclassroom size={20} />
+          <LuNotebookTabs size={20} />
           <span>Subjects</span>
         </NavLink>
 
         <NavLink to="/admin/assign" className={navItemClass} onClick={toggleSidebar}>
-          <SiGoogleclassroom size={20} />
+          <MdAssignmentAdd  size={20} />
           <span>Assign</span>
         </NavLink>
 

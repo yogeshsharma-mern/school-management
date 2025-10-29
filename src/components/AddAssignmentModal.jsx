@@ -626,7 +626,7 @@ useEffect(() => {
           {/* 🔹 Teacher + Subject */}
           <div className="grid grid-cols-2 gap-4">
             <FormControl fullWidth>
-              <InputLabel id="teacher-label">Teacher</InputLabel>
+              <InputLabel id="teacher-label">Teacher *</InputLabel>
               <Select
                 labelId="teacher-label"
                 value={teacherId}
@@ -653,7 +653,7 @@ useEffect(() => {
             </FormControl>
 
             <FormControl fullWidth disabled={!selectedTeacher}>
-              <InputLabel id="subject-label">Subject</InputLabel>
+              <InputLabel id="subject-label">Subject *</InputLabel>
               <Select
                 labelId="subject-label"
                 value={subjectId}
@@ -676,7 +676,7 @@ useEffect(() => {
 
           {/* 🔹 Section + Times */}
           <div className="grid grid-cols-3 gap-4">
-            <TextField label="Section" value={section} onChange={(e) => setSection(e.target.value)} />
+            {/* <TextField label="Section" value={section} onChange={(e) => setSection(e.target.value)} /> */}
             <TextField label="Start Time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
             <TextField label="End Time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
           </div>

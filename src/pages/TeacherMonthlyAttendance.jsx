@@ -50,7 +50,9 @@ export default function TeacherMonthlyAttendance() {
 
   // 🧭 Loading / Error states
   if (isLoading)
-    return <p className="text-center text-gray-500 mt-10">Loading attendance...</p>;
+    return      <div className="flex justify-center items-center min-h-[80vh] bg-opacity-70 z-50">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+    </div>
   if (error)
     return <p className="text-center text-red-500 mt-10">Failed to load attendance</p>;
 
@@ -65,13 +67,13 @@ export default function TeacherMonthlyAttendance() {
           <ArrowLeft size={20} /> <span className="font-medium">Back</span>
         </button>
 
-        <div className="flex flex-col md:flex-row md:items-center gap-4">
+        <div className="flex flex-col mt-10 md:flex-row md:items-center gap-4">
           <h1 className="text-2xl font-bold text-gray-800">
             {teacherName}'s Attendance
           </h1>
 
           {/* Month Filter */}
-          <div className="flex items-center gap-2 bg-white shadow-sm border rounded-xl px-4 py-2">
+          <div className="flex items-center gap-2 bg-white shadow-sm border border-gray-300 rounded-xl px-4 py-2">
             <button
               onClick={handlePrevMonth}
               className="p-1 hover:bg-gray-100 rounded-full transition"
