@@ -297,7 +297,7 @@ const classOptions = (() => {
       </div>
 
       {/* Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editData ? "Edit Fees Structure" : "Add Fees Structure"}>
+ <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editData ? "Edit Fees Structure" : "Add Fees Structure"}>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -412,6 +412,12 @@ const classOptions = (() => {
           </div>
         </form>
       </Modal>
+
     </div>
   );
 }
+
+
+
+
+

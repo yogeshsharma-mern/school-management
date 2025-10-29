@@ -1,8 +1,3 @@
-
-
-
-
-
 import React, { useState } from "react";
 import {
   Box,
@@ -43,21 +38,67 @@ const countryOptions = [
 
 export default function SchoolSettings() {
   const queryClient = useQueryClient();
+  // const [schoolData, setSchoolData] = useState({
+  //   schoolName: "",
+  //   status: "inactive",
+  //   address: { street: "", city: "", state: "", zip: "", country: "" },
+  //   contact: { phone: "", email: "", website: "" },
+  //   schoolTiming: { startTime: "09:00", endTime: "15:00" },
+  //   periods: {
+  //     totalPeriods: "",
+  //     periodDuration: "",
+  //     breakDuration: "",
+  //     lunchBreak: { isEnabled: false, time: "", duration: "" },
+  //   },
+  //   academicSession: { startDate: "", endDate: "", currentSession: "" },
+  //   schoolLogo: null,
+  // });
   const [schoolData, setSchoolData] = useState({
     schoolName: "",
     status: "inactive",
-    address: { street: "", city: "", state: "", zip: "", country: "" },
-    contact: { phone: "", email: "", website: "" },
-    schoolTiming: { startTime: "09:00", endTime: "15:00" },
+    tollFree: "",
+    address: {
+      street: "",
+      city: "",
+      state: "",
+      zip: "",
+      country: "",
+    },
+    contact: {
+      phone: "",
+      email: "",
+      website: "",
+    },
+    schoolTiming: {
+      startTime: "09:00",
+      endTime: "15:00",
+    },
     periods: {
       totalPeriods: "",
       periodDuration: "",
       breakDuration: "",
-      lunchBreak: { isEnabled: false, time: "", duration: "" },
+      lunchBreak: {
+        isEnabled: false,
+        time: "",
+        duration: "",
+      },
     },
-    academicSession: { startDate: "", endDate: "", currentSession: "" },
+    academicSession: {
+      startDate: "",
+      endDate: "",
+      currentSession: "",
+    },
+    about: {
+      title: "",
+      keyStats: [],
+    },
+    faqs: [], // array of { question, answer }
+    banner: [], // array of URLs
+    gallery: [], // array of URLs
+    socialUrl: [], // array of URLs
     schoolLogo: null,
   });
+
   const [logoPreview, setLogoPreview] = useState(null);
   const formatDateForInput = (isoDate) => {
     if (!isoDate) return "";
@@ -84,16 +125,64 @@ export default function SchoolSettings() {
   });
   console.log("first", studentData);
   // Update state whenever query data changes
+  // useEffect(() => {
+  //   if (!studentData?.results) return;
+
+  //   const s = studentData.results;
+
+  //   const formatDateForInput = (isoDate) => isoDate ? isoDate.split("T")[0] : "";
+
+  //   setSchoolData({
+  //     schoolName: s.schoolName || "",
+  //     status: s.status || "inactive",
+  //     address: {
+  //       street: s.address?.street || "",
+  //       city: s.address?.city || "",
+  //       state: s.address?.state || "",
+  //       zip: s.address?.zip || "",
+  //       country: s.address?.country || "",
+  //     },
+  //     contact: {
+  //       phone: s.contact?.phone || "",
+  //       email: s.contact?.email || "",
+  //       website: s.contact?.website || "",
+  //     },
+  //     schoolTiming: {
+  //       startTime: s.schoolTiming?.startTime || "09:00",
+  //       endTime: s.schoolTiming?.endTime || "15:00",
+  //     },
+  //     periods: {
+  //       totalPeriods: s.periods?.totalPeriods || "",
+  //       periodDuration: s.periods?.periodDuration || "",
+  //       breakDuration: s.periods?.breakDuration || "",
+  //       lunchBreak: {
+  //         isEnabled: s.periods?.lunchBreak?.isEnabled || false,
+  //         time: s.periods?.lunchBreak?.time || "",
+  //         duration: s.periods?.lunchBreak?.duration || "",
+  //       },
+  //     },
+  //     academicSession: {
+  //       startDate: formatDateForInput(s.academicSession?.startDate),
+  //       endDate: formatDateForInput(s.academicSession?.endDate),
+  //       currentSession: s.academicSession?.currentSession || "",
+  //     },
+  //     schoolLogo: null, // keep null, preview handled separately
+  //   });
+
+  //   if (s.schoolLogo) setLogoPreview(`${s.schoolLogo}`);
+
+  // }, [studentData]);
   useEffect(() => {
     if (!studentData?.results) return;
-
     const s = studentData.results;
 
-    const formatDateForInput = (isoDate) => isoDate ? isoDate.split("T")[0] : "";
+    const formatDateForInput = (isoDate) =>
+      isoDate ? isoDate.split("T")[0] : "";
 
     setSchoolData({
       schoolName: s.schoolName || "",
       status: s.status || "inactive",
+      tollFree: s.tollFree || "",
       address: {
         street: s.address?.street || "",
         city: s.address?.city || "",
@@ -125,27 +214,35 @@ export default function SchoolSettings() {
         endDate: formatDateForInput(s.academicSession?.endDate),
         currentSession: s.academicSession?.currentSession || "",
       },
-      schoolLogo: null, // keep null, preview handled separately
+      about: {
+        title: s.about?.title || "",
+        keyStats: s.about?.keyStats || [],
+      },
+      faqs: s.faqs || [],
+      banner: s.banner || [],
+      gallery: s.gallery || [],
+      socialUrl: s.socialUrl || [],
+      schoolLogo: null,
     });
 
-    if (s.schoolLogo) setLogoPreview(`${s.schoolLogo}`);
-
+    if (s.schoolLogo) setLogoPreview(s.schoolLogo);
   }, [studentData]);
 
 
   // POST / PUT Save
   const mutation = useMutation({
     mutationFn: (formData) => {
-      // Use PUT if data exists, POST otherwise
+      const config = { headers: { "Content-Type": "multipart/form-data" } };
       return studentData?.results
-        ? apiPut(apiPath.updateSchoolSettings, formData)
-        : apiPost(apiPath.createSchoolSettings, formData);
+        ? apiPut(apiPath.updateSchoolSettings, formData, config)
+        : apiPost(apiPath.createSchoolSettings, formData, config);
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries(["school-settings"])
+      queryClient.invalidateQueries(["school-settings"]);
       toast.success(data.message || "Settings saved successfully");
     },
   });
+
 
   // PATCH Reset Defaults
   const resetMutation = useMutation({
@@ -155,6 +252,19 @@ export default function SchoolSettings() {
       toast.success(data.message || "Settings reset to defaults");
     },
   });
+  const getImagePreview = (img) => {
+    if (img instanceof File || img instanceof Blob)
+      return URL.createObjectURL(img);
+
+    if (typeof img?.image === "string")
+      return img.image.startsWith("http")
+        ? img.image
+        : `${import.meta.env.VITE_API_BASE_URL}${img.image}`;
+
+    return "";
+  };
+
+
   const generateSessionOptions = (startDate, endDate) => {
     if (!startDate || !endDate) return [];
 
@@ -202,20 +312,46 @@ export default function SchoolSettings() {
   };
 
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const formData = new FormData();
-    Object.entries(schoolData).forEach(([key, value]) => {
-      if (typeof value === "object" && key !== "schoolLogo") {
-        formData.append(key, JSON.stringify(value));
-      } else if (value) {
-        formData.append(key, value);
+
+    // ✅ Basic fields
+    formData.append("schoolName", schoolData.schoolName);
+    formData.append("status", schoolData.status);
+    formData.append("tollFree", schoolData.tollFree);
+    formData.append("address", JSON.stringify(schoolData.address));
+    formData.append("contact", JSON.stringify(schoolData.contact));
+    formData.append("schoolTiming", JSON.stringify(schoolData.schoolTiming));
+    formData.append("periods", JSON.stringify(schoolData.periods));
+    formData.append("academicSession", JSON.stringify(schoolData.academicSession));
+    formData.append("about", JSON.stringify(schoolData.about));
+    formData.append("faqs", JSON.stringify(schoolData.faqs));
+    formData.append("socialUrl", JSON.stringify(schoolData.socialUrl));
+
+    // ✅ Files
+    (schoolData.banner || []).forEach((file) => {
+      if (file instanceof File) {
+        formData.append("banner", file);
       }
     });
 
+    (schoolData.gallery || []).forEach((file) => {
+      if (file instanceof File) {
+        formData.append("gallery", file);
+      }
+    });
+
+    if (schoolData.schoolLogo instanceof File) {
+      formData.append("schoolLogo", schoolData.schoolLogo);
+    }
+
+    // ✅ Submit using mutation
     mutation.mutate(formData);
   };
+
+
 
   if (isLoading)
     return (
@@ -557,7 +693,7 @@ export default function SchoolSettings() {
                   }}
 
                   placeholder="Select Current Session"
-             
+
                 />
                 {!schoolData.academicSession.currentSession && (
                   <Typography variant="body2" color="error" mt={1}>
@@ -602,6 +738,340 @@ export default function SchoolSettings() {
                 />
               </Box>
             )}
+          </CardContent>
+        </Card>
+        {/* Toll-Free Number */}
+        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              ☎️ Toll-Free Number
+            </Typography>
+            <TextField
+              fullWidth
+              label="Toll-Free Number"
+              value={schoolData.tollFree || ""}
+              onChange={(e) => handleChange("tollFree", e.target.value)}
+            />
+          </CardContent>
+        </Card>
+
+        {/* About Section */}
+        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              🏫 About School
+            </Typography>
+            <TextField
+              fullWidth
+              label="Title"
+              value={schoolData.about?.title || ""}
+              onChange={(e) => handleChange("about.title", e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              multiline
+              minRows={3}
+              label="Description / Key Info"
+              value={(schoolData.about?.keyStats || []).join("\n")}
+              onChange={(e) =>
+                handleChange("about.keyStats", e.target.value.split("\n"))
+              }
+              helperText="Each line will be treated as a separate key point."
+            />
+          </CardContent>
+        </Card>
+
+        {/* FAQs Section */}
+        {/* FAQs Section */}
+        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              ❓ Frequently Asked Questions
+            </Typography>
+
+            {(schoolData.faqs || []).map((faq, index) => (
+              <Box
+                key={index}
+                sx={{
+                  border: "1px solid #e0e0e0",
+                  borderRadius: 2,
+                  p: 4,
+                  mb: 2,
+                  background: "#fafafa",
+                  position: "relative",
+
+                }}
+              >
+                {/* ❌ Remove Button */}
+                <Button
+                  size="small"
+                  color="error"
+                  onClick={() =>
+                    handleChange(
+                      "faqs",
+                      schoolData.faqs.filter((_, i) => i !== index)
+                    )
+                  }
+                  sx={{
+                    position: "absolute",
+                    top: 4,
+                    right: 4,
+                    minWidth: "30px",
+                    height: "30px",
+                    borderRadius: "50%",
+                    fontSize: "16px",
+                    lineHeight: "1",
+                    fontWeight: "bold",
+                  }}
+                >
+                  ✕
+                </Button>
+
+                <TextField
+                  fullWidth
+                  label={`Question ${index + 1}`}
+                  value={faq.question}
+                  onChange={(e) =>
+                    handleChange(`faqs.${index}.question`, e.target.value)
+                  }
+                  sx={{ mb: 1 }}
+                />
+
+                <TextField
+                  fullWidth
+                  label={`Answer ${index + 1}`}
+                  value={faq.answer}
+                  onChange={(e) =>
+                    handleChange(`faqs.${index}.answer`, e.target.value)
+                  }
+                  multiline
+                  minRows={2}
+                />
+              </Box>
+            ))}
+
+            {/* ➕ Add FAQ button */}
+            <Button
+              variant="outlined"
+              onClick={() =>
+                handleChange("faqs", [
+                  ...(schoolData.faqs || []),
+                  { question: "", answer: "" },
+                ])
+              }
+            >
+              ➕ Add FAQ
+            </Button>
+          </CardContent>
+        </Card>
+
+
+        {/* Banner Images */}
+        {/* Banner Images */}
+        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              🖼️ Banner Images
+            </Typography>
+
+            <Button
+              variant="contained"
+              component="label"
+              sx={{ backgroundColor: "#1976d2", color: "#fff", mb: 2 }}
+            >
+              Upload Banner
+              <input
+                hidden
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files);
+                  handleChange("banner", [
+                    ...(schoolData.banner || []),
+                    ...files, // can stay as File objects
+                  ]);
+                }}
+              />
+            </Button>
+
+            <Box display="flex" flexWrap="wrap" gap={2} mt={2}>
+              {(schoolData.banner || []).map((img, idx) => {
+                const preview = getImagePreview(img);
+                return (
+                  <Box
+                    key={idx}
+                    position="relative"
+                    sx={{
+                      width: 100,
+                      height: 100,
+                      borderRadius: 2,
+                      overflow: "hidden",
+                      boxShadow: 2,
+                    }}
+                  >
+                    <img
+                      src={preview}
+                      alt={`Banner ${idx}`}
+                      width="100%"
+                      height="100%"
+                      style={{ objectFit: "cover" }}
+                    />
+                    <Button
+                      size="small"
+                      color="error"
+                      onClick={() =>
+                        handleChange(
+                          "banner",
+                          schoolData.banner.filter((_, i) => i !== idx)
+                        )
+                      }
+                      sx={{
+                        position: "absolute",
+                        top: -8,
+                        right: -8,
+                        minWidth: 28,
+                        height: 28,
+                        borderRadius: "50%",
+                        fontSize: 14,
+                        background: "white",
+                        "&:hover": { background: "#ffebee" },
+                      }}
+                    >
+                      ✕
+                    </Button>
+                  </Box>
+                );
+              })}
+            </Box>
+          </CardContent>
+        </Card>
+
+
+        {/* Gallery Images */}
+        {/* Gallery Images */}
+        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              🖼️ Gallery Images
+            </Typography>
+
+            <Button
+              variant="contained"
+              component="label"
+              sx={{ backgroundColor: "#1976d2", color: "#fff", mb: 2 }}
+            >
+              Upload Gallery
+              <input
+                hidden
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files);
+                  handleChange("gallery", [...(schoolData.gallery || []), ...files]);
+                }}
+              />
+            </Button>
+
+            <Box display="flex" flexWrap="wrap" gap={2} mt={2}>
+              {(schoolData.gallery || []).map((img, idx) => {
+                const preview = getImagePreview(img);
+                return (
+                  <Box
+                    key={idx}
+                    position="relative"
+                    sx={{
+                      width: 100,
+                      height: 100,
+                      borderRadius: 2,
+                      overflow: "hidden",
+                      boxShadow: 2,
+                    }}
+                  >
+                    <img
+                      src={preview}
+                      alt={`Gallery ${idx}`}
+                      width="100%"
+                      height="100%"
+                      style={{ objectFit: "cover" }}
+                    />
+                    <Button
+                      size="small"
+                      color="error"
+                      onClick={() =>
+                        handleChange(
+                          "gallery",
+                          schoolData.gallery.filter((_, i) => i !== idx)
+                        )
+                      }
+                      sx={{
+                        position: "absolute",
+                        top: -8,
+                        right: -8,
+                        minWidth: 28,
+                        height: 28,
+                        borderRadius: "50%",
+                        fontSize: 14,
+                        background: "white",
+                        "&:hover": { background: "#ffebee" },
+                      }}
+                    >
+                      ✕
+                    </Button>
+                  </Box>
+                );
+              })}
+            </Box>
+          </CardContent>
+        </Card>
+
+
+        {/* Social URLs */}
+        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              🌐 Social Media Links
+            </Typography>
+            {(schoolData.socialUrl || []).map((url, index) => (
+              <Box key={index} display="flex" gap={2} alignItems="center" mb={1}>
+                <TextField
+                  fullWidth
+                  label={`Social URL ${index + 1}`}
+                  value={url}
+                  onChange={(e) =>
+                    handleChange(
+                      "socialUrl",
+                      schoolData.socialUrl.map((u, i) =>
+                        i === index ? e.target.value : u
+                      )
+                    )
+                  }
+                />
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() =>
+                    handleChange(
+                      "socialUrl",
+                      schoolData.socialUrl.filter((_, i) => i !== index)
+                    )
+                  }
+                >
+                  ✕
+                </Button>
+              </Box>
+            ))}
+
+            <Button
+              variant="outlined"
+              onClick={() =>
+                handleChange("socialUrl", [...(schoolData.socialUrl || []), ""])
+              }
+            >
+              ➕ Add Link
+            </Button>
           </CardContent>
         </Card>
 

@@ -388,22 +388,31 @@ const handleSubmit = (e) => {
         onClose={() => setIsModalOpen(false)}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <InputField
-            label="Class Name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="11th"
-            error={errors.name}
-          />
-          <InputField
-            label="Section"
+      <div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Class Name <span className="text-red-500">*</span>
+  </label>
+  <InputField
+    name="name"
+    value={formData.name}
+    onChange={handleChange}
+    placeholder="11th"
+    error={errors.name}
+  />
+</div>
+       
+         <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+    Section <span className="text-red-500">*</span>
+    </label>
+           <InputField
             name="section"
             value={formData.section}
             onChange={handleChange}
             placeholder="A"
             error={errors.section}
           />
+         </div>
 
           <div className="flex gap-4">
             <div className="flex-1">
@@ -434,7 +443,7 @@ const handleSubmit = (e) => {
           <button
             type="submit"
             disabled={classMutation.isLoading}
-            className="w-full cursor-pointer bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
+            className="w-full cursor-pointer bg-yellow-500 text-white py-2 rounded-lg  transition"
           >
             {classMutation.isLoading ? "Saving..." : editingClass ? "Update Class" : "Add Class"}
           </button>

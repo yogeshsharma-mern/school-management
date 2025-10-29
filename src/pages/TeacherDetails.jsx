@@ -130,7 +130,7 @@ export default function TeacherDetailPage() {
       <div className="flex justify-between items-center bg-[#1b263b] p-6 rounded-2xl text-white ">
         <div className="flex items-center gap-6">
           <img
-            src={`${apiBase}${teacher.profilePic}`}
+            src={`${teacher.profilePic}`}
             alt="profile"
             className="rounded-full w-[100px] h-[100px] object-cover border-4 border-white shadow-xl"
           />
@@ -169,21 +169,22 @@ export default function TeacherDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b mb-4 space-x-6 overflow-x-auto">
-        {["profile", "subjects", "documents"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`pb-3 px-2 capitalize text-sm font-medium transition ${
-              activeTab === tab
-                ? "border-b-2 border-indigo-600 text-indigo-600"
-                : "text-gray-500 hover:text-indigo-500"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+  <div className="flex border-b mb-4 space-x-6 overflow-x-auto">
+  {["profile", "subjects", "salary", "documents"].map((tab) => (
+    <button
+      key={tab}
+      onClick={() => setActiveTab(tab)}
+      className={`pb-3 px-2 capitalize text-sm font-medium transition ${
+        activeTab === tab
+          ? "border-b-2 border-yellow-500 text-yellow-500"
+          : "text-gray-500 hover:text-yellow-500"
+      }`}
+    >
+      {tab}
+    </button>
+  ))}
+</div>
+
 
       {/* 🧾 Profile Tab */}
       {activeTab === "profile" && (
@@ -202,12 +203,12 @@ export default function TeacherDetailPage() {
 
           {/* 🏫 Classes handled */}
           <div className="col-span-2 mt-4">
-            <h3 className="text-lg font-semibold text-indigo-700 mb-2 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-yellow-500 mb-2 flex items-center gap-2">
               <Users className="w-5 h-5" /> Classes Assigned
             </h3>
-            {teacher.classData?.length ? (
+            {teacher.teachingClasses?.length ? (
               <div className="grid sm:grid-cols-2 gap-3">
-                {teacher.classData.map((cls) => (
+                {teacher.teachingClasses.map((cls) => (
                   <div
                     key={cls._id}
                     className="p-3 border border-gray-300 shadow-sm hover:shadow-md "
@@ -226,7 +227,7 @@ export default function TeacherDetailPage() {
       {/* 📚 Subjects Handled */}
       {activeTab === "subjects" && (
         <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-6 rounded-2xl shadow-inner">
-          <h2 className="text-xl font-semibold mb-6 text-indigo-800 flex items-center gap-2">
+          <h2 className="text-xl font-semibold mb-6 text-yellow-600 flex items-center gap-2">
             <BookOpen className="w-5 h-5" /> Subjects Handled
           </h2>
           {teacher.subjectsHandled?.length ? (
@@ -237,11 +238,11 @@ export default function TeacherDetailPage() {
                   className="bg-white rounded-2xl p-5 shadow-lg border border-gray-100 hover:shadow-xl transition transform hover:-translate-y-1 hover:bg-gradient-to-tr from-white to-indigo-50"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-bold text-indigo-700">{sub.subjectCode}</h3>
+                    <h3 className="text-lg font-bold text-yellow-500">{sub.subjectCode}</h3>
                     <CheckCircle2 className="text-green-500 w-5 h-5" />
                   </div>
-                  <p className="text-gray-700"><strong>Subject ID:</strong> {sub.subjectName}</p>
-                  <p className="text-gray-700"><strong>Class ID:</strong> {sub.classId}</p>
+                  <p className="text-gray-700"><strong>Subject :</strong> {sub.subjectName}</p>
+                  <p className="text-gray-700"><strong>Class :</strong> {sub.classId}</p>
                 </div>
               ))}
             </div>
@@ -255,10 +256,10 @@ export default function TeacherDetailPage() {
       {activeTab === "documents" && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-indigo-700">Documents</h2>
+            <h2 className="text-xl font-semibold text-yellow-600">Documents</h2>
             <button
               onClick={downloadAllDocs}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+              className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-indigo-700 transition"
             >
               <Download className="w-4 h-4" /> Download All
             </button>
@@ -278,13 +279,13 @@ export default function TeacherDetailPage() {
                 >
                   {isPDF ? (
                     <iframe
-                      src={`${apiBase}${fileUrl}`}
+                      src={`${fileUrl}`}
                       title={`Document ${i}`}
                       className="w-full h-56"
                     />
                   ) : (
                     <img
-                      src={`${apiBase}${fileUrl}`}
+                      src={`${fileUrl}`}
                       alt={`Aadhar ${i}`}
                       className="w-full h-56 object-cover"
                     />
@@ -293,7 +294,7 @@ export default function TeacherDetailPage() {
                     onClick={() =>
                       downloadDocument(fileUrl, i === 0 ? "Aadhar Front" : "Aadhar Back")
                     }
-                    className="absolute bottom-3 right-3 bg-indigo-600 text-white px-3 py-1.5 text-sm rounded-md flex items-center gap-1 opacity-0 group-hover:opacity-100 transition"
+                    className="absolute bottom-3 right-3 bg-yellow-500 cursor-pointer text-white px-3 py-1.5 text-sm rounded-md flex items-center gap-1 opacity-0 group-hover:opacity-100 transition"
                   >
                     <Download className="w-4 h-4" /> Download PDF
                   </button>
@@ -303,6 +304,75 @@ export default function TeacherDetailPage() {
           </div>
         </div>
       )}
+      {/* 💰 Salary Details */}
+{/* 💰 Salary Details */}
+{activeTab === "salary" && (
+  <div className="relative overflow-hidden  p-8">
+    {/* Background decoration */}
+    <div className="absolute -top-10 -right-10 w-48 h-48 bg-yellow-300/30 rounded-full blur-3xl"></div>
+    <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-orange-300/20 rounded-full blur-2xl"></div>
+
+    <div className="relative z-10">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-2xl font-bold text-yellow-700 flex items-center gap-3">
+          <Award className="w-6 h-6 text-yellow-600" />
+          Salary Overview
+        </h2>
+
+        {/* <button
+          onClick={() => toast.success("Coming soon... 💼")}
+          className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-xl font-medium shadow-md hover:shadow-lg hover:scale-105 transition-all"
+        >
+          Download Payslip
+        </button> */}
+      </div>
+
+      {/* Salary Grid */}
+      {teacher.salaryInfo ? (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Basic Salary */}
+          <div className="bg-white/60 backdrop-blur-md p-6 rounded-2xl border border-yellow-100 shadow-md hover:shadow-xl transition-all hover:-translate-y-1">
+            <p className="text-sm text-gray-500">Basic Salary</p>
+            <h3 className="text-3xl font-semibold text-gray-800 mt-2">
+              ₹{teacher.salaryInfo.basic?.toLocaleString()}
+            </h3>
+          </div>
+
+          {/* Allowances */}
+          <div className="bg-green-50/60 backdrop-blur-md p-6 rounded-2xl border border-green-100 shadow-md hover:shadow-xl transition-all hover:-translate-y-1">
+            <p className="text-sm text-gray-500">Allowances</p>
+            <h3 className="text-3xl font-semibold text-green-700 mt-2">
+              + ₹{teacher.salaryInfo.allowances?.toLocaleString()}
+            </h3>
+          </div>
+
+          {/* Deductions */}
+          <div className="bg-red-50/60 backdrop-blur-md p-6 rounded-2xl border border-red-100 shadow-md hover:shadow-xl transition-all hover:-translate-y-1">
+            <p className="text-sm text-gray-500">Deductions</p>
+            <h3 className="text-3xl font-semibold text-red-600 mt-2">
+              − ₹{teacher.salaryInfo.deductions?.toLocaleString()}
+            </h3>
+          </div>
+
+          {/* Net Salary */}
+          <div className=" p-6 rounded-2xl shadow-2xl hover:shadow-amber-400/50 transition-all hover:-translate-y-1">
+            <p className="text-sm opacity-90">Net Salary</p>
+            <h3 className="text-4xl font-extrabold mt-2">
+              ₹{teacher.salaryInfo.netSalary?.toLocaleString()}
+            </h3>
+          </div>
+        </div>
+      ) : (
+        <p className="text-gray-500 text-center mt-6">
+          No salary information available 🕓
+        </p>
+      )}
+    </div>
+  </div>
+)}
+
+
     </div>
   );
 }

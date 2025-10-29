@@ -86,10 +86,20 @@ export default function AdminProfile() {
   });
 
   // Handle submit
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    updateMutation.mutate(formData);
-  };
+const handleSubmit = (e) => {
+  e.preventDefault();
+
+  const requiredFields = ["firstName", "lastName", "email", "contact", "region", "address"];
+  const missing = requiredFields.filter((f) => !formData[f].trim());
+
+  if (missing.length > 0) {
+    toast.error("Please fill all required fields before saving.");
+    return;
+  }
+
+  updateMutation.mutate(formData);
+};
+
 
   // Avatar config
   const config = genConfig({
@@ -235,123 +245,173 @@ export default function AdminProfile() {
       </div>
 
       {/* ✏️ Edit Profile Modal */}
-      <Modal isOpen={isModalOpen} title="Edit Profile" onClose={() => setIsModalOpen(false)}>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Image Upload Section */}
-          <div className="flex flex-col items-center">
-            <div className="relative w-28 h-28">
-              <img
-                src={preview || `${profile.profilePic}` || ""}
-                alt="Preview"
-                className="w-28 h-28 rounded-full object-cover border-2 border-yellow-400"
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current.click()}
-                className="absolute bottom-0 right-0 cursor-pointer bg-yellow-500 text-white rounded-full p-2 text-xs shadow-md hover:bg-yellow-600"
-              >
-                📸
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-              />
-            </div>
-            <p className="text-xs text-gray-500 mt-2">Click camera icon to change</p>
-          </div>
+   <Modal isOpen={isModalOpen} title="Edit Profile" onClose={() => setIsModalOpen(false)}>
+  <form onSubmit={handleSubmit} className="space-y-4">
+    {/* Image Upload Section */}
+    <div className="flex flex-col items-center">
+      <div className="relative w-28 h-28">
+        <img
+          src={preview || `${profile.profilePic}` || ""}
+          alt="Preview"
+          className="w-28 h-28 rounded-full object-cover border-2 border-yellow-400"
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current.click()}
+          className="absolute bottom-0 right-0 cursor-pointer bg-yellow-500 text-white rounded-full p-2 text-xs shadow-md hover:bg-yellow-600"
+        >
+          📸
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          className="hidden"
+        />
+      </div>
+      <p className="text-xs text-gray-500 mt-2">Click camera icon to change</p>
+    </div>
 
-          {/* Input Fields */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">First Name</label>
-              <input
-                type="text"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Last Name</label>
-              <input
-                type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400"
-              />
-            </div>
-          </div>
+    {/* Input Fields */}
+    <div className="grid grid-cols-2 gap-3">
+      <div>
+        <label className="block text-sm font-medium text-gray-600 mb-1">
+          First Name <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          name="firstName"
+          value={formData.firstName}
+          onChange={handleChange}
+          required
+          className={`w-full border rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400 ${
+            !formData.firstName && "border-red-400"
+          }`}
+        />
+        {!formData.firstName && (
+          <p className="text-xs text-red-500 mt-1">First name is required</p>
+        )}
+      </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400"
-            />
-          </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-600 mb-1">
+          Last Name <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          name="lastName"
+          value={formData.lastName}
+          onChange={handleChange}
+          required
+          className={`w-full border rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400 ${
+            !formData.lastName && "border-red-400"
+          }`}
+        />
+        {!formData.lastName && (
+          <p className="text-xs text-red-500 mt-1">Last name is required</p>
+        )}
+      </div>
+    </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Contact</label>
-            <input
-              type="text"
-              name="contact"
-              value={formData.contact}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400"
-            />
-          </div>
+    <div>
+      <label className="block text-sm font-medium text-gray-600 mb-1">
+        Email <span className="text-red-500">*</span>
+      </label>
+      <input
+        type="email"
+        name="email"
+        value={formData.email}
+        onChange={handleChange}
+        required
+        className={`w-full border rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400 ${
+          !formData.email && "border-red-400"
+        }`}
+      />
+      {!formData.email && (
+        <p className="text-xs text-red-500 mt-1">Email is required</p>
+      )}
+    </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Region</label>
-            <input
-              type="text"
-              name="region"
-              value={formData.region}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400"
-            />
-          </div>
+    <div>
+      <label className="block text-sm font-medium text-gray-600 mb-1">
+        Contact <span className="text-red-500">*</span>
+      </label>
+      <input
+        type="text"
+        name="contact"
+        value={formData.contact}
+        onChange={handleChange}
+        required
+        className={`w-full border rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400 ${
+          !formData.contact && "border-red-400"
+        }`}
+      />
+      {!formData.contact && (
+        <p className="text-xs text-red-500 mt-1">Contact number is required</p>
+      )}
+    </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Address</label>
-            <textarea
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              rows="3"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400 resize-none"
-              placeholder="Enter your address"
-            ></textarea>
-          </div>
+    <div>
+      <label className="block text-sm font-medium text-gray-600 mb-1">
+        Region <span className="text-red-500">*</span>
+      </label>
+      <input
+        type="text"
+        name="region"
+        value={formData.region}
+        onChange={handleChange}
+        required
+        className={`w-full border rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400 ${
+          !formData.region && "border-red-400"
+        }`}
+      />
+      {!formData.region && (
+        <p className="text-xs text-red-500 mt-1">Region is required</p>
+      )}
+    </div>
 
-          {/* Buttons */}
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 bg-gray-200 cursor-pointer text-gray-800 rounded-md hover:bg-gray-300"
-            >
-              Cancel
-            </button>
+    <div>
+      <label className="block text-sm font-medium text-gray-600 mb-1">
+        Address <span className="text-red-500">*</span>
+      </label>
+      <textarea
+        name="address"
+        value={formData.address}
+        onChange={handleChange}
+        required
+        rows="3"
+        className={`w-full border rounded-md px-3 py-2 focus:ring-yellow-400 focus:border-yellow-400 resize-none ${
+          !formData.address && "border-red-400"
+        }`}
+        placeholder="Enter your address"
+      ></textarea>
+      {!formData.address && (
+        <p className="text-xs text-red-500 mt-1">Address is required</p>
+      )}
+    </div>
 
-            <button
-              type="submit"
-              disabled={updateMutation.isPending}
-              className="px-4 py-2 cursor-pointer bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
-            >
-              {updateMutation.isPending ? "Saving..." : "Save Changes"}
-            </button>
-          </div>
-        </form>
-      </Modal>
+    {/* Buttons */}
+    <div className="flex justify-end gap-3 pt-2">
+      <button
+        type="button"
+        onClick={() => setIsModalOpen(false)}
+        className="px-4 py-2 bg-gray-200 cursor-pointer text-gray-800 rounded-md hover:bg-gray-300"
+      >
+        Cancel
+      </button>
+
+      <button
+        type="submit"
+        disabled={updateMutation.isPending}
+        className="px-4 py-2 cursor-pointer bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
+      >
+        {updateMutation.isPending ? "Saving..." : "Save Changes"}
+      </button>
+    </div>
+  </form>
+</Modal>
+
   </div>
   );
 }

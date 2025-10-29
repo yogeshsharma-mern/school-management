@@ -154,8 +154,8 @@ export default function StudentDetailPage() {
           "profile",
           "enrollment",
           "fees",
-          "assignments",
-          "attendance",
+          // "assignments",
+          // "attendance",
           "documents",
         ].map((tab) => (
           <button

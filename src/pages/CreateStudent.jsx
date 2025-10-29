@@ -520,15 +520,15 @@ const [loadingFeeHeads, setLoadingFeeHeads] = useState(false);
         {/* Step 1 */}
         {activeStep === 0 && (
           <div className="grid md:grid-cols-2 gap-6">
-            <TextField
-              fullWidth
-              label="Full Name"
-              name="name"
-              value={student.name}
-              onChange={handleChange}
-              error={!!errors.name}
-              helperText={errors.name}
-            />
+          <TextField
+  fullWidth
+  label="Full Name *"
+  name="name"
+  value={student.name}
+  onChange={handleChange}
+  error={!!errors.name}
+  helperText={errors.name}
+/>
             <TextField
               fullWidth
               type="date"
@@ -536,7 +536,7 @@ const [loadingFeeHeads, setLoadingFeeHeads] = useState(false);
               value={student.dob}
               onChange={handleChange}
               InputLabelProps={{ shrink: true }}
-              label="Date of Birth"
+              label="Date of Birth *"
               error={!!errors.dob}
               helperText={errors.dob}
               inputProps={{
@@ -548,7 +548,7 @@ const [loadingFeeHeads, setLoadingFeeHeads] = useState(false);
               select
               fullWidth
               name="gender"
-              label="Gender"
+              label="Gender *"
               value={student.gender}
               // onChange={handleChange}
               //              onChange={(e)=>
@@ -573,7 +573,7 @@ const [loadingFeeHeads, setLoadingFeeHeads] = useState(false);
               select
               fullWidth
               name="bloodGroup"
-              label="Blood Group"
+              label="Blood Group *"
               value={student.bloodGroup}
               // onChange={handleChange}
               onChange={(e) => {
@@ -594,7 +594,7 @@ const [loadingFeeHeads, setLoadingFeeHeads] = useState(false);
               fullWidth
               type="email"
               name="email"
-              label="Email"
+              label="Email *"
               value={student.email}
               onChange={handleChange}
               error={!!errors.email}
@@ -604,7 +604,7 @@ const [loadingFeeHeads, setLoadingFeeHeads] = useState(false);
               fullWidth
               type={showPassword ? "text" : "password"}
               name="password"
-              label="Password"
+              label="Password *"
               value={student.password}
               onChange={handleChange}
               error={!!errors.password}
@@ -621,28 +621,36 @@ const [loadingFeeHeads, setLoadingFeeHeads] = useState(false);
             />
             <div>
               {/* <label className="block text-gray-600 font-medium mb-1">Phone</label> */}
-              <PhoneInput
-                country="in"
-                enableSearch
-                value={student.phone}
-                onChange={(phone) =>
-                  setStudent({ ...student, phone }) ||
-                  setErrors((p) => ({ ...p, phone: "" }))
-                }
-                inputClass="w-full p-3 rounded-lg border border-gray-300"
-              />
-              {errors.phone && (
-                <p className="text-red-500 text-sm">{errors.phone}</p>
-              )}
-            </div>
-            <div className="w-full max-w-xs ">
-              <label className="block text-gray-700 font-semibold mb-2">Profile Picture</label>
+              <div className="mb-4">
+  {/* <label className="block text-sm font-medium text-gray-700 mb-1">
+    Phone Number <span className="text-red-500">*</span>
+  </label> */}
 
-              <div className="relative">
+  <PhoneInput
+    country="in"
+    enableSearch
+    value={student.phone}
+    onChange={(phone) => {
+      setStudent({ ...student, phone });
+      setErrors((p) => ({ ...p, phone: "" }));
+    }}
+    inputClass="w-full p-3 rounded-lg border border-gray-300"
+  />
+
+  {errors.phone && (
+    <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+  )}
+</div>
+
+            </div>
+            <div className="w-full ">
+              <label className="block text-gray-700 font-semibold mb-2">Profile Picture *</label>
+
+              <div className="relative w-full">
                 {/* Upload Box */}
                 <label
                   htmlFor="profilePic"
-                  className="flex flex-col items-center w-full justify-center w-full py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-indigo-500 transition-colors bg-gray-50"
+                  className="flex flex-col items-center w-full justify-center w-full py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-yellow-300 transition-colors bg-gray-50"
                 >
                   {previews.profilePic ? (
                     <img
@@ -652,7 +660,7 @@ const [loadingFeeHeads, setLoadingFeeHeads] = useState(false);
                     />
                   ) : (
                     <div className="text-center text-gray-400">
-                      <BsCloudUpload size={20} className="mx-auto text-blue-500" />
+                      <BsCloudUpload size={26} className="mx-auto text-blue-500" />
                       <span className="text-sm">Click  to upload</span>
                     </div>
                   )}

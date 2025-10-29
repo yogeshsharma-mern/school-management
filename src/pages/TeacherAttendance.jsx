@@ -7,6 +7,7 @@ import useDebounce from "../hooks/useDebounce";
 import toast from "react-hot-toast";
 import { CheckCircle, XCircle, CalendarDays } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 export default function TeacherAttendancePage() {
     const queryClient = useQueryClient();
@@ -15,25 +16,12 @@ export default function TeacherAttendancePage() {
     const [sorting, setSorting] = useState([]);
     const [globalFilter, setGlobalFilter] = useState("");
     const [columnFilters, setColumnFilters] = useState([]);
+    const navigate = useNavigate();
 
 
     const debouncedSearch = useDebounce(globalFilter, 500);
 
-    // 🧠 Fetch teachers list
-    // const {
-    //     data: teachersData,
-    //     isLoading,
-    //     isFetching,
-    //     error,
-    // } = useQuery({
-    //     queryKey: ["teachers", pagination.pageIndex, pagination.pageSize, debouncedSearch],
-    //     queryFn: () =>
-    //         apiGet(apiPath.getTeachers, {
-    //             page: pagination.pageIndex + 1,
-    //             limit: pagination.pageSize,
-    //             name: debouncedSearch,
-    //         }),
-    // });
+
 const {data:teachersData,isLoading,isFetching,error}= useQuery({
     queryKey:["teachers",pagination.pageIndex,pagination.pageSize,debouncedSearch],
     queryFn:()=>
@@ -48,25 +36,7 @@ const {data:teachersData,isLoading,isFetching,error}= useQuery({
     queryFn: () => apiGet(apiPath.dashboardData),
   });
   console.log("dashboarddata",dashboardData);
-    // 🧩 Mutation to mark attendance
-    // 🧩 Mutation to mark attendance
-    // const attendanceMutation = useMutation({
-    //     mutationFn: async ({ teacherId, status }) => {
-    //         // ✅ Send POST request to your API endpoint
-    //         return apiPost(apiPath.teacherAttendance, {
-    //             teacherId,
-    //             status, // "Present" or "Absent"
-    //         });
-    //     },
-    //     onSuccess: (data) => {
-    //         toast.success(data.message || "Attendance marked successfully ✅");
-    //         // ✅ Refetch teachers list after marking attendance
-    //         queryClient.invalidateQueries({ queryKey: ["teachers"] });
-    //     },
-    //     onError: (err) => {
-    //         toast.error(err?.response?.data?.message || "Failed to mark attendance ❌");
-    //     },
-    // });
+
 const attendanceMutation = useMutation({
   mutationFn: async ({ teacherId, status }) => {
     return apiPost(apiPath.teacherAttendance, { teacherId, status });
@@ -164,7 +134,6 @@ const attendanceMutation = useMutation({
   cell: ({ row }) => {
     const teacherId = row.original._id;
     const todayStatus = row.original.todayAttendance?.status || "not_marked";
-
     const isMarked = todayStatus !== "not_marked";
     const statusLabel =
       todayStatus === "not_marked"
@@ -175,7 +144,7 @@ const attendanceMutation = useMutation({
       <div className="flex items-center gap-2 w-full">
         {/* ✅ Present Button */}
         <button
-          className={`flex items-center gap-1 px-3 cursor-pointer py-1 text-sm rounded-lg transition-all ${
+          className={`flex cursor-pointer items-center gap-1 px-3 py-1 text-sm rounded-lg transition-all ${
             todayStatus === "Present"
               ? "bg-green-100 text-green-700 cursor-not-allowed"
               : "bg-green-50 text-green-600 hover:bg-green-100"
@@ -194,7 +163,7 @@ const attendanceMutation = useMutation({
 
         {/* ❌ Absent Button */}
         <button
-          className={`flex items-center gap-1 px-3 cursor-pointer py-1 text-sm rounded-lg transition-all ${
+          className={`flex items-center cursor-pointer gap-1 px-3 py-1 text-sm rounded-lg transition-all ${
             todayStatus === "Absent"
               ? "bg-red-100 text-red-700 cursor-not-allowed"
               : "bg-red-50 text-red-600 hover:bg-red-100"
@@ -211,22 +180,18 @@ const attendanceMutation = useMutation({
           Absent
         </button>
 
-        {/* 📘 Marked Indicator */}
-        {isMarked && (
-          <span className="px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded-lg font-medium">
-            Marked ({statusLabel})
-          </span>
-        )}
+        {/* 👁 View Attendance */}
+        <button
+          className="flex items-center cursor-pointer gap-1 px-3 py-1 text-sm rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
+          onClick={() => navigate(`/admin/teacher-attendance/${teacherId}`)}
+        >
+          <CalendarDays size={16} />
+          View
+        </button>
       </div>
     );
   },
 }
-
-
-
-
-
-
         ],
         [attendanceMutation]
     );

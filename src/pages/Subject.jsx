@@ -51,7 +51,7 @@ export default function ClassPage() {
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["subjects"] });
-console.log("data",data);
+            console.log("data", data);
             if (editingClass) {
                 toast.success(data.message || "Subject updated successfully 🎉");
             } else {
@@ -73,42 +73,42 @@ console.log("data",data);
 
 
     // Delete class mutation
-const deleteMutation = useMutation({
-  mutationFn: (id) => apiDelete(`${apiPath.deleteSubject}/${id}`),
-  onSuccess: (data) => {
-    toast.success(data.message || "Subject deleted successfully 🗑️");
-    queryClient.invalidateQueries({ queryKey: ["subjects"] });
-  },
-  onError: (error) => {
-    const errorMessage =
-      error?.response?.data?.message || "Failed to delete subject. Please try again ❌";
-    toast.error(errorMessage);
-  },
-});
+    const deleteMutation = useMutation({
+        mutationFn: (id) => apiDelete(`${apiPath.deleteSubject}/${id}`),
+        onSuccess: (data) => {
+            toast.success(data.message || "Subject deleted successfully 🗑️");
+            queryClient.invalidateQueries({ queryKey: ["subjects"] });
+        },
+        onError: (error) => {
+            const errorMessage =
+                error?.response?.data?.message || "Failed to delete subject. Please try again ❌";
+            toast.error(errorMessage);
+        },
+    });
 
-const handleChange = (e) => {
-  const { name, value } = e.target;
-  let newValue = value;
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        let newValue = value;
 
-  switch (name) {
-    case "name":
-      // Only letters, spaces, commas
-      newValue = value.replace(/[^A-Za-z\s,]/g, "");
-      break;
+        switch (name) {
+            case "name":
+                // Only letters, spaces, commas
+                newValue = value.replace(/[^A-Za-z\s,]/g, "");
+                break;
 
-    case "code":
-      // Only letters and numbers
-      newValue = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-      break;
+            case "code":
+                // Only letters and numbers
+                newValue = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+                break;
 
 
-    default:
-      newValue = value;
-  }
+            default:
+                newValue = value;
+        }
 
-  setFormData((prev) => ({ ...prev, [name]: newValue }));
-  setErrors((prev) => ({ ...prev, [name]: "" }));
-};
+        setFormData((prev) => ({ ...prev, [name]: newValue }));
+        setErrors((prev) => ({ ...prev, [name]: "" }));
+    };
 
 
 
@@ -143,9 +143,9 @@ const handleChange = (e) => {
         // }
         if (!formData.name) newErrors.name = "Subject name is required";
         if (!formData.code) newErrors.code = "Code is required";
-if (!/^[A-Z]{3,4}[0-9]{2,3}$/.test(formData.code)) {
-  newErrors.code = "Invalid subject code format (example: PHY101)";
-}
+        if (!/^[A-Z]{3,4}[0-9]{2,3}$/.test(formData.code)) {
+            newErrors.code = "Invalid subject code format (example: PHY101)";
+        }
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -155,7 +155,7 @@ if (!/^[A-Z]{3,4}[0-9]{2,3}$/.test(formData.code)) {
         classMutation.mutate({
             name: formData.name.trim(),
             code: formData.code.trim(),
-            description: formData.description.trim(),
+            // description: formData.description.trim(),
             // subjects: formData.subjects.split(",").map((s) => s.trim()),
         });
     };
@@ -190,52 +190,50 @@ if (!/^[A-Z]{3,4}[0-9]{2,3}$/.test(formData.code)) {
             { accessorKey: "code", header: "Code" },
             // { accessorKey: "credits", header: "Credits" },
             {
-  header: "Status",
-  accessorKey: "isActive",
-  cell: ({ row }) => {
-    const subject = row.original;
-console.log("subject",subject);
-    // Mutation for toggling active/inactive
-    const toggleMutation = useMutation({
-      mutationFn: (newStatus) =>
-        apiPut(`${apiPath.ToggleSubject}/${subject._id}`, { status: newStatus }),
-      onSuccess: (data) =>
-      {
-        toast.success(data.message || "Status updated successfully 🎉");
-         queryClient.invalidateQueries({ queryKey: ["subjects"] });
+                header: "Status",
+                accessorKey: "isActive",
+                cell: ({ row }) => {
+                    const subject = row.original;
+                    console.log("subject", subject);
+                    // Mutation for toggling active/inactive
+                    const toggleMutation = useMutation({
+                        mutationFn: (newStatus) =>
+                            apiPut(`${apiPath.ToggleSubject}/${subject._id}`, { status: newStatus }),
+                        onSuccess: (data) => {
+                            toast.success(data.message || "Status updated successfully 🎉");
+                            queryClient.invalidateQueries({ queryKey: ["subjects"] });
 
-      },
-      onError: (err) => {
-        toast.error(err?.response?.data?.message || "Failed to update status ❌");
-      },
-    });
+                        },
+                        onError: (err) => {
+                            toast.error(err?.response?.data?.message || "Failed to update status ❌");
+                        },
+                    });
 
-    // const handleToggle = () => toggleMutation.mutate(!subject.isActive);
-    const handleToggle=()=>
-    {
+                    // const handleToggle = () => toggleMutation.mutate(!subject.isActive);
+                    const handleToggle = () => {
 
-        const newStatus = subject.status === "active"? false : true;
-        toggleMutation.mutate(newStatus);
-    }
+                        const newStatus = subject.status === "active" ? false : true;
+                        toggleMutation.mutate(newStatus);
+                    }
 
-    return (
-      <div className="flex items-center gap-2">
-        <ToggleButton
-          isActive={subject.status}
-          onToggle={handleToggle}
-          disabled={toggleMutation.isLoading}
-        />
-        {/* <span
+                    return (
+                        <div className="flex items-center gap-2">
+                            <ToggleButton
+                                isActive={subject.status}
+                                onToggle={handleToggle}
+                                disabled={toggleMutation.isLoading}
+                            />
+                            {/* <span
           className={`text-sm font-medium ${
             subject.status ==="active"? "text-green-600" : "text-red-600"
           }`}
         >
           {subject.status==="active" ? "Active" : "Inactive"}
         </span> */}
-      </div>
-    );
-  },
-},
+                        </div>
+                    );
+                },
+            },
 
             {
                 accessorKey: "description",
@@ -255,12 +253,12 @@ console.log("subject",subject);
                             onClick={() => {
                                 const course = row.original;
                                 setEditingClass(course);
-                              setFormData({
-    name: course.name || "",
-    code: course.code || "",
-    credits: course.credits?.toString() || "",
-    description: course.description || "",
-});
+                                setFormData({
+                                    name: course.name || "",
+                                    code: course.code || "",
+                                    credits: course.credits?.toString() || "",
+                                    description: course.description || "",
+                                });
                                 setIsModalOpen(true);
                             }}
                             className=" text-yellow-400 text-[20px] cursor-pointer  hover:text-yellow-500"
@@ -277,11 +275,11 @@ console.log("subject",subject);
                         </button>
                         {/* Uncomment if you want delete button */}
                         <button
-            onClick={() => deleteMutation.mutate(row.original._id)}
-            // className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-          >
-            <AiFillDelete className="text-red-500 text-[20px] cursor-pointer" />
-          </button>
+                            onClick={() => deleteMutation.mutate(row.original._id)}
+                        // className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                        >
+                            <AiFillDelete className="text-red-500 text-[20px] cursor-pointer" />
+                        </button>
                     </div>
                 ),
             },
@@ -350,10 +348,10 @@ console.log("subject",subject);
                     isError={error}
                     fetching={isFetching}
                     loading={isLoading}
-                    
+
 
                 />
-     
+
             </div>
             {/* Modal for create/edit */}
             <Modal
@@ -362,21 +360,25 @@ console.log("subject",subject);
                 onClose={() => setIsModalOpen(false)}
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Subject Name <span className="text-red-500">*</span>
+                    </label>
                     <InputField
-                        label="Subject Name"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
                         placeholder="physics, math, chem"
-                    error={errors.name}
+                        error={errors.name}
                     />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Code <span className="text-red-500">*</span>
+                    </label>
                     <InputField
-                        label="Code"
                         name="code"
                         value={formData.code}
                         onChange={handleChange}
                         placeholder="PHY101"
-                    error={errors.code}
+                        error={errors.code}
                     />
                     <InputField
                         label="Description"
@@ -384,7 +386,7 @@ console.log("subject",subject);
                         value={formData.description}
                         onChange={handleChange}
                         placeholder="Example...."
-                    error={errors.description}
+                        error={errors.description}
                     />
                     {/* <InputField
                         label="credits"
@@ -405,16 +407,16 @@ console.log("subject",subject);
                     <button
                         type="submit"
                         disabled={classMutation.isLoading}
-                        className="w-full cursor-pointer bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
+                        className="w-full cursor-pointer bg-yellow-500 text-white py-2 rounded-lg transition"
                     >
-                     {classMutation.isLoading && <Loader size={20} />} {/* inline loader */}
-{editingClass
-  ? classMutation.isLoading
-    ? "Updating..."
-    : "Update Subject"
-  : classMutation.isLoading
-  ? "Creating..."
-  : "Add Subject"}
+                        {classMutation.isLoading && <Loader size={20} />} {/* inline loader */}
+                        {editingClass
+                            ? classMutation.isLoading
+                                ? "Updating..."
+                                : "Update Subject"
+                            : classMutation.isLoading
+                                ? "Creating..."
+                                : "Add Subject"}
 
                     </button>
                 </form>
