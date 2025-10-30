@@ -95,44 +95,44 @@ export default function CreateStudentPage() {
   });
 
   // Update state whenever query data changes
-useEffect(() => {
-  if (!studentData?.results?.length) return;
+  useEffect(() => {
+    if (!studentData?.results?.length) return;
 
-  const s = studentData.results[0];
-  setStudent(prev => ({
-    ...prev,
-    ...s,
-    dob: s.dob ? s.dob.split("T")[0] : "",
-    admissionDate: s.admissionDate ? s.admissionDate.split("T")[0] : "",
-    address: s.address || prev.address,
-    guardian: s.guardian || prev.guardian,
-    emergencyContact: s.emergencyContact || prev.emergencyContact,
-    parents: s.parentDetails?.length ? s.parentDetails : prev.parents,
-    documents: {
-      ...prev.documents,
-      profilePic: s.profilePic || null,
-      aadharFront: s.aadharFront || null,
-      aadharBack: s.aadharBack || null,
-      certificates: s.certificates || [],
-      marksheets: s.marksheets || [],
-    },
-    classId: s.classId || "",
-    academicYear: s.enrollmentDetails?.[0]?.academicYear || "",
-  }));
+    const s = studentData.results[0];
+    setStudent(prev => ({
+      ...prev,
+      ...s,
+      dob: s.dob ? s.dob.split("T")[0] : "",
+      admissionDate: s.admissionDate ? s.admissionDate.split("T")[0] : "",
+      address: s.address || prev.address,
+      guardian: s.guardian || prev.guardian,
+      emergencyContact: s.emergencyContact || prev.emergencyContact,
+      parents: s.parentDetails?.length ? s.parentDetails : prev.parents,
+      documents: {
+        ...prev.documents,
+        profilePic: s.profilePic || null,
+        aadharFront: s.aadharFront || null,
+        aadharBack: s.aadharBack || null,
+        certificates: s.certificates || [],
+        marksheets: s.marksheets || [],
+      },
+      classId: s.classId || "",
+      academicYear: s.enrollmentDetails?.[0]?.academicYear || "",
+    }));
 
-  setPreviews({
-    profilePic: s.profilePic ? `${s.profilePic}` : null,
-    aadharFront: s.aadharFront ? `${s.aadharFront}` : null,
-    aadharBack: s.aadharBack ? `${s.aadharBack}` : null,
-    certificates: s.certificates?.map(c => (c.fileUrl ? c.fileUrl : c)) || [],
-    marksheets: s.marksheets?.map(c => (c.fileUrl ? c.fileUrl : c)) || [],
-  });
+    setPreviews({
+      profilePic: s.profilePic ? `${s.profilePic}` : null,
+      aadharFront: s.aadharFront ? `${s.aadharFront}` : null,
+      aadharBack: s.aadharBack ? `${s.aadharBack}` : null,
+      certificates: s.certificates?.map(c => (c.fileUrl ? c.fileUrl : c)) || [],
+      marksheets: s.marksheets?.map(c => (c.fileUrl ? c.fileUrl : c)) || [],
+    });
 
-  // ✅ set selectedClass from classId so fees query triggers
-  if (s.classId) {
-    setSelectedClass(s?.enrollments[0].classInfo?.name);
-  }
-}, [studentData]);
+    // ✅ set selectedClass from classId so fees query triggers
+    if (s.classId) {
+      setSelectedClass(s?.enrollments[0].classInfo?.name);
+    }
+  }, [studentData]);
 
 
   const addFeeHead = () =>
@@ -179,25 +179,77 @@ useEffect(() => {
   //     setErrors((prev) => ({ ...prev, [name]: "" }));
   //   }
   // };
+  // const handleChange = (e, parentIndex = null, section = null) => {
+  //   const { name, value, type, checked } = e.target;
+
+  //   if (parentIndex !== null) {
+  //     // For parents
+  //     const updatedParents = [...student.parents];
+  //     updatedParents[parentIndex][name] = value;
+  //     setStudent({ ...student, parents: updatedParents });
+  //     setErrors((prev) => ({
+  //       ...prev,
+  //       [`parent_${parentIndex}_${name}`]: "",
+  //     }));
+  //   }
+  //   else if (section) {
+  //     // For nested objects like address, guardian, emergencyContact
+  //     setStudent({
+  //       ...student,
+  //       [section]: { ...student[section], [name]: value },
+  //     });
+  //     setErrors((prev) => ({
+  //       ...prev,
+  //       [`${section}_${name}`]: "",
+  //     }));
+  //   }
+  //   else if (type === "checkbox") {
+  //     setStudent({ ...student, [name]: checked });
+  //   }
+  //   else {
+  //     setStudent({ ...student, [name]: value });
+  //     setErrors((prev) => ({ ...prev, [name]: "" }));
+  //   }
+  // };
+
   const handleChange = (e, parentIndex = null, section = null) => {
     const { name, value, type, checked } = e.target;
+    let sanitizedValue = value;
+
+    // ✅ Disallow numbers/symbols in City
+    if (name === "city") {
+      sanitizedValue = value.replace(/[^A-Za-z\s]/g, ""); // only letters & spaces
+    }
+
+    // ✅ Disallow letters/symbols in ZIP Code
+    if (name === "zip") {
+      sanitizedValue = value.replace(/\D/g, ""); // only digits allowed
+    }
+
+    // ✅ Common name fields (for parents, guardians, etc.)
+    const isNameField = name.toLowerCase().includes("name") && name !== "username";
+    if (isNameField && name !== "city") {
+      sanitizedValue = sanitizedValue.replace(/[^A-Za-z\s]/g, ""); // only alphabets
+    }
 
     if (parentIndex !== null) {
-      // For parents
+      // 👪 For parents array fields
       const updatedParents = [...student.parents];
-      updatedParents[parentIndex][name] = value;
+      updatedParents[parentIndex][name] = sanitizedValue;
       setStudent({ ...student, parents: updatedParents });
+
       setErrors((prev) => ({
         ...prev,
         [`parent_${parentIndex}_${name}`]: "",
       }));
     }
     else if (section) {
-      // For nested objects like address, guardian, emergencyContact
+      // 🏠 For nested objects (address, guardian, emergencyContact, etc.)
       setStudent({
         ...student,
-        [section]: { ...student[section], [name]: value },
+        [section]: { ...student[section], [name]: sanitizedValue },
       });
+
       setErrors((prev) => ({
         ...prev,
         [`${section}_${name}`]: "",
@@ -207,11 +259,11 @@ useEffect(() => {
       setStudent({ ...student, [name]: checked });
     }
     else {
-      setStudent({ ...student, [name]: value });
+      // 🔤 For all other direct fields
+      setStudent({ ...student, [name]: sanitizedValue });
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
-
 
   // --- Handle File Upload ---
   const handleFileUpload = (e, field, section = null) => {
@@ -257,26 +309,26 @@ useEffect(() => {
       apiGet(`${apiPath.getFeesStructure}?classIdentifier=${selectedClass}`),
     enabled: !!selectedClass,
   });
-// 🔄 Sync fees data into formData whenever it changes
-useEffect(() => {
-  if (feesData?.success && feesData?.results?.feeHeads?.length) {
-    setFormData(prev => ({
-      ...prev,
-      feeStructureId: feesData.results._id, // ✅ store the structure id
-      feeHeads: feesData.results.feeHeads.map(f => ({
-        type: f.type,
-        amount: f.amount || 0,
-        isOptional: f.isOptional || false,
-      })),
-    }));
-  } else if (selectedClass) {
-    setFormData(prev => ({
-      ...prev,
-      feeStructureId: null,
-      feeHeads: [],
-    }));
-  }
-}, [feesData, selectedClass]);
+  // 🔄 Sync fees data into formData whenever it changes
+  useEffect(() => {
+    if (feesData?.success && feesData?.results?.feeHeads?.length) {
+      setFormData(prev => ({
+        ...prev,
+        feeStructureId: feesData.results._id, // ✅ store the structure id
+        feeHeads: feesData.results.feeHeads.map(f => ({
+          type: f.type,
+          amount: f.amount || 0,
+          isOptional: f.isOptional || false,
+        })),
+      }));
+    } else if (selectedClass) {
+      setFormData(prev => ({
+        ...prev,
+        feeStructureId: null,
+        feeHeads: [],
+      }));
+    }
+  }, [feesData, selectedClass]);
 
 
 
@@ -311,6 +363,18 @@ useEffect(() => {
         if (!newErrors.documents) newErrors.documents = {};
         newErrors.documents.profilePic = "Profile picture is required";
       }
+      // if (!student.address.city.trim()) {
+      //   newErrors.address.city = "City is required";
+      // } else if (!/^[A-Za-z\s]+$/.test(student.address.city)) {
+      //   newErrors.address.city = "City must contain only letters";
+      // }
+
+      // if (!student.address.zip.trim()) {
+      //   newErrors.address.zip = "ZIP code is required";
+      // } else if (!/^\d+$/.test(student.address.zip)) {
+      //   newErrors.address.zip = "ZIP code must contain only numbers";
+      // }
+
     }
 
     else if (activeStep === 1) {
@@ -480,61 +544,61 @@ useEffect(() => {
   // };
 
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!validateStep()) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateStep()) return;
 
-  try {
-    const formDataToSend = new FormData();
+    try {
+      const formDataToSend = new FormData();
 
-    // 🔹 Add simple fields
-    [
-      "name", "dob", "gender", "bloodGroup", "email", "password", "phone",
-      "classId", "academicYear", "physicalDisability", "disabilityDetails",
-    ].forEach((key) => {
-      formDataToSend.append(key, student[key]);
-    });
+      // 🔹 Add simple fields
+      [
+        "name", "dob", "gender", "bloodGroup", "email", "password", "phone",
+        "classId", "academicYear", "physicalDisability", "disabilityDetails",
+      ].forEach((key) => {
+        formDataToSend.append(key, student[key]);
+      });
 
-    // 🔹 Add nested objects
-    ["address", "parents", "guardian", "emergencyContact"].forEach((key) => {
-      formDataToSend.append(key, JSON.stringify(student[key]));
-    });
+      // 🔹 Add nested objects
+      ["address", "parents", "guardian", "emergencyContact"].forEach((key) => {
+        formDataToSend.append(key, JSON.stringify(student[key]));
+      });
 
-    // 🔹 Add documents
-    Object.entries(student.documents).forEach(([key, value]) => {
-      if (!value) return;
-      if (Array.isArray(value)) {
-        value.forEach(item => {
-          if (item instanceof File) {
-            formDataToSend.append(key, item);
-          }
-        });
-      } else if (value instanceof File) {
-        formDataToSend.append(key, value);
+      // 🔹 Add documents
+      Object.entries(student.documents).forEach(([key, value]) => {
+        if (!value) return;
+        if (Array.isArray(value)) {
+          value.forEach(item => {
+            if (item instanceof File) {
+              formDataToSend.append(key, item);
+            }
+          });
+        } else if (value instanceof File) {
+          formDataToSend.append(key, value);
+        }
+      });
+
+      // ✅ Add fee structure info
+      if (formData.feeStructureId)
+        formDataToSend.append("feeStructureId", formData.feeStructureId);
+
+      if (formData.feeHeads?.length)
+        formDataToSend.append("appliedFeeHeads", JSON.stringify(formData.feeHeads));
+
+      // 🔹 API call
+      const res = student._id
+        ? await apiPut(`${apiPath.updateStudent}/${student._id}`, formDataToSend)
+        : await apiPost(apiPath.studentReg, formDataToSend);
+
+      if (res.success) {
+        toast.success(res.message || "Student saved successfully ✅");
+        navigate(-1);
       }
-    });
-
-    // ✅ Add fee structure info
-    if (formData.feeStructureId)
-      formDataToSend.append("feeStructureId", formData.feeStructureId);
-
-    if (formData.feeHeads?.length)
-      formDataToSend.append("appliedFeeHeads", JSON.stringify(formData.feeHeads));
-
-    // 🔹 API call
-    const res = student._id
-      ? await apiPut(`${apiPath.updateStudent}/${student._id}`, formDataToSend)
-      : await apiPost(apiPath.studentReg, formDataToSend);
-
-    if (res.success) {
-      toast.success(res.message || "Student saved successfully ✅");
-      navigate(-1);
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong ❌");
     }
-  } catch (err) {
-    console.error(err);
-    toast.error("Something went wrong ❌");
-  }
-};
+  };
 
 
 
@@ -660,7 +724,7 @@ const handleSubmit = async (e) => {
               }}
             />
             <div>
-              <label className="block text-gray-600 font-medium mb-1">Phone</label>
+              {/* <label className="block text-gray-600 font-medium mb-1">Phone</label> */}
               <PhoneInput
                 country="in"
                 enableSearch
@@ -1390,6 +1454,17 @@ const handleSubmit = async (e) => {
                             variant="contained"
                             startIcon={<FaPlusCircle />}
                             onClick={addFeeHead}
+                              sx={{
+    backgroundColor: "#FACC15", // Tailwind's yellow-400
+    color: "black",
+    fontWeight: 600,
+    borderRadius: "0.5rem",
+    mt: 1.5,
+    boxShadow: 3,
+    "&:hover": {
+      backgroundColor: "#FBBF24", // yellow-500
+    },
+  }}
                             className="bg-yellow-400 hover:bg-yellow-500 text-white font-semibold rounded-lg mt-3 shadow-md"
                           >
                             Add Optional Fee
@@ -1427,7 +1502,7 @@ const handleSubmit = async (e) => {
             <button
               type="submit"
               className="p-2 cursor-pointer rounded-md"
-              style={{ backgroundColor: isEditMode ? "#2196f3" : "#4caf50", color: "white" }}
+              style={{ backgroundColor: isEditMode ? "#f3c621ff" : "#4caf50", color: "black" }}
             >
               {isEditMode ? "Update" : "Submit"}
             </button>

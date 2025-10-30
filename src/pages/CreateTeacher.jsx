@@ -196,34 +196,127 @@ export default function CreateTeacherPage() {
     //         setErrors((prev) => ({ ...prev, [name]: "" }));
     //     }
     // };
-    const handleChange = (e, parentIndex = null, section = null) => {
-        const { name, value, type, checked } = e.target;
+//     const handleChange = (e, parentIndex = null, section = null) => {
+//         const { name, value, type, checked } = e.target;
+//          let sanitizedValue = value;
+//   if (name === "city") {
+//     sanitizedValue = value.replace(/[^A-Za-z\s]/g, ""); // only letters & spaces
+//   }
 
-        if (parentIndex !== null) {
-            const updatedParents = [...student.parents];
-            updatedParents[parentIndex][name] = value;
-            setStudent({ ...student, parents: updatedParents });
-            setErrors((prev) => ({
-                ...prev,
-                [`parent_${parentIndex}_${name}`]: "",
-            }));
-        } else if (section) {
-            setStudent({
-                ...student,
-                [section]: { ...student[section], [name]: value },
-            });
-            setErrors((prev) => ({
-                ...prev,
-                [`${section}_${name}`]: "",
-            }));
-        } else if (type === "checkbox") {
-            setStudent({ ...student, [name]: checked });
-            setErrors((prev) => ({ ...prev, [name]: "" }));
-        } else {
-            setStudent({ ...student, [name]: value });
-            setErrors((prev) => ({ ...prev, [name]: "" }));
-        }
-    };
+//   // ✅ Disallow letters/symbols in ZIP Code
+//   if (name === "zip") {
+//     sanitizedValue = value.replace(/\D/g, ""); // only digits allowed
+//   }
+//         if (parentIndex !== null) {
+//             const updatedParents = [...student.parents];
+//             updatedParents[parentIndex][name] = value;
+//             setStudent({ ...student, parents: updatedParents });
+//             setErrors((prev) => ({
+//                 ...prev,
+//                 [`parent_${parentIndex}_${name}`]: "",
+//             }));
+//         } else if (section) {
+//             setStudent({
+//                 ...student,
+//                 [section]: { ...student[section], [name]: value },
+//             });
+//             setErrors((prev) => ({
+//                 ...prev,
+//                 [`${section}_${name}`]: "",
+//             }));
+//         } else if (type === "checkbox") {
+//             setStudent({ ...student, [name]: checked });
+//             setErrors((prev) => ({ ...prev, [name]: "" }));
+//         } else {
+//             // ✅ Special handling for "experience"
+//             if (name === "experience") {
+//                 let numericValue = value.replace(/\D/g, ""); // remove non-digits
+
+//                 // Limit to 2 digits
+//                 if (numericValue.length > 2) numericValue = numericValue.slice(0, 2);
+
+//                 // Restrict value between 1 and 40
+//                 if (numericValue && Number(numericValue) > 40) numericValue = "40";
+
+//                 setStudent({ ...student, experience: numericValue });
+//                 setErrors((prev) => ({ ...prev, experience: "" }));
+//                 return;
+//             }
+
+//             setStudent({ ...student, [name]: value });
+//             setErrors((prev) => ({ ...prev, [name]: "" }));
+//         }
+//     };
+const handleChange = (e, parentIndex = null, section = null) => {
+  const { name, value, type, checked } = e.target;
+  let sanitizedValue = value;
+
+  // ✅ 1. No numbers or special chars in any name field
+  if (name.toLowerCase().includes("name")) {
+    sanitizedValue = value.replace(/[^A-Za-z\s]/g, ""); // letters & spaces only
+  }
+
+  // ✅ 2. Disallow numbers/symbols in City
+  if (name === "city") {
+    sanitizedValue = value.replace(/[^A-Za-z\s]/g, ""); // only letters & spaces
+  }
+
+  // ✅ 3. Disallow letters/symbols in ZIP Code
+  if (name === "zip") {
+    sanitizedValue = value.replace(/\D/g, ""); // only digits allowed
+    // Optional: limit to 6 digits (e.g., Indian PIN)
+    if (sanitizedValue.length > 6) sanitizedValue = sanitizedValue.slice(0, 6);
+  }
+
+  if (parentIndex !== null) {
+    // 👪 For parents array
+    const updatedParents = [...student.parents];
+    updatedParents[parentIndex][name] = sanitizedValue;
+    setStudent({ ...student, parents: updatedParents });
+
+    setErrors((prev) => ({
+      ...prev,
+      [`parent_${parentIndex}_${name}`]: "",
+    }));
+  } 
+  else if (section) {
+    // 🏠 For nested objects (address, guardian, emergencyContact, etc.)
+    setStudent({
+      ...student,
+      [section]: { ...student[section], [name]: sanitizedValue },
+    });
+
+    setErrors((prev) => ({
+      ...prev,
+      [`${section}_${name}`]: "",
+    }));
+  } 
+  else if (type === "checkbox") {
+    // ☑️ For checkboxes
+    setStudent({ ...student, [name]: checked });
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  } 
+  else {
+    // 🎓 Special handling for "experience"
+    if (name === "experience") {
+      let numericValue = value.replace(/\D/g, ""); // remove non-digits
+
+      // Limit to 2 digits and max 40
+      if (numericValue.length > 2) numericValue = numericValue.slice(0, 2);
+      if (numericValue && Number(numericValue) > 40) numericValue = "40";
+
+      setStudent({ ...student, experience: numericValue });
+      setErrors((prev) => ({ ...prev, experience: "" }));
+      return;
+    }
+
+    // 🧩 Default field update
+    setStudent({ ...student, [name]: sanitizedValue });
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  }
+};
+
+
 
 
     const handleFileUpload = (e, field, section = null) => {
@@ -327,8 +420,15 @@ export default function CreateTeacherPage() {
                 });
 
             }
-            if (!student.salaryInfo.basic || isNaN(student.salaryInfo.basic) || student.salaryInfo.basic < 0)
-                newErrors.basic = "Basic salary is required";
+            if (
+                !student.salaryInfo.basic ||
+                isNaN(student.salaryInfo.basic) ||
+                student.salaryInfo.basic < 0
+            ) {
+                newErrors.basic = "Basic salary must be 0 or more";
+            } else if (student.salaryInfo.basic > 999999) {
+                newErrors.basic = "Basic salary cannot exceed 6 digits";
+            }
             if (student.salaryInfo.allowances === "" || isNaN(student.salaryInfo.allowances) || student.salaryInfo.allowances < 0)
                 newErrors.allowances = "Allowances must be 0 or more";
             if (student.salaryInfo.deductions === "" || isNaN(student.salaryInfo.deductions) || student.salaryInfo.deductions < 0)
@@ -1079,29 +1179,57 @@ export default function CreateTeacherPage() {
                                                         ...base,
                                                         minHeight: "56px",
                                                         borderRadius: "8px",
-                                                        borderColor: errors[`classId_${index}`] ? "red" : (state.isFocused ? "#1976d2" : "#d1d5db"),
-                                                        boxShadow: state.isFocused ? "0 0 0 2px rgba(25,118,210,0.1)" : "none",
-                                                        "&:hover": { borderColor: state.isFocused ? "#1976d2" : "#d1d5db" },
+                                                        borderColor: errors[`classId_${index}`]
+                                                            ? "red"
+                                                            : state.isFocused
+                                                                ? "#1976d2"
+                                                                : "#d1d5db",
+                                                        boxShadow: state.isFocused
+                                                            ? "0 0 0 2px rgba(25,118,210,0.1)"
+                                                            : "none",
+                                                        "&:hover": {
+                                                            borderColor: state.isFocused ? "#1976d2" : "#d1d5db",
+                                                        },
                                                     }),
                                                 }}
-                                                options={classes?.results?.docs.map((cls) => ({
-                                                    value: cls._id,
-                                                    label: cls.name,
-                                                }))}
+                                                options={
+                                                    classes?.results?.docs
+                                                        ?.filter((cls) =>
+                                                            // ✅ 1️⃣ show only assigned classes
+                                                            student.classes.includes(cls._id) &&
+                                                            // ✅ 2️⃣ exclude classes already selected in other subjects
+                                                            !student.subjectsHandled.some(
+                                                                (sub, i) => sub.classId === cls._id && i !== index
+                                                            )
+                                                        )
+                                                        ?.map((cls) => ({
+                                                            value: cls._id,
+                                                            label: cls.name,
+                                                        }))
+                                                }
                                                 value={
                                                     subject.classId
-                                                        ? { value: subject.classId, label: classes?.results?.docs.find((cls) => cls._id === subject.classId)?.name }
+                                                        ? {
+                                                            value: subject.classId,
+                                                            label:
+                                                                classes?.results?.docs.find((cls) => cls._id === subject.classId)
+                                                                    ?.name || "",
+                                                        }
                                                         : null
                                                 }
                                                 onChange={(selected) => {
                                                     const updatedSubjects = [...student.subjectsHandled];
-                                                    updatedSubjects[index] = { ...updatedSubjects[index], classId: selected.value };
+                                                    updatedSubjects[index] = {
+                                                        ...updatedSubjects[index],
+                                                        classId: selected?.value || "",
+                                                    };
                                                     setStudent({ ...student, subjectsHandled: updatedSubjects });
 
-                                                    // 🔹 Clear error on change
-                                                    setErrors(prev => ({ ...prev, [`classId_${index}`]: "" }));
+                                                    // clear error
+                                                    setErrors((prev) => ({ ...prev, [`classId_${index}`]: "" }));
                                                 }}
                                             />
+
                                             {errors[`classId_${index}`] && (
                                                 <p className="text-red-500 text-sm mt-1">{errors[`classId_${index}`]}</p>
                                             )}
@@ -1134,9 +1262,19 @@ export default function CreateTeacherPage() {
                                             value={student.salaryInfo[field]}
                                             onChange={(e) => {
                                                 const { name, value } = e.target;
+                                                let numericValue = value.replace(/\D/g, ""); // remove non-digit characters
+
+                                                // 🔹 Prevent negative values (ignore '-' input)
+                                                if (value.includes("-")) return;
+
+                                                // 🔹 Restrict to 6 digits
+                                                if (numericValue.length > 6) numericValue = numericValue.slice(0, 6);
+
+                                                const parsedValue = parseFloat(numericValue) || 0;
+
                                                 const updatedSalary = {
                                                     ...student.salaryInfo,
-                                                    [name]: parseFloat(value) || 0,
+                                                    [name]: parsedValue,
                                                 };
 
                                                 // 🔹 Auto-calculate net salary
@@ -1148,9 +1286,10 @@ export default function CreateTeacherPage() {
                                                     salaryInfo: updatedSalary,
                                                 });
 
-                                                // 🔹 Clear error for this field on change
+                                                // 🔹 Clear error on typing
                                                 setErrors((prev) => ({ ...prev, [name]: "" }));
                                             }}
+
                                             error={!!errors[field]}
                                             helperText={errors[field]}
                                             InputProps={{
@@ -1301,7 +1440,7 @@ export default function CreateTeacherPage() {
 
 
                         {/* --- Aadhaar Card Upload --- */}
-                        <div className="bg-gray-50 p-6 rounded-2xl shadow-sm border border-gray-100">
+                        {/* <div className="bg-gray-50 p-6 rounded-2xl shadow-sm border border-gray-100">
                             <h2 className="text-xl font-semibold text-gray-800 mb-4">Aadhaar Card Upload</h2>
                             <div className="grid md:grid-cols-2 gap-6">
                                 {["aadharFront", "aadharBack"].map((side) => (
@@ -1342,7 +1481,89 @@ export default function CreateTeacherPage() {
                                     </div>
                                 ))}
                             </div>
-                        </div>
+                        </div> */}
+                        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-8 rounded-3xl shadow-md border border-gray-200">
+  <div className="flex justify-between items-center mb-6">
+    <div>
+      <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+        🪪 Aadhaar Card Upload
+      </h2>
+      <p className="text-sm text-gray-500 mt-1">
+        Upload both sides of the Aadhaar card clearly and ensure details are visible.
+      </p>
+    </div>
+  </div>
+
+  <div className="grid md:grid-cols-2 gap-8 mt-4">
+    {["aadharFront", "aadharBack"].map((side) => (
+      <div
+        key={side}
+        className="relative group bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300"
+      >
+        <label className="block text-gray-700 font-medium mb-3">
+          {side === "aadharFront" ? "Aadhaar Front" : "Aadhaar Back"}{" "}
+          <span className="text-red-500">*</span>
+        </label>
+
+        {/* Upload box or preview */}
+        {!previews[side] ? (
+          <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl py-10 cursor-pointer hover:border-blue-400 transition"
+               onClick={() => document.getElementById(`${side}-input`).click()}>
+            <div className="bg-blue-50 text-blue-500 p-3 rounded-full mb-3 group-hover:bg-blue-100 transition">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-8 w-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 12h4m-4 0a4 4 0 01-4-4m0 0H7m6 0a4 4 0 00-4 4" />
+              </svg>
+            </div>
+            <p className="text-gray-600 font-medium">
+              Click to upload {side === "aadharFront" ? "Front Side" : "Back Side"}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">Supported: JPG, PNG, PDF (max 2MB)</p>
+            <input
+              id={`${side}-input`}
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleFileUpload(e, side, "documents")}
+              className="hidden"
+            />
+          </div>
+        ) : (
+          <div className="relative mt-2">
+            <img
+              src={previews[side]}
+              alt={side}
+              className="w-full h-56 object-cover rounded-xl border border-gray-200 shadow-sm"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setPreviews((p) => ({ ...p, [side]: null }));
+                setStudent((s) => ({
+                  ...s,
+                  documents: { ...s.documents, [side]: null },
+                }));
+              }}
+              className="absolute top-3 right-3 bg-red-500 text-white text-xs rounded-full w-7 h-7 flex items-center justify-center hover:bg-red-600 shadow-sm"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {errors[side] && (
+          <p className="text-red-500 text-sm mt-2">{errors[side]}</p>
+        )}
+      </div>
+    ))}
+  </div>
+</div>
+
 
                         {/* --- marksheets Upload --- */}
                         {/* <div className="bg-gray-50 p-6 rounded-2xl shadow-sm border border-gray-100">

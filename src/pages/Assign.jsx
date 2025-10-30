@@ -6,6 +6,8 @@ import { apiDelete, apiGet, apiPost, apiPut } from "../api/apiFetch";
 import apiPath from "../api/apiPath";
 import AddAssignmentModal from "../components/AddAssignmentModal";
 import toast from "react-hot-toast";
+import { CircularProgress } from "@mui/material";
+
 
 // 🔹 Generate Time Slots
 export function generateTimeSlotsFromSettings(settings) {
@@ -101,6 +103,8 @@ export default function TimetableManager() {
       ),
     enabled: !!selectedClassId,
   });
+
+  
 const resetMutation = useMutation({
   mutationFn: async (classId) => {
     return apiDelete(
@@ -295,11 +299,43 @@ useEffect(() => {
     bulkSaveMutation.mutate(payloads);
   };
 
+  // ✅ Loader condition: wait for all essential queries
+const isLoading =
+  settingsQuery.isLoading ||
+  classesQuery.isLoading ||
+  teachersQuery.isLoading ||
+  subjectsQuery.isLoading ||
+  (selectedClassId && assignmentsQuery.isLoading);
+
+// ✅ Show loader while data is loading
+if (isLoading) {
+  return (
+    <div className="flex justify-center items-center min-h-[80vh] bg-opacity-70 z-50">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+    </div>
+  );
+}
+
+// ✅ Error handling
+if (
+  settingsQuery.isError ||
+  classesQuery.isError ||
+  teachersQuery.isError ||
+  subjectsQuery.isError
+) {
+  return (
+    <Box className="flex flex-col items-center justify-center h-screen text-red-500">
+      <Typography variant="h6">⚠️ Failed to load data. Please try again.</Typography>
+    </Box>
+  );
+}
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
   // 🔹 Render
   return (
+    
     <Box className="p-8 bg-gradient-to-b from-indigo-50 to-white min-h-screen">
+      
       <Typography variant="h4" className="font-extrabold mb-6 text-indigo-800">
         Timetable Management
       </Typography>
@@ -426,6 +462,7 @@ useEffect(() => {
       </Paper>
 
       {/* Add Assignment Modal */}
+      
       {modalOpen && modalSlot && (
         <AddAssignmentModal
           open={modalOpen}
@@ -450,6 +487,7 @@ slotData={modalSlot}
           classId={selectedClassId}
         />
       )}
+      
     </Box>
   );
 }

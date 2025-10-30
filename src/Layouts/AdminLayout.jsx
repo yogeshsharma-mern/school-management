@@ -151,12 +151,12 @@ export default function AdminLayout() {
 
           {/* Right Section */}
           <div className="flex items-center space-x-4 relative" ref={menuRef}>
-            <button
+            {/* <button
               onClick={toggleTheme}
               className="px-4 py-2 cursor-pointer   rounded transition"
             >
               {theme === "light" ? "🌙" : "☀️"}
-            </button>
+            </button> */}
 
             <div className="flex items-center space-x-2 cursor-pointer" onClick={() => setMenuOpen((prev) => !prev)}>
                      <span className="hidden md:block font-semibold">{user.firstName} {user.lastName}</span>

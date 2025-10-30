@@ -14,6 +14,7 @@ import { AiFillDelete } from "react-icons/ai";
 import ToggleButton from "../components/ToggleButton";
 
 
+
 export default function ClassPage() {
     const queryClient = useQueryClient();
 
@@ -328,7 +329,7 @@ export default function ClassPage() {
                     Add Subject
                 </button>
             </div>
-            <div className="overflow-x-auto  realtive w-[90vw] md:w-[80vw]">
+            <div className="overflow-x-auto  realtive w-[98vw] md:w-[80vw]">
 
 
                 <ReusableTable

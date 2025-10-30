@@ -358,7 +358,7 @@ export default function SchoolSettings() {
       // <Box display="flex" justifyContent="center" mt={8}>
       //   <CircularProgress />
       // </Box>
-      <div className="h-[70vh] inset-0 flex items-center justify-center bg-white bg-opacity-70 z-50">
+      <div className="h-[70vh] inset-0 flex items-center justify-center  bg-opacity-70 z-50">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
       </div>
     );

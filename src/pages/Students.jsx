@@ -155,7 +155,7 @@ export default function StudentPage() {
       <div className="flex p-6 justify-between items-center mb-4 flex-wrap gap-4">
         <h1 className="text-2xl font-bold">Students</h1>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between w-full md:items-center gap-4">
           {/* ✅ Class Filter Dropdown */}
           <select
             value={classFilter}
@@ -216,7 +216,7 @@ export default function StudentPage() {
       </Modal>
 
       {/* Table */}
-      <div className="overflow-x-auto w-[90vw] md:w-[80vw]">
+      <div className="overflow-x-auto w-[98vw] md:w-[80vw]">
         <ReusableTable
           columns={columns}
           data={tableData}

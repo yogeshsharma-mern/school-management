@@ -321,7 +321,7 @@ const handleSubmit = (e) => {
         </button>
       </div>
 
-      <div className="overflow-x-auto  w-[90vw] md:w-[80vw]">
+      <div className="overflow-x-auto  w-[98vw] md:w-[80vw]">
         <ReusableTable
           columns={columns}
           data={tableData}

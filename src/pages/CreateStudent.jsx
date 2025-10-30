@@ -87,7 +87,7 @@ export default function CreateStudentPage() {
     certificates: [],
   });
   const states = [
-    { value: "Rajasthan", label: "Maharashtra" },
+    { value: "Rajasthan", label: "Rajasthan" },
     // { value: "Karnataka", label: "Karnataka" },
     // { value: "Tamil Nadu", label: "Tamil Nadu" },
     { value: "Delhi", label: "Delhi" },
@@ -175,8 +175,23 @@ export default function CreateStudentPage() {
     const { name, value, type, checked } = e.target;
 
     // ✅ Block numbers and special characters for 'name' fields
-    const isNameField = name.toLowerCase().includes("name");
-    const sanitizedValue = isNameField ? value.replace(/[^A-Za-z\s]/g, "") : value;
+    let sanitizedValue = value;
+
+    // ✅ Prevent numbers in "city" field
+    if (name === "city") {
+      sanitizedValue = value.replace(/[^A-Za-z\s]/g, ""); // only letters & spaces
+    }
+
+    // ✅ Prevent text in ZIP field (allow only digits)
+    if (name === "zip") {
+      sanitizedValue = value.replace(/\D/g, ""); // remove non-digits
+    }
+
+    // ✅ Block numbers and special characters for 'name' fields (like parent name, guardian name)
+    const isNameField = name.toLowerCase().includes("name") && name !== "username";
+    if (isNameField && name !== "city") {
+      sanitizedValue = sanitizedValue.replace(/[^A-Za-z\s]/g, "");
+    }
 
     if (parentIndex !== null) {
       const updatedParents = [...student.parents];
@@ -304,40 +319,40 @@ export default function CreateStudentPage() {
   const validateStep = () => {
     const newErrors = {};
 
- if (activeStep === 0) {
-  if (!student.name.trim()) {
-    newErrors.name = "Name is required";
-  } else if (!/^[A-Za-z\s]+$/.test(student.name)) {
-    newErrors.name = "Name must not contain numbers or special characters";
-  }
+    if (activeStep === 0) {
+      if (!student.name.trim()) {
+        newErrors.name = "Name is required";
+      } else if (!/^[A-Za-z\s]+$/.test(student.name)) {
+        newErrors.name = "Name must not contain numbers or special characters";
+      }
 
-  if (!student.dob) newErrors.dob = "Date of Birth is required";
-  if (!student.gender) newErrors.gender = "Gender is required";
-  if (!student.bloodGroup) newErrors.bloodGroup = "Blood group is required";
-  if (!student.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email))
-    newErrors.email = "Valid email is required";
-  if (!student.password || student.password.length < 6)
-    newErrors.password = "Password must be at least 6 characters";
-  if (!student.phone || student.phone.replace(/\D/g, "").length < 10)
-    newErrors.phone = "Valid phone number required";
+      if (!student.dob) newErrors.dob = "Date of Birth is required";
+      if (!student.gender) newErrors.gender = "Gender is required";
+      if (!student.bloodGroup) newErrors.bloodGroup = "Blood group is required";
+      if (!student.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email))
+        newErrors.email = "Valid email is required";
+      if (!student.password || student.password.length < 6)
+        newErrors.password = "Password must be at least 6 characters";
+      if (!student.phone || student.phone.replace(/\D/g, "").length < 10)
+        newErrors.phone = "Valid phone number required";
 
-  if (!student.documents?.profilePic) {
-    newErrors.documents = { ...(newErrors.documents || {}), profilePic: "Profile picture is required" };
-  }
+      if (!student.documents?.profilePic) {
+        newErrors.documents = { ...(newErrors.documents || {}), profilePic: "Profile picture is required" };
+      }
 
-  // ✅ Address validation
-  newErrors.address = {};
+      // ✅ Address validation
+      newErrors.address = {};
 
-  if (!student.address.street.trim()) newErrors.address.street = "Street is required";
-  if (!student.address.city.trim()) newErrors.address.city = "City is required";
-  if (!student.address.state.trim()) newErrors.address.state = "State is required";
-  if (!student.address.zip.trim()) newErrors.address.zip = "ZIP code is required";
-  if (!student.address.country.trim()) newErrors.address.country = "Country is required";
+      if (!student.address.street.trim()) newErrors.address.street = "Street is required";
+      if (!student.address.city.trim()) newErrors.address.city = "City is required";
+      if (!student.address.state.trim()) newErrors.address.state = "State is required";
+      if (!student.address.zip.trim()) newErrors.address.zip = "ZIP code is required";
+      if (!student.address.country.trim()) newErrors.address.country = "Country is required";
 
-  // 🧹 If no address field has error, remove the address object entirely (avoid empty UI errors)
-  if (Object.keys(newErrors.address).length === 0) delete newErrors.address;
-}
- else if (activeStep === 1) {
+      // 🧹 If no address field has error, remove the address object entirely (avoid empty UI errors)
+      if (Object.keys(newErrors.address).length === 0) delete newErrors.address;
+    }
+    else if (activeStep === 1) {
       student.parents.forEach((parent, i) => {
         if (!parent.name)
           newErrors[`parent_${i}_name`] = "Parent name is required";
@@ -510,7 +525,7 @@ export default function CreateStudentPage() {
       const res = await apiPost(apiPath.studentReg, formDataObj);
 
       if (res.success) {
-        toast.success("Student with fees created successfully ✅");
+        toast.success(res.message);
         navigate(-1);
       }
     } catch (err) {
@@ -521,7 +536,7 @@ export default function CreateStudentPage() {
 
 
   return (
-    <div className="max-w-6xl mx-auto md:p-8 p-3 bg-[var(--color-)] rounded-2xl shadow-xl">
+    <div className="max-w-[100vw] mx-auto md:p-8 p-2 bg-[var(--color-)] rounded-2xl shadow-xl">
       <button
         onClick={() => navigate(-1)}
         className="mb-4 cursor-pointer px-4 py-1 bg-gray-100 rounded-lg hover:bg-gray-200"
@@ -730,93 +745,93 @@ export default function CreateStudentPage() {
                 <p className="text-red-500 text-sm mt-1">{errors.documents.profilePic}</p>
               )}
             </div>
-         <TextField
-  fullWidth
-  name="street"
-  label="Street *"
-  value={student.address.street}
-  onChange={(e) => {
-    handleChange(e, null, "address");
-    setErrors((prev) => ({
-      ...prev,
-      address: { ...(prev.address || {}), street: "" },
-    }));
-  }}
-  error={!!errors.address?.street}
-  helperText={errors.address?.street}
-/>
-           <TextField
-  fullWidth
-  name="city"
-  label="City *"
-  value={student.address.city}
-  onChange={(e) => {
-    handleChange(e, null, "address");
-    setErrors((prev) => ({
-      ...prev,
-      address: { ...(prev.address || {}), city: "" },
-    }));
-  }}
-  error={!!errors.address?.city}
-  helperText={errors.address?.city}
-/>
+            <TextField
+              fullWidth
+              name="street"
+              label="Street *"
+              value={student.address.street}
+              onChange={(e) => {
+                handleChange(e, null, "address");
+                setErrors((prev) => ({
+                  ...prev,
+                  address: { ...(prev.address || {}), street: "" },
+                }));
+              }}
+              error={!!errors.address?.street}
+              helperText={errors.address?.street}
+            />
+            <TextField
+              fullWidth
+              name="city"
+              label="City *"
+              value={student.address.city}
+              onChange={(e) => {
+                handleChange(e, null, "address");
+                setErrors((prev) => ({
+                  ...prev,
+                  address: { ...(prev.address || {}), city: "" },
+                }));
+              }}
+              error={!!errors.address?.city}
+              helperText={errors.address?.city}
+            />
             <div>
-            <Select
-  name="state"
-  options={states}
-  value={states.find((s) => s.value === student.address.state)}
-  onChange={(selected) => {
-    setStudent((prev) => ({
-      ...prev,
-      address: { ...prev.address, state: selected.value },
-    }));
-    setErrors((prev) => ({
-      ...prev,
-      address: { ...(prev.address || {}), state: "" },
-    }));
-  }}
-  placeholder="Select State *"
-/>
-{errors.address?.state && (
-  <p className="text-red-500 text-sm mt-1">{errors.address.state}</p>
-)}
+              <Select
+                name="state"
+                options={states}
+                value={states.find((s) => s.value === student.address.state)}
+                onChange={(selected) => {
+                  setStudent((prev) => ({
+                    ...prev,
+                    address: { ...prev.address, state: selected.value },
+                  }));
+                  setErrors((prev) => ({
+                    ...prev,
+                    address: { ...(prev.address || {}), state: "" },
+                  }));
+                }}
+                placeholder="Select State *"
+              />
+              {errors.address?.state && (
+                <p className="text-red-500 text-sm mt-1">{errors.address.state}</p>
+              )}
 
             </div>
-          <TextField
-  fullWidth
-  name="zip"
-  label="ZIP Code *"
-  value={student.address.zip}
-  onChange={(e) => {
-    handleChange(e, null, "address");
-    setErrors((prev) => ({
-      ...prev,
-      address: { ...(prev.address || {}), zip: "" },
-    }));
-  }}
-  error={!!errors.address?.zip}
-  helperText={errors.address?.zip}
-/>
+            <TextField
+              fullWidth
+              name="zip"
+              label="ZIP Code *"
+              value={student.address.zip}
+              onChange={(e) => {
+                handleChange(e, null, "address");
+                setErrors((prev) => ({
+                  ...prev,
+                  address: { ...(prev.address || {}), zip: "" },
+                }));
+              }}
+              error={!!errors.address?.zip}
+              helperText={errors.address?.zip}
+            />
             <div>
-            <Select
-  name="country"
-  options={countries}
-  value={countries.find((c) => c.label === student.address.country)}
-  onChange={(selected) => {
-    setStudent((prev) => ({
-      ...prev,
-      address: { ...prev.address, country: selected.label },
-    }));
-    setErrors((prev) => ({
-      ...prev,
-      address: { ...(prev.address || {}), country: "" },
-    }));
-  }}
-  placeholder="Select Country *"
-/>
-{errors.address?.country && (
-  <p className="text-red-500 text-sm mt-1">{errors.address.country}</p>
-)}
+              <Select
+                name="country"
+                options={countries}
+                value={countries.find((c) => c.label === student.address.country)}
+                onChange={(selected) => {
+                  setStudent((prev) => ({
+                    ...prev,
+                    address: { ...prev.address, country: selected.label },
+                  }));
+                  setErrors((prev) => ({
+                    ...prev,
+                    address: { ...(prev.address || {}), country: "" },
+                  }));
+                }}
+                placeholder="Select Country *"
+              />
+              {errors.address?.country && (
+                <p className="text-red-500 text-sm mt-1">{errors.address.country}</p>
+              )}
             </div>
           </div>
 
