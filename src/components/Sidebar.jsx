@@ -512,15 +512,15 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   const navItemClass = ({ isActive }) =>
     `flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${
       isActive
-        ? "bg-gradient-to-r from-yellow-400 to-yellow-500 text-black shadow-lg"
-        : "text-gray-300 hover:text-yellow-400 hover:bg-[#1a263b]/70"
+        ? "bg-[image:var(--gradient-primary)]  text-black shadow-lg"
+        : "text-gray-300 hover:text-[var(--heading-hover)] hover:bg-[#1a263b]/70"
     }`;
 
   const subItemClass = ({ isActive }) =>
     `flex items-center space-x-3 px-4 py-2.5 text-sm rounded-lg transition-all duration-200 ${
       isActive
-        ? "bg-[#1b263b] text-yellow-400"
-        : "text-gray-400 hover:text-yellow-300 hover:bg-[#1b263b]/60"
+        ? "bg-[#1b263b] text-[var(--heading-hover)]"
+        : "text-gray-400 hover:text-[var(--heading-hover)] hover:bg-[#1b263b]/60"
     }`;
 
   return (
@@ -535,7 +535,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
       {/* ==== Logo Section ==== */}
       <div className="p-6 flex items-center justify-center border-b border-[#1b263b]">
         <div className="flex items-center space-x-3">
-          <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-bold text-xl w-10 h-10 flex items-center justify-center rounded-2xl shadow-lg">
+          <div className="bg-[image:var(--gradient-primary)] text-black font-bold text-xl w-10 h-10 flex items-center justify-center rounded-2xl shadow-lg">
             L
           </div>
           <div>
@@ -577,8 +577,8 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           onClick={() => setOpenTeacherMenu(!openTeacherMenu)}
           className={`flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
             openTeacherMenu
-              ? "bg-gradient-to-r from-yellow-400 to-yellow-500 text-black shadow-lg"
-              : "text-gray-300 hover:text-yellow-400 hover:bg-[#1a263b]/70"
+              ? "bg-[image:var(--gradient-primary)]  text-black shadow-lg"
+              : "text-gray-300 hover:text-[var(--heading-hover)] hover:bg-[#1a263b]/70"
           }`}
         >
           <div className="flex items-center space-x-3">
@@ -635,7 +635,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
       <div className="p-5 border-t border-[#1b263b] text-center bg-[#0b132b]/80">
         <button
           onClick={() => dispatch(logout())}
-          className="w-full py-2 bg-[var(--gradient-primary)] text-black rounded-xl font-semibold shadow-lg hover:from-yellow-300 hover:to-yellow-400 transition-all duration-300 transform hover:scale-[1.02]"
+          className="w-full py-2 bg-[image:var(--gradient-primary)] text-black rounded-xl font-semibold shadow-lg hover:from-yellow-300 hover:to-yellow-400 transition-all duration-300 transform hover:scale-[1.02]"
         >
           Logout
         </button>

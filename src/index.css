@@ -14,6 +14,7 @@
   --color-neutral: #F5F9FF;
   --color-primary:#eab308;
     --gradient-primary: linear-gradient(to right, #facc15, #eab308);
+    --heading-hover:#facc15;
   --color-neutral-medium: #6e727a;
   --color-neutral-dark: #111827;
   --color-text:#000000;
@@ -24,6 +25,9 @@
   --sidebar-submenu:#eaf0f5;
   --scanner-color:#ffffff;
   --button-color:#e5e7eb;
+  --gradient-violet: linear-gradient(135deg, #7B61FF 0%, #FF6B9F 100%);
+    --gradient-orange: linear-gradient(135deg, #FFA26B 0%, #FFCA7B 100%);
+    --gradient-green: linear-gradient(135deg, #8BE78B 0%, #B2F59A 100%);
 
 }
 .dark {
@@ -40,6 +44,9 @@
    --sidebar-submenu:#10141d;
  --scanner-color:#122535;
    --button-color:#1e1a26;
+     --gradient-violet: linear-gradient(135deg, #7B61FF 0%, #FF6B9F 100%);
+    --gradient-orange: linear-gradient(135deg, #FFA26B 0%, #FFCA7B 100%);
+    --gradient-green: linear-gradient(135deg, #8BE78B 0%, #B2F59A 100%);
 
 
 }
