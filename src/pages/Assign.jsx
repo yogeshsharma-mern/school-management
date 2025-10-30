@@ -336,7 +336,7 @@ if (
     
     <Box className="p-8 bg-gradient-to-b from-indigo-50 to-white min-h-screen">
       
-      <Typography variant="h4" className="font-extrabold mb-6 text-indigo-800">
+      <Typography variant="h5" className="font-extrabold mb-6 text-black">
         Timetable Management
       </Typography>
 

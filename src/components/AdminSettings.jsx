@@ -366,7 +366,7 @@ export default function SchoolSettings() {
   return (
     <Box className="p-6" >
       <Typography
-        className="text-yellow-500  font-bold tracking-wide"
+        className="text-black  font-bold tracking-wide"
         variant="h5"
         align="center"
         gutterBottom

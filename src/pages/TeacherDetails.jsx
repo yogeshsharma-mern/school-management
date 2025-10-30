@@ -8,6 +8,8 @@ import apiPath from "../api/apiPath";
 import jsPDF from "jspdf";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+
+
 import {
   User,
   Mail,
@@ -187,42 +189,104 @@ export default function TeacherDetailPage() {
 
 
       {/* 🧾 Profile Tab */}
-      {activeTab === "profile" && (
-        <div className="bg-white shadow-xl rounded-2xl p-6 grid md:grid-cols-2 gap-4">
-          <p><strong><Mail className="inline w-4 h-4 mr-2" />Email:</strong> {teacher.email}</p>
-          <p><strong><Phone className="inline w-4 h-4 mr-2" />Phone:</strong> {teacher.phone}</p>
-          <p><strong>Gender:</strong> {teacher.gender}</p>
-          <p><strong>Blood Group:</strong> {teacher.bloodGroup}</p>
-          <p><strong>Date of Joining:</strong> {new Date(teacher.dateOfJoining).toLocaleDateString()}</p>
-          <p><strong>Experience:</strong> {teacher.experience} years</p>
-          <p><strong>Qualifications:</strong> {teacher.qualifications?.join(", ")}</p>
-          {/* <p><strong>Specializations:</strong> {teacher.specialization?.join(", ")}</p> */}
-          <p><strong>Physical Disability:</strong> {teacher.physicalDisability ? "Yes" : "No"}</p>
-          <p><strong>Emergency Contact:</strong> {teacher.emergencyContact?.name} ({teacher.emergencyContact?.phone})</p>
-          <p className="col-span-2"><strong><Home className="inline w-4 h-4 mr-2" />Address:</strong> {teacher.address.street}, {teacher.address.city}, {teacher.address.state}</p>
+   {activeTab === "profile" && (
+  <div className=" border border-gray-100  rounded-2xl p-8 space-y-6 transition">
+    {/* Header */}
+    <div className="flex items-center gap-3 mb-4">
+      <User className="w-6 h-6 text-yellow-500" />
+      <h2 className="text-2xl font-semibold text-gray-800">Teacher Profile</h2>
+    </div>
 
-          {/* 🏫 Classes handled */}
-          <div className="col-span-2 mt-4">
-            <h3 className="text-lg font-semibold text-yellow-500 mb-2 flex items-center gap-2">
-              <Users className="w-5 h-5" /> Classes Assigned
-            </h3>
-            {teacher.teachingClasses?.length ? (
-              <div className="grid sm:grid-cols-2 gap-3">
-                {teacher.teachingClasses.map((cls) => (
-                  <div
-                    key={cls._id}
-                    className="p-3 border border-gray-300 shadow-sm hover:shadow-md "
-                  >
-                    <p><strong>{cls.name}</strong> - Section {cls.section}</p>
-                  </div>
-                ))}
+    {/* Profile Info Grid */}
+    <div className="grid md:grid-cols-2 gap-6 text-gray-700">
+      <p className="flex items-center gap-2">
+        <Mail className="w-5 h-5 text-yellow-500" />
+        <strong>Email:</strong> {teacher.email}
+      </p>
+
+      <p className="flex items-center gap-2">
+        <Phone className="w-5 h-5 text-yellow-500" />
+        <strong>Phone:</strong> {teacher.phone}
+      </p>
+
+      <p>
+        <strong>Gender:</strong> {teacher.gender}
+      </p>
+
+      <p>
+        <strong>Blood Group:</strong> {teacher.bloodGroup || "N/A"}
+      </p>
+
+      <p>
+        <strong>Date of Joining:</strong>{" "}
+        {new Date(teacher.dateOfJoining).toLocaleDateString()}
+      </p>
+
+      <p>
+        <strong>Experience:</strong> {teacher.experience} years
+      </p>
+
+      <p>
+        <strong>Qualifications:</strong>{" "}
+        {teacher.qualifications?.length
+          ? teacher.qualifications.join(", ")
+          : "N/A"}
+      </p>
+
+      <p>
+        <strong>Physical Disability:</strong>{" "}
+        {teacher.physicalDisability ? "Yes" : "No"}
+      </p>
+
+      <p>
+        <strong>Emergency Contact:</strong>{" "}
+        {teacher.emergencyContact
+          ? `${teacher.emergencyContact.name} (${teacher.emergencyContact.phone})`
+          : "N/A"}
+      </p>
+
+      <p className="col-span-2 flex items-start gap-2">
+        <Home className="w-5 h-5 text-yellow-500 mt-1" />
+        <span>
+          <strong>Address:</strong>{" "}
+          {teacher.address
+            ? `${teacher.address.street}, ${teacher.address.city}, ${teacher.address.state}`
+            : "N/A"}
+        </span>
+      </p>
+    </div>
+
+    {/* 🏫 Classes Assigned */}
+    <div className="mt-6">
+      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+        <Users className="w-5 h-5 text-yellow-500" />
+        Classes Assigned
+      </h3>
+
+      {teacher.teachingClasses?.length ? (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {teacher.teachingClasses.map((cls) => (
+            <div
+              key={cls._id}
+              className="p-4 border border-gray-200 rounded-xl bg-gray-50 shadow-sm hover:shadow-md hover:bg-yellow-50 transition"
+            >
+              <div className="flex justify-between items-center">
+                <p className="font-medium text-gray-800">
+                  {cls.name} - Section {cls.section}
+                </p>
               </div>
-            ) : (
-              <p className="text-gray-500">No classes assigned</p>
-            )}
-          </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="p-6 text-center bg-gray-50 border border-gray-200 rounded-xl text-gray-500">
+          No classes assigned yet.
         </div>
       )}
+    </div>
+  </div>
+)}
+
 
       {/* 📚 Subjects Handled */}
       {activeTab === "subjects" && (

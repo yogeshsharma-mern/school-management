@@ -182,7 +182,7 @@ export default function CreateTeacherPage() {
 
             qualifications: t.qualifications || prev.qualifications,
             specialization: t.specialization || prev.specialization,
-            classes: t.classData?.map(cls => cls._id) || prev.classes,
+            classes: t.teachingClasses?.map(cls => cls._id) || prev.classes,
             subjectsHandled: t.subjectsHandled?.length ? t.subjectsHandled : prev.subjectsHandled,
             salaryInfo: t.salaryInfo || prev.salaryInfo,
             physicalDisability: t.physicalDisability || false,

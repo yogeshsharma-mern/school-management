@@ -12,6 +12,7 @@ import { RiImageEditLine } from "react-icons/ri";
 import { FaRegEye } from "react-icons/fa";
 import { AiFillDelete } from "react-icons/ai";
 import ToggleButton from "../components/ToggleButton";
+import ConfirmBox from "../components/ConfirmBox";
 
 
 
@@ -30,8 +31,13 @@ export default function ClassPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingClass, setEditingClass] = useState(null);
     const [formData, setFormData] = useState({ name: "", code: "", description: "", credits: "" });
+    console.log("formdata",formData);
     const [errors, setErrors] = useState({});
     const debouncedSearch = useDebounce(globalFilter, 500);
+
+    //confirmbox state
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
     // Fetch classes
     const { data: classesData, isLoading, isFetching, error, isError } = useQuery({
         queryKey: ["subjects", pagination.pageIndex, pagination.pageSize, debouncedSearch],
@@ -156,7 +162,7 @@ export default function ClassPage() {
         classMutation.mutate({
             name: formData.name.trim(),
             code: formData.code.trim(),
-            // description: formData.description.trim(),
+            description: formData.description.trim(),
             // subjects: formData.subjects.split(",").map((s) => s.trim()),
         });
     };
@@ -275,8 +281,17 @@ export default function ClassPage() {
                             <FaRegEye />
                         </button>
                         {/* Uncomment if you want delete button */}
-                        <button
+                        {/* <button
                             onClick={() => deleteMutation.mutate(row.original._id)}
+                        // className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                        >
+                            <AiFillDelete className="text-red-500 text-[20px] cursor-pointer" />
+                        </button> */}
+                        <button
+                            onClick={() => {
+                                setDeleteId(row.original._id);
+                                setConfirmOpen(true);
+                            }}
                         // className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
                         >
                             <AiFillDelete className="text-red-500 text-[20px] cursor-pointer" />
@@ -355,11 +370,22 @@ export default function ClassPage() {
 
             </div>
             {/* Modal for create/edit */}
+            <ConfirmBox   message="Are you sure you want to delete this subject? This action cannot be undone." isOpen={confirmOpen} onCancel={() => {
+                setConfirmOpen(false)
+            }
+            } onConfirm={() => {
+                if (deleteId) {
+                    deleteMutation.mutate(deleteId);
+                    setConfirmOpen(false);
+                }
+            }}
+                loading={deleteMutation.isLoading} />
             <Modal
                 isOpen={isModalOpen}
                 title={editingClass ? "Edit Subject" : "Add Subject"}
                 onClose={() => setIsModalOpen(false)}
             >
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Subject Name <span className="text-red-500">*</span>

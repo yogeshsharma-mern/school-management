@@ -12,6 +12,8 @@
 --color-hover:#F9FAFB;
   --color-neutral-light: #F8FAFC;
   --color-neutral: #F5F9FF;
+  --color-primary:#eab308;
+    --gradient-primary: linear-gradient(to right, #facc15, #eab308);
   --color-neutral-medium: #6e727a;
   --color-neutral-dark: #111827;
   --color-text:#000000;

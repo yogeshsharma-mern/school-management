@@ -174,10 +174,10 @@ const classOptions = (() => {
   return (
     <div className="p-8  min-h-screen">
       <Typography
-        variant="h4"
+        variant="h5"
         align="center"
         gutterBottom
-        className="text-yellow-800 font-extrabold drop-shadow-md"
+        className="text-black font-extrabold drop-shadow-md"
       >
         🏫 Fees Structure Management
       </Typography>

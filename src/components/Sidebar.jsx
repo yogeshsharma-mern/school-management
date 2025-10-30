@@ -635,7 +635,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
       <div className="p-5 border-t border-[#1b263b] text-center bg-[#0b132b]/80">
         <button
           onClick={() => dispatch(logout())}
-          className="w-full py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black rounded-xl font-semibold shadow-lg hover:from-yellow-300 hover:to-yellow-400 transition-all duration-300 transform hover:scale-[1.02]"
+          className="w-full py-2 bg-[var(--gradient-primary)] text-black rounded-xl font-semibold shadow-lg hover:from-yellow-300 hover:to-yellow-400 transition-all duration-300 transform hover:scale-[1.02]"
         >
           Logout
         </button>
