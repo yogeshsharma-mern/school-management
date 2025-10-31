@@ -45,8 +45,9 @@ const apiPath = Object.freeze({
   teacherAttendance:"admins/teachers/attendance",
   resetPassword:"admins/auth/forgot-password",
   LinkresetApi:"admins/auth/reset-password",
-  TeacherSalary:"admins/teachersalary/getteachers-salary",
-AddClassTeacher:"admins/teachers/class-teacherOf"
+  TeacherSalary:"admins/teachersalary/salary-status",
+AddClassTeacher:"admins/teachers/class-teacherOf",
+generateTeacherSalary:"/admins/teachersalary/generate-salary"
   // getTeachers:"/admins/teachers/getAllTeacher",
 //   getTeacherDetails:"/admins/teachers/getTeacherProfile",
 //   teacherDelete:"/admins/teachers/soft-delete",
