@@ -50,7 +50,7 @@ export default function TeacherSalaryPage() {
 
   // ✅ Salary Mutation (Generate Salary)
   const salaryMutation = useMutation({
-    mutationFn: (payload) => apiPost(apiPath.generateTeacherSalary, payload),
+    mutationFn: (payload) => apiPut(apiPath.generateTeacherSalary, payload),
     onSuccess: (data) => {
       toast.success(data?.message || "Salary generated successfully 🎉");
       queryClient.invalidateQueries({ queryKey: ["TeacherSalary"] });
@@ -96,6 +96,8 @@ export default function TeacherSalaryPage() {
       { accessorKey: "email", header: "Email" },
       { accessorKey: "designation", header: "Designation" },
       { accessorKey: "salaryStatus", header: "Status" },
+      { accessorKey: "netSalary", header: "Net Salary" },
+
       // { accessorKey: "salaryData[0].finalSalary", header: "Final Salary" },
       // { accessorKey: "PER_DAY_SALARY", header: "Per Day Salary" },
       // { accessorKey: "DEDUCTIONS", header: "Deductions" },
@@ -111,7 +113,7 @@ export default function TeacherSalaryPage() {
       },
       {
         accessorKey: "salaryData[0].finalSalary",
-        header: "Final Salary",
+        header: "Paid Salary",
         cell: ({ row }) => {
           const salary = row.original.salaryData?.[0]?.finalSalary || 0;
           return `₹${salary.toLocaleString()}`;
@@ -236,8 +238,8 @@ export default function TeacherSalaryPage() {
               name="leaves"
               type="number"
               value={
-                selectedTeacher?.salaryData?.[0]?.finalSalary
-                  ? Number(selectedTeacher.salaryData[0].finalSalary).toFixed(2)
+                selectedTeacher?.netSalary
+                  ? Number(selectedTeacher.netSalary).toFixed(2)
                   : ""
               }
               placeholder="0.00"
