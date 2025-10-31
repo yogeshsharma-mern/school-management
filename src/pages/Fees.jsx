@@ -83,11 +83,10 @@ export default function FeesStructure() {
   const toggleMutation = useMutation({
     mutationFn: async ({ id, newStatus }) =>
       apiPatch(`${apiPath.feestoggleFeesStructure}/${id}`, { status: newStatus }),
-    onSuccess: (data) =>
-      {
-       queryClient.invalidateQueries(["feesStructure", selectedClass]),
-toast.success(data.message || "Status updated successfully");
-      }
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(["feesStructure", selectedClass]),
+        toast.success(data.message || "Status updated successfully");
+    }
   });
 
   const resetForm = () =>
@@ -146,26 +145,26 @@ toast.success(data.message || "Status updated successfully");
     mutation.mutate({ ...formData, classIdentifier: selectedClass, totalAmount });
   };
 
-// Deduplicate class list (ignore section)
-const classOptions = (() => {
-  if (!classData?.results?.docs) return [];
+  // Deduplicate class list (ignore section)
+  const classOptions = (() => {
+    if (!classData?.results?.docs) return [];
 
-  const uniqueMap = new Map();
+    const uniqueMap = new Map();
 
-  classData.results.docs.forEach((cls) => {
-    // Extract base class name (e.g., "10th" from "10th A" or "10th-B")
-    const baseName = cls.name.split(" ")[0].trim();
+    classData.results.docs.forEach((cls) => {
+      // Extract base class name (e.g., "10th" from "10th A" or "10th-B")
+      const baseName = cls.name.split(" ")[0].trim();
 
-    if (!uniqueMap.has(baseName)) {
-      uniqueMap.set(baseName, {
-        value: baseName, // or cls.classIdentifier if consistent
-        label: baseName,
-      });
-    }
-  });
+      if (!uniqueMap.has(baseName)) {
+        uniqueMap.set(baseName, {
+          value: baseName, // or cls.classIdentifier if consistent
+          label: baseName,
+        });
+      }
+    });
 
-  return Array.from(uniqueMap.values());
-})();
+    return Array.from(uniqueMap.values());
+  })();
 
 
   const selectedClassLabel =
@@ -192,6 +191,14 @@ const classOptions = (() => {
             placeholder="Choose class..."
             onChange={(opt) => setSelectedClass(opt.value)}
             className="shadow-md rounded-md"
+            theme={(theme) => ({
+              ...theme,
+              colors: {
+                ...theme.colors,
+                primary25: "#fef08a", // light yellow on hover
+                primary: "#facc15",   // main yellow (border, selected)
+              },
+            })}
           />
         </div>
 
@@ -247,9 +254,8 @@ const classOptions = (() => {
                     <Typography className="w-1/3 font-semibold text-gray-700">{head.type}</Typography>
                     <Typography className="w-1/3 text-center text-gray-600">₹{head.amount}</Typography>
                     <Typography
-                      className={`w-1/3 text-right font-medium ${
-                        head.isOptional ? "text-blue-500" : "text-green-600"
-                      }`}
+                      className={`w-1/3 text-right font-medium ${head.isOptional ? "text-blue-500" : "text-green-600"
+                        }`}
                     >
                       {head.isOptional ? "Optional" : "Mandatory"}
                     </Typography>
@@ -297,7 +303,7 @@ const classOptions = (() => {
       </div>
 
       {/* Modal */}
- <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editData ? "Edit Fees Structure" : "Add Fees Structure"}>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editData ? "Edit Fees Structure" : "Add Fees Structure"}>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -405,7 +411,11 @@ const classOptions = (() => {
               type="submit"
               variant="contained"
               disabled={mutation.isPending}
-              sx={{ backgroundColor: "#f59e0b", "&:hover": { backgroundColor: "#d97706" } }}
+              sx={{
+                '--gradient-primary': 'linear-gradient(to right, #facc15, #eab308)',
+                background: 'var(--gradient-primary)',
+                color: '#333',
+              }}
             >
               {mutation.isPending ? "Saving..." : "Save"}
             </Button>

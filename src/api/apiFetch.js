@@ -138,6 +138,7 @@ const instance = axios.create({
   headers: getHeaders(),
 });
 
+
 instance.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (!token) return config;
@@ -147,6 +148,7 @@ instance.interceptors.request.use((config) => {
     headers: { ...config.headers, Authorization: `Bearer ${token}` },
   };
 });
+
 
 function apiPost(url, body) {
   let headers = {};

@@ -210,7 +210,7 @@ const attendanceMutation = useMutation({
         <div className="md:p-6 p-2 space-y-8 bg-gray-50 min-h-screen">
             {/* Header */}
             <motion.div
-                className=" p-6 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-center"
+                className=" p-6 rounded-2xl  flex flex-col md:flex-row justify-between items-center"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}

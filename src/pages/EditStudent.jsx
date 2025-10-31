@@ -72,6 +72,7 @@ export default function CreateStudentPage() {
   });
 
   console.log("profileppic", previews.profilePic);
+  console.log("studentinfo", student);
   const states = [
     { value: "Rajasthan", label: "Maharashtra" },
     // { value: "Karnataka", label: "Karnataka" },
@@ -1454,17 +1455,17 @@ export default function CreateStudentPage() {
                             variant="contained"
                             startIcon={<FaPlusCircle />}
                             onClick={addFeeHead}
-                              sx={{
-    backgroundColor: "#FACC15", // Tailwind's yellow-400
-    color: "black",
-    fontWeight: 600,
-    borderRadius: "0.5rem",
-    mt: 1.5,
-    boxShadow: 3,
-    "&:hover": {
-      backgroundColor: "#FBBF24", // yellow-500
-    },
-  }}
+                            sx={{
+                              backgroundColor: "#FACC15", // Tailwind's yellow-400
+                              color: "black",
+                              fontWeight: 600,
+                              borderRadius: "0.5rem",
+                              mt: 1.5,
+                              boxShadow: 3,
+                              "&:hover": {
+                                backgroundColor: "#FBBF24", // yellow-500
+                              },
+                            }}
                             className="bg-yellow-400 hover:bg-yellow-500 text-white font-semibold rounded-lg mt-3 shadow-md"
                           >
                             Add Optional Fee
@@ -1493,7 +1494,11 @@ export default function CreateStudentPage() {
             <Button
               type="button"
               variant="contained"
-              style={{ backgroundColor: "#ffeb3b", color: "#000" }}
+              sx={{
+                '--gradient-primary': 'linear-gradient(to right, #facc15, #eab308)',
+                background: 'var(--gradient-primary)',
+                color: '#333',
+              }}
               onClick={nextStep}
             >
               Next
@@ -1501,8 +1506,8 @@ export default function CreateStudentPage() {
           ) : (
             <button
               type="submit"
-              className="p-2 cursor-pointer rounded-md"
-              style={{ backgroundColor: isEditMode ? "#f3c621ff" : "#4caf50", color: "black" }}
+              className="p-2 cursor-pointer bg-[image:var(--gradient-primary)] rounded-md"
+              // style={{ backgroundColor: isEditMode ? "#f3c621ff" : "#4caf50", color: "black" }}
             >
               {isEditMode ? "Update" : "Submit"}
             </button>

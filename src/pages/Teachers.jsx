@@ -154,8 +154,8 @@ export default function StudentPage() {
         cell: ({ row }) => (
           <span
             className={`px-2 py-1 rounded-full text-xs font-semibold ${row.original.status === "active"
-                ? "bg-green-100 text-green-700"
-                : "bg-gray-200 text-gray-600"
+              ? "bg-green-100 text-green-700"
+              : "bg-gray-200 text-gray-600"
               }`}
           >
             {row.original.status}
@@ -189,7 +189,7 @@ export default function StudentPage() {
             >
               <MdDelete />
             </button>
-           
+
           </div>
         ),
       },
@@ -230,7 +230,7 @@ export default function StudentPage() {
         <h1 className="text-2xl font-bold">Teachers</h1>
         <button
           onClick={() => navigate("/admin/teachers/create")}
-          className="px-4 py-2 bg-yellow-400 rounded-lg hover:bg-yellow-500 cursor-pointer transition"
+          className="px-4 py-2 bg-[image:var(--gradient-primary)] rounded-lg hover:bg-yellow-500 cursor-pointer transition"
         >
           Add Teacher
         </button>

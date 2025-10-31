@@ -174,7 +174,7 @@ export default function StudentPage() {
           {/* Add Student Button */}
           <button
             onClick={() => navigate("/admin/students/create")}
-            className="px-4 py-2 bg-yellow-400 rounded-lg hover:bg-yellow-500 transition"
+            className="px-4 py-2 bg-[image:var(--gradient-primary)] rounded-lg hover:bg-yellow-500 transition"
           >
             Add Student
           </button>

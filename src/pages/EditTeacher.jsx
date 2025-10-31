@@ -324,76 +324,76 @@ export default function CreateTeacherPage() {
     //         setErrors((prev) => ({ ...prev, [name]: "" }));
     //     }
     // };
-const handleChange = (e, parentIndex = null, section = null) => {
-  const { name, value, type, checked } = e.target;
-  let sanitizedValue = value;
+    const handleChange = (e, parentIndex = null, section = null) => {
+        const { name, value, type, checked } = e.target;
+        let sanitizedValue = value;
 
-  // ✅ 1. No numbers or special chars in any name field
-  if (name.toLowerCase().includes("name")) {
-    sanitizedValue = value.replace(/[^A-Za-z\s]/g, ""); // only letters & spaces
-  }
+        // ✅ 1. No numbers or special chars in any name field
+        if (name.toLowerCase().includes("name")) {
+            sanitizedValue = value.replace(/[^A-Za-z\s]/g, ""); // only letters & spaces
+        }
 
-  // ✅ 2. Disallow numbers/symbols in City
-  if (name === "city") {
-    sanitizedValue = value.replace(/[^A-Za-z\s]/g, ""); // only letters & spaces
-  }
+        // ✅ 2. Disallow numbers/symbols in City
+        if (name === "city") {
+            sanitizedValue = value.replace(/[^A-Za-z\s]/g, ""); // only letters & spaces
+        }
 
-  // ✅ 3. Disallow letters/symbols in ZIP Code (numbers only)
-  if (name === "zip") {
-    sanitizedValue = value.replace(/\D/g, ""); // only digits allowed
-    // optional: limit to 6 digits (e.g., India)
-    if (sanitizedValue.length > 6) sanitizedValue = sanitizedValue.slice(0, 6);
-  }
+        // ✅ 3. Disallow letters/symbols in ZIP Code (numbers only)
+        if (name === "zip") {
+            sanitizedValue = value.replace(/\D/g, ""); // only digits allowed
+            // optional: limit to 6 digits (e.g., India)
+            if (sanitizedValue.length > 6) sanitizedValue = sanitizedValue.slice(0, 6);
+        }
 
-  if (parentIndex !== null) {
-    // 👪 For parents array
-    setteacher((prev) => {
-      const updatedParents = [...prev.parents];
-      updatedParents[parentIndex][name] = sanitizedValue;
-      return { ...prev, parents: updatedParents };
-    });
-    setErrors((prev) => ({
-      ...prev,
-      [`parent_${parentIndex}_${name}`]: "",
-    }));
-  } 
-  else if (section) {
-    // 🏠 For nested sections like address, emergencyContact, etc.
-    setteacher((prev) => ({
-      ...prev,
-      [section]: { ...prev[section], [name]: sanitizedValue },
-    }));
-    setErrors((prev) => ({
-      ...prev,
-      [`${section}_${name}`]: "",
-    }));
-  } 
-  else if (type === "checkbox") {
-    // ☑️ Checkbox fields
-    setteacher((prev) => ({ ...prev, [name]: checked }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
-  } 
-  else {
-    // 🎓 Special handling for "experience"
-    if (name === "experience") {
-      let numericValue = value.replace(/\D/g, ""); // remove non-digits
+        if (parentIndex !== null) {
+            // 👪 For parents array
+            setteacher((prev) => {
+                const updatedParents = [...prev.parents];
+                updatedParents[parentIndex][name] = sanitizedValue;
+                return { ...prev, parents: updatedParents };
+            });
+            setErrors((prev) => ({
+                ...prev,
+                [`parent_${parentIndex}_${name}`]: "",
+            }));
+        }
+        else if (section) {
+            // 🏠 For nested sections like address, emergencyContact, etc.
+            setteacher((prev) => ({
+                ...prev,
+                [section]: { ...prev[section], [name]: sanitizedValue },
+            }));
+            setErrors((prev) => ({
+                ...prev,
+                [`${section}_${name}`]: "",
+            }));
+        }
+        else if (type === "checkbox") {
+            // ☑️ Checkbox fields
+            setteacher((prev) => ({ ...prev, [name]: checked }));
+            setErrors((prev) => ({ ...prev, [name]: "" }));
+        }
+        else {
+            // 🎓 Special handling for "experience"
+            if (name === "experience") {
+                let numericValue = value.replace(/\D/g, ""); // remove non-digits
 
-      // Limit to 2 digits
-      if (numericValue.length > 2) numericValue = numericValue.slice(0, 2);
+                // Limit to 2 digits
+                if (numericValue.length > 2) numericValue = numericValue.slice(0, 2);
 
-      // Restrict value between 1 and 40
-      if (numericValue && Number(numericValue) > 40) numericValue = "40";
+                // Restrict value between 1 and 40
+                if (numericValue && Number(numericValue) > 40) numericValue = "40";
 
-      setteacher((prev) => ({ ...prev, experience: numericValue }));
-      setErrors((prev) => ({ ...prev, experience: "" }));
-      return;
-    }
+                setteacher((prev) => ({ ...prev, experience: numericValue }));
+                setErrors((prev) => ({ ...prev, experience: "" }));
+                return;
+            }
 
-    // 🧩 Default field update
-    setteacher((prev) => ({ ...prev, [name]: sanitizedValue }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
-  }
-};
+            // 🧩 Default field update
+            setteacher((prev) => ({ ...prev, [name]: sanitizedValue }));
+            setErrors((prev) => ({ ...prev, [name]: "" }));
+        }
+    };
 
     const handleFileUpload = (e, field, section = null) => {
         const inputFiles = e.target.files;
@@ -1754,7 +1754,11 @@ const handleChange = (e, parentIndex = null, section = null) => {
                         <Button
                             type="button"
                             variant="contained"
-                            style={{ backgroundColor: "#ffeb3b", color: "#000" }}
+                            sx={{
+                                // '--gradient-primary': 'linear-gradient(to right, #facc15, #eab308)',
+                                background: 'var(--gradient-primary)',
+                                color: '#333',
+                            }}
                             onClick={nextStep}
                         >
                             Next
@@ -1764,7 +1768,7 @@ const handleChange = (e, parentIndex = null, section = null) => {
                             type="submit"
                             className="p-2 rounded cursor-pointer"
                             // variant="contained"
-                            style={{ backgroundColor: "#4caf50", color: "white" }}
+                            style={{ background: "var(--gradient-primary)" }}
                         >
                             Submit
                         </button>

@@ -5,6 +5,7 @@ import { Toaster } from "react-hot-toast";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
 import Loader from "./components/Loading.jsx";
+import NotFound from "./pages/NotFound.jsx";
 
 
 
@@ -26,34 +27,37 @@ const CreateTeacher = lazy(() => import("./pages/CreateTeacher"));
 const TeacherDetails = lazy(() => import("./pages/TeacherDetails.jsx"));
 const AdminSettings = lazy(() => import("./components/AdminSettings.jsx"));
 const ChangePassword = lazy(() => import("./components/ChangePasswoord.jsx"));
-const EditTeacher=lazy(()=>import("./pages/EditTeacher.jsx"));
-const ResetPassword=lazy(()=>import("./components/ResetPassword.jsx"));
-const ResetPasswordId=lazy(()=>import("./pages/ResetPasswordId.jsx"));
-const TeacherAttendance=lazy(()=>import("./pages/TeacherAttendance.jsx"));
-const TeacherSalary = lazy(()=>import("./pages/TeacherSalary.jsx"));
-const TeacherMonthlyAttendance=lazy(()=>import("./pages/TeacherMonthlyAttendance.jsx"));
+const EditTeacher = lazy(() => import("./pages/EditTeacher.jsx"));
+const ResetPassword = lazy(() => import("./components/ResetPassword.jsx"));
+const ResetPasswordId = lazy(() => import("./pages/ResetPasswordId.jsx"));
+const TeacherAttendance = lazy(() => import("./pages/TeacherAttendance.jsx"));
+const TeacherSalary = lazy(() => import("./pages/TeacherSalary.jsx"));
+const TeacherMonthlyAttendance = lazy(() => import("./pages/TeacherMonthlyAttendance.jsx"));
+const NoFound = lazy(() => import("./pages/NotFound.jsx"));
 // const EditFeesForm=lazy(()=>import('./pages/EditFeesForm.jsx'));
-const Assign = lazy(()=>import('./pages/Assign.jsx'));
+const Assign = lazy(() => import('./pages/Assign.jsx'));
 
 export default function App() {
   const queryClient = new QueryClient();
   return (
     <QueryClientProvider client={queryClient}>
-        <Toaster />
+      <Toaster />
 
       <Routes>
         {/* Admin Layout with nested routes */}
         {/* public routes */}
         <Route element={<PublicRoute />}>
           <Route path="/" element={<Login />} />
-            <Route path="reset-password" element={<ResetPassword />} />
-            <Route path="reset-password/:id" element={<ResetPasswordId />} />
+          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="reset-password/:id" element={<ResetPasswordId />} />
+          <Route path="*" element={<NotFound />} />
+
 
 
         </Route>
         {/* protectedroute  */}
         <Route element={<ProtectedRoute />}>
-        
+
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="classess" element={<Class />} />
             <Route path="dashboard" element={<Dashboard />} />
@@ -79,7 +83,7 @@ export default function App() {
             <Route path="teacher-attendance/:id" element={<TeacherMonthlyAttendance />} />
 
 
-            
+
             {/* <Route path="teachers/:id" element={<TeacherDetails />} /> */}
             <Route path="teachers/edit/:id" element={<EditTeacher />} />
             <Route path="settings" element={<AdminSettings />} />
@@ -89,6 +93,7 @@ export default function App() {
 
 
           </Route>
+                  <Route path="/admin/*" element={<NotFound />} />
         </Route>
       </Routes>
     </QueryClientProvider>

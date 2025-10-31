@@ -77,7 +77,7 @@ const teacherOptions = availableTeachers?.map((t) => ({
 
 
 const assignClassTeacherMutation = useMutation({
-  mutationFn: (payload) => apiPost("/admins/teachers/class-teacherOf", payload),
+  mutationFn: (payload) => apiPost(apiPath.AddClassTeacher, payload),
   onSuccess: (data) => {
     toast.success(data.message || "Class teacher assigned successfully!");
     queryClient.invalidateQueries({ queryKey: ["classes"] });
@@ -315,7 +315,7 @@ const handleSubmit = (e) => {
             setFormData({ name: "", section: "", startTime: "", endTime: "" });
             setIsModalOpen(true);
           }}
-          className="px-4 py-2 bg-yellow-400 cursor-pointer rounded-lg hover:bg-yellow-400 transition"
+          className="px-4 py-2 bg-[image:var(--gradient-primary)] cursor-pointer rounded-lg hover:bg-yellow-400 transition"
         >
           Add Class
         </button>
@@ -443,7 +443,7 @@ const handleSubmit = (e) => {
           <button
             type="submit"
             disabled={classMutation.isLoading}
-            className="w-full cursor-pointer bg-yellow-500 text-white py-2 rounded-lg  transition"
+            className="w-full cursor-pointer bg-[image:var(--gradient-primary)] text-white py-2 rounded-lg  transition"
           >
             {classMutation.isLoading ? "Saving..." : editingClass ? "Update Class" : "Add Class"}
           </button>

@@ -348,6 +348,7 @@ import { useNavigate } from "react-router-dom";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import { FaArrowRight } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function Login() {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -392,8 +393,10 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await apiPost(apiPath.loginadmin, formData);
+      console.log("loginres",res);
       if (res.success === true && res.results?.token) {
         dispatch(loginSuccess({ user: res.results, token: res.results.token }));
+        toast.success(res?.message);
         navigate("/admin/dashboard");
       } else {
         setApiError(res.message || "Login failed");
@@ -412,7 +415,7 @@ export default function Login() {
         <div className="max-w-md mx-auto w-full">
           {/* Logo */}
           <div className="flex justify-center mb-8">
-            <div className="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center shadow-md">
+            <div className="w-12 h-12 bg-[image:var(--gradient-primary)] rounded-lg flex items-center justify-center shadow-md">
               <span className="text-white text-2xl font-bold">A</span>
             </div>
           </div>
@@ -500,7 +503,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full flex items-center justify-center bg-yellow-500 text-white py-2.5 rounded-lg font-semibold hover:bg-yellow-600 transition ${
+              className={`w-full flex items-center justify-center cursor-pointer bg-[image:var(--gradient-primary)] text-white py-2.5 rounded-lg font-semibold hover:bg-yellow-600 transition ${
                 loading ? "opacity-60 cursor-not-allowed" : ""
               }`}
             >

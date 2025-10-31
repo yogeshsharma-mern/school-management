@@ -1502,7 +1502,11 @@ export default function CreateStudentPage() {
             <Button
               type="button"
               variant="contained"
-              style={{ backgroundColor: "#ffeb3b", color: "#000" }}
+              sx={{
+                '--gradient-primary': 'linear-gradient(to right, #facc15, #eab308)',
+                background: 'var(--gradient-primary)',
+                color: '#333',
+              }}
               onClick={nextStep}
             >
               Next
@@ -1511,8 +1515,8 @@ export default function CreateStudentPage() {
             <button
               type="submit"
               // variant="contained"
-              style={{ backgroundColor: "#f4f14fff", color: "black" }}
-              className="px-6 py-2 rounded-lg hover:bg-green-600 cursor-pointer"
+              // style={{ backgroundColor: "#f4f14fff", color: "black" }}
+              className="px-6 py-2 bg-[image:var(--gradient-primary)] rounded-lg hover:bg-green-600 cursor-pointer"
             >
               Submit
             </button>

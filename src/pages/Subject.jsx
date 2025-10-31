@@ -339,7 +339,7 @@ export default function ClassPage() {
                         setFormData({ name: "", section: "", subjects: "" });
                         setIsModalOpen(true);
                     }}
-                    className="px-4 py-2 bg-yellow-400 cursor-pointer  rounded-lg hover:bg-yellow-500 cursor-pointer transition"
+                    className="px-4 py-2 bg-[image:var(--gradient-primary)] cursor-pointer  rounded-lg hover:bg-yellow-500 cursor-pointer transition"
                 >
                     Add Subject
                 </button>
@@ -434,7 +434,7 @@ export default function ClassPage() {
                     <button
                         type="submit"
                         disabled={classMutation.isLoading}
-                        className="w-full cursor-pointer bg-yellow-500 text-white py-2 rounded-lg transition"
+                        className="w-full cursor-pointer bg-[image:var(--gradient-primary)] text-white py-2 rounded-lg transition"
                     >
                         {classMutation.isLoading && <Loader size={20} />} {/* inline loader */}
                         {editingClass
