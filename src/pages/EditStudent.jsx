@@ -100,6 +100,7 @@ export default function CreateStudentPage() {
     if (!studentData?.results?.length) return;
 
     const s = studentData.results[0];
+    console.log("s",s)
     setStudent(prev => ({
       ...prev,
       ...s,
@@ -117,7 +118,8 @@ export default function CreateStudentPage() {
         certificates: s.certificates || [],
         marksheets: s.marksheets || [],
       },
-      classId: s.classId || "",
+    classId: s.enrollments?.[0]?.class || "",
+
       academicYear: s.enrollmentDetails?.[0]?.academicYear || "",
     }));
 
@@ -311,6 +313,7 @@ export default function CreateStudentPage() {
     enabled: !!selectedClass,
   });
   // 🔄 Sync fees data into formData whenever it changes
+  console.log("feedata",feesData);
   useEffect(() => {
     if (feesData?.success && feesData?.results?.feeHeads?.length) {
       setFormData(prev => ({

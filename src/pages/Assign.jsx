@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState, useEffect } from "react";
-import { Box, Button, Typography, Paper } from "@mui/material";
+import { Box, Button, Typography, Paper, tabClasses } from "@mui/material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiDelete, apiGet, apiPost, apiPut } from "../api/apiFetch";
 import apiPath from "../api/apiPath";
@@ -129,6 +129,17 @@ const resetMutation = useMutation({
   const allAssignments =
     assignmentsQuery.data?.timetable?.timetable || assignmentsQuery.data || [];
 
+    // const filterdTeachers = teachers.filter((teacher)=> teacher?.classes?.includes(selectedClassId));
+const filteredTeachers = Array.isArray(teachers)
+  ? teachers.filter((teacher) =>
+      Array.isArray(teacher.classes) &&
+      teacher.classes.includes(String(selectedClassId))
+    )
+  : [];
+
+
+    console.log("teachers",teachers);
+    console.log("filterdteachers",filteredTeachers);
   // 🔹 Default class
   useEffect(() => {
     if (!selectedClassId && classes.length) {
@@ -470,7 +481,7 @@ if (
 slotData={modalSlot}
 
           day={modalSlot.day}
-          teachers={teachers}
+          teachers={filteredTeachers}
           subjects={subjects}
           assignments={filteredAssignments}
           createAssignment={{

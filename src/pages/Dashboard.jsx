@@ -295,7 +295,7 @@ export default function Dashboard() {
           {
             icon: <FaChalkboardTeacher size={30} className="text-yellow-500" />,
             value: results.teachersPresentToday ?? 0,
-            label: "Present Today",
+            label: "Teachers Present Today",
             color: "from-yellow-100 to-yellow-200",
           },
         ].map((item, i) => (

@@ -361,11 +361,28 @@ export default function FeesStructure() {
 
                   <input
                     type="number"
-                    placeholder="Amount"
+                    placeholder="Enter 6-digit amount"
                     value={head.amount}
-                    onChange={(e) => handleFeeHeadChange(index, "amount", Number(e.target.value))}
+                    min="100000"
+                    max="999999"
+                    onChange={(e) => {
+                      const value = e.target.value;
+
+                      // ✅ Allow only up to 6 digits
+                      if (value.length > 6) {
+                        toast.error("Fee amount cannot exceed 6 digits");
+                        return;
+                      }
+
+                      // ✅ Allow only numeric input
+                      if (!/^\d*$/.test(value)) return;
+
+                      handleFeeHeadChange(index, "amount", Number(value));
+                    }}
                     className="w-full sm:w-[140px] border border-gray-300 rounded-md px-2 py-1 text-xs"
+                    required
                   />
+
 
                   <label className="flex items-center gap-1 text-sm w-auto">
                     <input

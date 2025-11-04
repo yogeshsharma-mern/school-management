@@ -58,11 +58,12 @@ export default function TeacherSalaryPage() {
       setSalaryForm({ teacherId: "", month: "" });
       setSelectedTeacher(null);
     },
+
     onError: (error) => {
       toast.error(error?.response?.data?.message || "Failed to generate salary ❌");
     },
   });
-
+console.log("salarymutiaton loading",salaryMutation.isLoading);
   // ✅ Handle Salary Change
   const handleSalaryChange = (e) => {
     const { name, value } = e.target;
