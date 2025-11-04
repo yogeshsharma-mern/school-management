@@ -143,7 +143,10 @@ const attendanceMutation = useMutation({
     return (
       <div className="flex items-center gap-2 w-full">
         {/* ✅ Present Button */}
-        <button
+    {
+        !isMarked && (
+            <div className="flex">
+                    <button
           className={`flex cursor-pointer items-center gap-1 px-3 py-1 text-sm rounded-lg transition-all ${
             todayStatus === "Present"
               ? "bg-green-100 text-green-700 cursor-not-allowed"
@@ -179,6 +182,9 @@ const attendanceMutation = useMutation({
           <XCircle size={16} />
           Absent
         </button>
+            </div>
+        )
+    }
 
         {/* 👁 View Attendance */}
         <button

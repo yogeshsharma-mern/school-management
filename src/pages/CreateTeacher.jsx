@@ -565,8 +565,8 @@ export default function CreateTeacherPage() {
                 console.log(key, value);
             }
 
-         const res=  await apiPost(apiPath.createTeacher, formData);
-        //  console.log("resofteacher",res);
+            const res = await apiPost(apiPath.createTeacher, formData);
+            //  console.log("resofteacher",res);
             toast.success(res.message);
             navigate(-1);
         } catch (err) {
@@ -1013,11 +1013,11 @@ export default function CreateTeacherPage() {
                                         }}
                                         options={classes?.results?.docs.map((cls) => ({
                                             value: cls._id,
-                                            label: cls.name,
+                                            label: `${cls.name} ${cls.section}`,
                                         }))}
                                         value={student.classes.map((clsId) => {
                                             const found = classes?.results?.docs.find((cls) => cls._id === clsId);
-                                            return found ? { value: found._id, label: found.name } : null;
+                                            return found ? { value: found._id, label: `${found.name} ${found.section}` } : null;
                                         })}
                                         onChange={(selected) => {
                                             setStudent({
@@ -1205,7 +1205,7 @@ export default function CreateTeacherPage() {
                                                         )
                                                         ?.map((cls) => ({
                                                             value: cls._id,
-                                                            label: cls.name,
+                                                            label: `${cls.name} ${cls.section}`,
                                                         }))
                                                 }
                                                 value={
@@ -1213,8 +1213,10 @@ export default function CreateTeacherPage() {
                                                         ? {
                                                             value: subject.classId,
                                                             label:
-                                                                classes?.results?.docs.find((cls) => cls._id === subject.classId)
-                                                                    ?.name || "",
+                                                                (() => {
+                                                                    const foundClass = classes?.results?.docs.find((cls) => cls._id === subject.classId);
+                                                                    return foundClass ? `${foundClass.name} ${foundClass.section}` : "";
+                                                                })(),
                                                         }
                                                         : null
                                                 }
@@ -1687,8 +1689,8 @@ export default function CreateTeacherPage() {
                         <button
                             type="submit"
                             className="p-2 rounded bg-[image:var(--gradient-primary)] cursor-pointer"
-                            // variant="contained"
-                            // style={{ backgroundColor: "#4caf50", color: "white" }}
+                        // variant="contained"
+                        // style={{ backgroundColor: "#4caf50", color: "white" }}
                         >
                             Submit
                         </button>

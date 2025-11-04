@@ -1093,11 +1093,11 @@ export default function CreateTeacherPage() {
                                         }}
                                         options={classes?.results?.docs.map((cls) => ({
                                             value: cls._id,
-                                            label: cls.name,
+                                            label: `${cls.name} ${cls.section}`,
                                         }))}
                                         value={teacher.classes.map((clsId) => {
                                             const found = classes?.results?.docs.find((cls) => cls._id === clsId);
-                                            return found ? { value: found._id, label: found.name } : null;
+                                            return found ? { value: found._id, label: `${found.name} ${found.section}` } : null;
                                         })}
                                         onChange={(selected) => {
                                             setteacher({
@@ -1285,7 +1285,7 @@ export default function CreateTeacherPage() {
                                                         )
                                                         ?.map((cls) => ({
                                                             value: cls._id,
-                                                            label: cls.name,
+                                                            label: `${cls.name} ${cls.section}`,
                                                         }))
                                                 }
                                                 value={
@@ -1293,8 +1293,11 @@ export default function CreateTeacherPage() {
                                                         ? {
                                                             value: subject.classId,
                                                             label:
-                                                                classes?.results?.docs.find((cls) => cls._id === subject.classId)
-                                                                    ?.name || "",
+                                                                (() => {
+                                                                    const foundClass = classes?.results?.docs.find((cls) => cls._id === subject.classId);
+                                                                    return foundClass ? `${foundClass.name} ${foundClass.section}` : "";
+                                                                })(),
+
                                                         }
                                                         : null
                                                 }

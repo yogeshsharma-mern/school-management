@@ -115,7 +115,7 @@
 //       {/* --- Charts --- */}
 //       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 //         {/* 📊 Daily Teacher Attendance Trend */}
-    
+
 
 //         {/* 🧑‍🏫 Teacher Distribution */}
 //         <Card className="p-4">
@@ -158,7 +158,7 @@
 //         </Card>
 
 //         {/* 👥 Gender Ratio */}
-       
+
 
 //         {/* 📊 Teacher Attendance Overview */}
 //         {/* <Card className="p-4">
@@ -201,6 +201,161 @@
 // }
 
 
+// import React from "react";
+// import ReactApexChart from "react-apexcharts";
+// import { FaUserGraduate, FaChalkboardTeacher, FaSchool } from "react-icons/fa";
+// import { Card, CardContent } from "../components/Card";
+// import apiPath from "../api/apiPath";
+// import { apiGet } from "../api/apiFetch";
+// import { useQuery } from "@tanstack/react-query";
+
+// export default function Dashboard() {
+//   const { data: dashboardData, isLoading, error } = useQuery({
+//     queryKey: ["dashboardData"],
+//     queryFn: () => apiGet(apiPath.dashboardData),
+//   });
+
+//   if (isLoading)
+//     return (
+//       <div className="h-[70vh] inset-0 flex items-center justify-center bg-opacity-70 z-50">
+//         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+//       </div>
+//     );
+
+//   if (error)
+//     return <div className="p-8 text-center text-red-500">Failed to load data</div>;
+
+//   const results = dashboardData?.results || {};
+
+//   // ✅ Data Prep
+//   const dailyAttendanceData = results.dailyTeacherAttendance?.xAxis?.map(
+//     (day, idx) => ({
+//       x: day,
+//       y: results.dailyTeacherAttendance.yAxis[idx] || 0,
+//     })
+//   ) || [];
+
+//   const teacherSubjectData = results.teachersBySubject?.map((s) => ({
+//     name: s.name,
+//     y: s.value,
+//   })) || [];
+
+//   const genderData = [
+//     { name: "Male", y: results.genderStats?.male || 0 },
+//     { name: "Female", y: results.genderStats?.female || 0 },
+//   ];
+
+//   // 🎨 Chart Configurations
+//   const lineOptions = {
+//     chart: { type: "line", toolbar: { show: false }, zoom: { enabled: false } },
+//     stroke: { curve: "smooth", width: 3 },
+//     xaxis: { type: "category", labels: { style: { colors: "#666" } } },
+//     yaxis: { labels: { style: { colors: "#666" } } },
+//     colors: ["#6366F1"],
+//     tooltip: { theme: "dark" },
+//   };
+
+//   const pieOptions = {
+//     chart: { type: "donut" },
+//     labels: teacherSubjectData.map((d) => d.name),
+//     colors: ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"],
+//     legend: { position: "bottom", labels: { colors: "#444" } },
+//   };
+
+//   const genderOptions = {
+//     chart: { type: "pie" },
+//     labels: genderData.map((d) => d.name),
+//     colors: ["#3B82F6", "#F87171"],
+//     legend: { position: "bottom", labels: { colors: "#444" } },
+//   };
+
+//   return (
+//     <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
+//       {/* --- Top Stats --- */}
+//       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+//         {[
+//           {
+//             icon: <FaUserGraduate size={30} className="text-indigo-500" />,
+//             value: results.totalNumberOfStudents,
+//             label: "Total Students",
+//             color: "from-indigo-100 to-indigo-200",
+//           },
+//           {
+//             icon: <FaChalkboardTeacher size={30} className="text-green-500" />,
+//             value: results.totalNumberOfTeachers,
+//             label: "Total Teachers",
+//             color: "from-green-100 to-green-200",
+//           },
+//           {
+//             icon: <FaSchool size={30} className="text-blue-500" />,
+//             value: results.totalNumberOfClasses,
+//             label: "Classes Active",
+//             color: "from-blue-100 to-blue-200",
+//           },
+//           {
+//             icon: <FaChalkboardTeacher size={30} className="text-yellow-500" />,
+//             value: results.teachersPresentToday ?? 0,
+//             label: "Teachers Present Today",
+//             color: "from-yellow-100 to-yellow-200",
+//           },
+//         ].map((item, i) => (
+//           <Card
+//             key={i}
+//             className={`bg-gradient-to-br ${item.color} hover:shadow-xl transition-shadow`}
+//           >
+//             <CardContent className="flex items-center gap-4">
+//               {item.icon}
+//               <div>
+//                 <p className="text-2xl font-bold">{item.value}</p>
+//                 <p className="text-gray-700">{item.label}</p>
+//               </div>
+//             </CardContent>
+//           </Card>
+//         ))}
+//       </div>
+
+//       {/* --- Charts --- */}
+//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+//         {/* 📈 Daily Attendance */}
+//         <Card className="p-4">
+//           <h2 className="text-lg font-semibold mb-4">
+//             Daily Teacher Attendance
+//           </h2>
+//           <ReactApexChart
+//             options={lineOptions}
+//             series={[{ name: "Attendance", data: dailyAttendanceData }]}
+//             type="line"
+//             height={280}
+//           />
+//         </Card>
+
+//         {/* 🍩 Teacher by Subject */}
+//         <Card className="p-4">
+//           <h2 className="text-lg font-semibold mb-4">
+//             Teacher Distribution by Subject
+//           </h2>
+//           <ReactApexChart
+//             options={pieOptions}
+//             series={teacherSubjectData.map((d) => d.y)}
+//             type="donut"
+//             height={280}
+//           />
+//         </Card>
+
+//         {/* 👩‍🏫 Gender Ratio */}
+//         <Card className="p-4">
+//           <h2 className="text-lg font-semibold mb-4">Gender Ratio</h2>
+//           <ReactApexChart
+//             options={genderOptions}
+//             series={genderData.map((d) => d.y)}
+//             type="pie"
+//             height={280}
+//           />
+//         </Card>
+//       </div>
+//     </div>
+//   );
+// }
 import React from "react";
 import ReactApexChart from "react-apexcharts";
 import { FaUserGraduate, FaChalkboardTeacher, FaSchool } from "react-icons/fa";
@@ -217,7 +372,7 @@ export default function Dashboard() {
 
   if (isLoading)
     return (
-      <div className="h-[70vh] inset-0 flex items-center justify-center bg-opacity-70 z-50">
+      <div className=" h-[70vh] inset-0 flex items-center justify-center bg-opacity-70 z-50">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
       </div>
     );
@@ -228,17 +383,17 @@ export default function Dashboard() {
   const results = dashboardData?.results || {};
 
   // ✅ Data Prep
-  const dailyAttendanceData = results.dailyTeacherAttendance?.xAxis?.map(
-    (day, idx) => ({
+  const dailyAttendanceData =
+    results.dailyTeacherAttendance?.xAxis?.map((day, idx) => ({
       x: day,
       y: results.dailyTeacherAttendance.yAxis[idx] || 0,
-    })
-  ) || [];
+    })) || [];
 
-  const teacherSubjectData = results.teachersBySubject?.map((s) => ({
-    name: s.name,
-    y: s.value,
-  })) || [];
+  const teacherSubjectData =
+    results.teachersBySubject?.map((s) => ({
+      name: s.name,
+      y: s.value,
+    })) || [];
 
   const genderData = [
     { name: "Male", y: results.genderStats?.male || 0 },
@@ -249,109 +404,126 @@ export default function Dashboard() {
   const lineOptions = {
     chart: { type: "line", toolbar: { show: false }, zoom: { enabled: false } },
     stroke: { curve: "smooth", width: 3 },
-    xaxis: { type: "category", labels: { style: { colors: "#666" } } },
-    yaxis: { labels: { style: { colors: "#666" } } },
+    xaxis: { type: "category", labels: { style: { colors: "#6B7280" } } },
+    yaxis: { labels: { style: { colors: "#6B7280" } } },
     colors: ["#6366F1"],
     tooltip: { theme: "dark" },
+    grid: { borderColor: "#E5E7EB" },
   };
 
   const pieOptions = {
     chart: { type: "donut" },
     labels: teacherSubjectData.map((d) => d.name),
     colors: ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"],
-    legend: { position: "bottom", labels: { colors: "#444" } },
+    legend: { position: "bottom", labels: { colors: "#6B7280" } },
   };
 
   const genderOptions = {
     chart: { type: "pie" },
     labels: genderData.map((d) => d.name),
     colors: ["#3B82F6", "#F87171"],
-    legend: { position: "bottom", labels: { colors: "#444" } },
+    legend: { position: "bottom", labels: { colors: "#6B7280" } },
   };
 
   return (
-    <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
-      {/* --- Top Stats --- */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {[
-          {
-            icon: <FaUserGraduate size={30} className="text-indigo-500" />,
-            value: results.totalNumberOfStudents,
-            label: "Total Students",
-            color: "from-indigo-100 to-indigo-200",
-          },
-          {
-            icon: <FaChalkboardTeacher size={30} className="text-green-500" />,
-            value: results.totalNumberOfTeachers,
-            label: "Total Teachers",
-            color: "from-green-100 to-green-200",
-          },
-          {
-            icon: <FaSchool size={30} className="text-blue-500" />,
-            value: results.totalNumberOfClasses,
-            label: "Classes Active",
-            color: "from-blue-100 to-blue-200",
-          },
-          {
-            icon: <FaChalkboardTeacher size={30} className="text-yellow-500" />,
-            value: results.teachersPresentToday ?? 0,
-            label: "Teachers Present Today",
-            color: "from-yellow-100 to-yellow-200",
-          },
-        ].map((item, i) => (
-          <Card
-            key={i}
-            className={`bg-gradient-to-br ${item.color} hover:shadow-xl transition-shadow`}
-          >
-            <CardContent className="flex items-center gap-4">
-              {item.icon}
-              <div>
-                <p className="text-2xl font-bold">{item.value}</p>
-                <p className="text-gray-700">{item.label}</p>
-              </div>
-            </CardContent>
+    <div className="p-8 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+      <div className="max-w-7xl mx-auto space-y-10">
+        {/* --- Header --- */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-3xl font-bold text-gray-800 tracking-tight">
+            Dashboard Overview
+          </h1>
+          <p className="text-gray-500 mt-2 sm:mt-0">
+            Updated in real-time via API
+          </p>
+        </div>
+
+        {/* --- Top Stats --- */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            {
+              icon: <FaUserGraduate size={30} className="text-indigo-500" />,
+              value: results.totalNumberOfStudents,
+              label: "Total Students",
+              color: "from-indigo-500/10 to-indigo-500/20",
+            },
+            {
+              icon: <FaChalkboardTeacher size={30} className="text-green-500" />,
+              value: results.totalNumberOfTeachers,
+              label: "Total Teachers",
+              color: "from-green-500/10 to-green-500/20",
+            },
+            {
+              icon: <FaSchool size={30} className="text-blue-500" />,
+              value: results.totalNumberOfClasses,
+              label: "Classes Active",
+              color: "from-blue-500/10 to-blue-500/20",
+            },
+            {
+              icon: <FaChalkboardTeacher size={30} className="text-yellow-500" />,
+              value: results.teachersPresentToday ?? 0,
+              label: "Teachers Present Today",
+              color: "from-yellow-500/10 to-yellow-500/20",
+            },
+          ].map((item, i) => (
+            <Card
+              key={i}
+              className={`bg-gradient-to-br ${item.color} backdrop-blur-md border border-white/30 shadow-md hover:shadow-xl transition-all duration-300`}
+            >
+              <CardContent className="flex items-center gap-4 p-5">
+                <div className="p-3 bg-white/70 rounded-xl shadow-sm">
+                  {item.icon}
+                </div>
+                <div>
+                  <p className="text-3xl font-bold text-gray-900">{item.value}</p>
+                  <p className="text-gray-600">{item.label}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* --- Charts --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* 📈 Daily Attendance */}
+          <Card className="p-6 bg-white shadow-sm border border-gray-100 rounded-2xl hover:shadow-md transition-all">
+            <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
+              📅 Daily Teacher Attendance
+            </h2>
+            <ReactApexChart
+              options={lineOptions}
+              series={[{ name: "Attendance", data: dailyAttendanceData }]}
+              type="line"
+              height={280}
+            />
           </Card>
-        ))}
-      </div>
 
-      {/* --- Charts --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* 📈 Daily Attendance */}
-        <Card className="p-4">
-          <h2 className="text-lg font-semibold mb-4">
-            Daily Teacher Attendance
-          </h2>
-          <ReactApexChart
-            options={lineOptions}
-            series={[{ name: "Attendance", data: dailyAttendanceData }]}
-            type="line"
-            height={280}
-          />
-        </Card>
+          {/* 🍩 Teacher by Subject */}
+          <Card className="p-6 bg-white shadow-sm border border-gray-100 rounded-2xl hover:shadow-md transition-all">
+            <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
+              📊 Teacher Distribution by Subject
+            </h2>
+            <ReactApexChart
+              options={pieOptions}
+              series={teacherSubjectData.map((d) => d.y)}
+              type="donut"
+              height={280}
+            />
+          </Card>
 
-        {/* 🍩 Teacher by Subject */}
-        <Card className="p-4">
-          <h2 className="text-lg font-semibold mb-4">
-            Teacher Distribution by Subject
-          </h2>
-          <ReactApexChart
-            options={pieOptions}
-            series={teacherSubjectData.map((d) => d.y)}
-            type="donut"
-            height={280}
-          />
-        </Card>
-
-        {/* 👩‍🏫 Gender Ratio */}
-        <Card className="p-4">
-          <h2 className="text-lg font-semibold mb-4">Gender Ratio</h2>
-          <ReactApexChart
-            options={genderOptions}
-            series={genderData.map((d) => d.y)}
-            type="pie"
-            height={280}
-          />
-        </Card>
+          {/* 👩‍🏫 Gender Ratio */}
+          <Card className="p-6 bg-white shadow-sm border border-gray-100 rounded-2xl hover:shadow-md transition-all">
+            <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
+              ⚧ Gender Ratio
+            </h2>
+            <ReactApexChart
+              options={genderOptions}
+              series={genderData.map((d) => d.y)}
+              type="pie"
+              height={280}
+            />
+          </Card>
+        </div>
       </div>
     </div>
   );

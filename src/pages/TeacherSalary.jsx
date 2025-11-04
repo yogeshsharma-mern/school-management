@@ -10,10 +10,11 @@ import useDebounce from "../hooks/useDebounce";
 import toast from "react-hot-toast";
 import Loader from "../components/Loading";
 import { FaRegEye } from "react-icons/fa";
+import { Navigate, useNavigate } from "react-router-dom";
 
 export default function TeacherSalaryPage() {
   const queryClient = useQueryClient();
-
+const navigate = useNavigate();
   // State
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [sorting, setSorting] = useState([]);
@@ -63,7 +64,7 @@ export default function TeacherSalaryPage() {
       toast.error(error?.response?.data?.message || "Failed to generate salary ❌");
     },
   });
-console.log("salarymutiaton loading",salaryMutation.isLoading);
+console.log("salarymutiaton loading",salaryMutation.isPending);
   // ✅ Handle Salary Change
   const handleSalaryChange = (e) => {
     const { name, value } = e.target;
@@ -147,7 +148,8 @@ console.log("salarymutiaton loading",salaryMutation.isLoading);
               <FaRegEye
                 className="text-blue-500 cursor-pointer"
                 title="View Details"
-                onClick={() => toast(`Teacher: ${rowData.TEACHER_NAME}`)}
+                // onClick={() => toast(`Teacher: ${rowData.TEACHER_NAME}`)}
+                onClick={()=>navigate(`/admin/teacher/salary/salaryinfo/${rowData._id}`)}
               />
               {rowData.salaryStatus !== "Paid" && (
                 <button
@@ -256,7 +258,7 @@ console.log("salarymutiaton loading",salaryMutation.isLoading);
             disabled={salaryMutation.isLoading}
             className="w-full bg-[image:var(--gradient-primary)] cursor-pointer text-white py-2 rounded-lg font-semibold hover:bg-yellow-600 transition"
           >
-            {salaryMutation.isLoading ? "Generating..." : "Generate Salary"}
+            {salaryMutation.isPending ? "Generating..." : "Generate Salary"}
           </button>
         </form>
       </Modal>

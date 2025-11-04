@@ -6,6 +6,8 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
 import Loader from "./components/Loading.jsx";
 import NotFound from "./pages/NotFound.jsx";
+import SalaryDetail from "./pages/SalaryDetail.jsx";
+
 
 
 
@@ -34,6 +36,7 @@ const TeacherAttendance = lazy(() => import("./pages/TeacherAttendance.jsx"));
 const TeacherSalary = lazy(() => import("./pages/TeacherSalary.jsx"));
 const TeacherMonthlyAttendance = lazy(() => import("./pages/TeacherMonthlyAttendance.jsx"));
 const NoFound = lazy(() => import("./pages/NotFound.jsx"));
+const salaryDetail = lazy(()=>import("./pages/SalaryDetail.jsx"));
 // const EditFeesForm=lazy(()=>import('./pages/EditFeesForm.jsx'));
 const Assign = lazy(() => import('./pages/Assign.jsx'));
 
@@ -80,7 +83,12 @@ export default function App() {
             {/* admin/teachers/attendance */}
             <Route path="teacher/attendance" element={<TeacherAttendance />} />
             <Route path="teacher/salary" element={<TeacherSalary />} />
+            {/* <Route path="teacher/salary/salaryinfo" element={<SalaryDetail />} /> */}
+            <Route path="teacher/salary/salaryinfo/:id" element={<SalaryDetail />} />
+
+
             <Route path="teacher-attendance/:id" element={<TeacherMonthlyAttendance />} />
+            
 
 
 

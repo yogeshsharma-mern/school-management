@@ -1404,7 +1404,7 @@ export default function CreateStudentPage() {
                           return (
                             <div
                               key={index}
-                              className="flex flex-wrap items-center gap-4 border border-gray-200 p-4 rounded-lg mb-3 bg-gradient-to-r from-yellow-50 to-yellow-100 shadow-sm hover:shadow-md transition-shadow transform hover:-translate-y-1"
+                              className="flex flex-wrap items-center gap-4 border border-gray-200 p-4 rounded-lg mb-3  shadow-sm hover:shadow-md transition-shadow transform hover:-translate-y-1"
                             >
                               <div className="w-full sm:w-[260px]">
                                 <Select
@@ -1448,7 +1448,7 @@ export default function CreateStudentPage() {
                                     )
                                   }
                                   disabled={isMandatory}
-                                  className="h-4 w-4 text-yellow-500 border-gray-300 rounded focus:ring-yellow-300"
+                                  className="h-4 w-4 text-yellow-500 cursor-pointer border-gray-300 rounded focus:ring-yellow-300"
                                 />
                                 Optional
                               </label>
@@ -1457,7 +1457,7 @@ export default function CreateStudentPage() {
                                 <button
                                   type="button"
                                   onClick={() => removeFeeHead(index)}
-                                  className="text-red-500 hover:text-red-700 text-sm font-medium transition-colors"
+                                  className="text-red-500 hover:text-red-700 cursor-pointer text-sm font-medium transition-colors"
                                 >
                                   ✕
                                 </button>
@@ -1468,7 +1468,8 @@ export default function CreateStudentPage() {
 
                         {formData.feeHeads.length < 4 && (
                           <Button
-                            variant="contained"
+                            // variant="contained"
+                            style={{background:"var(--gradient-primary)",color:"black"}}
                             startIcon={<FaPlusCircle />}
                             onClick={addFeeHead}
                             className="bg-yellow-400 hover:bg-yellow-500 text-white font-semibold rounded-lg mt-3 shadow-md"
