@@ -94,6 +94,10 @@ console.log("salarymutiaton loading",salaryMutation.isPending);
   // ✅ Table Columns
   const columns = useMemo(
     () => [
+      {
+                header: "S No.",
+                cell: ({ row }) => row.index + 1,
+            },
       { accessorKey: "name", header: "Teacher Name" },
       { accessorKey: "email", header: "Email" },
       { accessorKey: "designation", header: "Designation" },

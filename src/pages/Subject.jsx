@@ -193,6 +193,10 @@ export default function ClassPage() {
     //             }
     const columns = useMemo(
         () => [
+            {
+                header: "S No.",
+                cell: ({ row }) => row.index + 1,
+            },
             { accessorKey: "name", header: "Subject Name" },
             { accessorKey: "code", header: "Code" },
             // { accessorKey: "credits", header: "Credits" },

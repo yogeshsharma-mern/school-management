@@ -91,6 +91,10 @@ export default function StudentPage() {
   const columns = useMemo(
     () => [
       {
+                header: "S No.",
+                cell: ({ row }) => row.index + 1,
+            },
+      {
         accessorKey: "profilePic",
         header: "Profile Pic",
         cell: ({ row }) => (

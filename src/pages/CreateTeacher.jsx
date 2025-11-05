@@ -267,6 +267,29 @@ export default function CreateTeacherPage() {
             // Optional: limit to 6 digits (e.g., Indian PIN)
             if (sanitizedValue.length > 6) sanitizedValue = sanitizedValue.slice(0, 6);
         }
+        // ✅ 4. Validate teacher age (DOB) — must be 18 or older
+        if (name === "dob") {
+            const today = new Date();
+            const dobDate = new Date(value);
+            const ageDiff = today.getFullYear() - dobDate.getFullYear();
+            const isBirthdayPassed =
+                today.getMonth() > dobDate.getMonth() ||
+                (today.getMonth() === dobDate.getMonth() && today.getDate() >= dobDate.getDate());
+            const age = isBirthdayPassed ? ageDiff : ageDiff - 1;
+
+            if (age < 18) {
+                setErrors((prev) => ({
+                    ...prev,
+                    dob: "Teacher must be at least 18 years old",
+                }));
+                return; // 🚫 Stop here — don’t update student.dob
+            } else {
+                setErrors((prev) => ({
+                    ...prev,
+                    dob: "",
+                }));
+            }
+        }
 
         if (parentIndex !== null) {
             // 👪 For parents array
@@ -619,16 +642,17 @@ export default function CreateTeacherPage() {
                             name="dob"
                             value={student.dob}
                             onChange={handleChange}
-                            InputLabelProps={{ shrink: true }}
                             label="Date of Birth"
+                            InputLabelProps={{ shrink: true }}
                             inputProps={{
-                                max: new Date(new Date().setDate(new Date().getDate() - 1))
-                                    .toISOString()
-                                    .split("T")[0], // yesterday or earlier
+                                max: new Date(
+                                    new Date().setFullYear(new Date().getFullYear() - 18)
+                                ).toISOString().split("T")[0], // 🎯 at least 18 years old
                             }}
                             error={!!errors.dob}
                             helperText={errors.dob}
                         />
+
 
                         {/* Gender */}
                         <TextField
@@ -1109,41 +1133,59 @@ export default function CreateTeacherPage() {
                                                         ...base,
                                                         minHeight: "56px",
                                                         borderRadius: "8px",
-                                                        borderColor: errors[`subjectName_${index}`] ? "red" : (state.isFocused ? "#1976d2" : "#d1d5db"),
-                                                        boxShadow: state.isFocused ? "0 0 0 2px rgba(25,118,210,0.1)" : "none",
-                                                        "&:hover": { borderColor: state.isFocused ? "#1976d2" : "#d1d5db" },
+                                                        borderColor: errors[`subjectName_${index}`]
+                                                            ? "red"
+                                                            : state.isFocused
+                                                                ? "#1976d2"
+                                                                : "#d1d5db",
+                                                        boxShadow: state.isFocused
+                                                            ? "0 0 0 2px rgba(25,118,210,0.1)"
+                                                            : "none",
+                                                        "&:hover": {
+                                                            borderColor: state.isFocused ? "#1976d2" : "#d1d5db",
+                                                        },
                                                     }),
                                                 }}
                                                 options={subjects?.results?.docs.map((subj) => ({
-                                                    value: subj._id,
-                                                    label: subj.name,
+                                                    value: subj._id, // still keep ID as value
+                                                    label: subj.name, // label shown in UI
                                                 }))}
                                                 value={
                                                     subject.subjectName
                                                         ? {
-                                                            value: subject.subjectName,
-                                                            label: subjects?.results?.docs.find(
-                                                                (subj) => subj._id === subject.subjectName
-                                                            )?.name,
+                                                            value: subjects?.results?.docs.find(
+                                                                (subj) => subj.name === subject.subjectName
+                                                            )?._id,
+                                                            label: subject.subjectName,
                                                         }
                                                         : null
                                                 }
                                                 onChange={(selected) => {
+                                                    console.log("selected:", selected);
+
+                                                    // Find subject data by selected id
                                                     const foundSubject = subjects?.results?.docs.find(
                                                         (subj) => subj._id === selected?.value
                                                     );
+
                                                     const updatedSubjects = [...student.subjectsHandled];
                                                     updatedSubjects[index] = {
                                                         ...updatedSubjects[index],
-                                                        subjectName: selected?.value || "",
+                                                        // ✅ Send subject name (label) to backend, not the ID
+                                                        subjectName: selected?.label || "",
                                                         subjectCode: foundSubject?.code || "",
                                                     };
+
                                                     setStudent({ ...student, subjectsHandled: updatedSubjects });
 
                                                     // 🔹 Clear error on change
-                                                    setErrors(prev => ({ ...prev, [`subjectName_${index}`]: "" }));
+                                                    setErrors((prev) => ({
+                                                        ...prev,
+                                                        [`subjectName_${index}`]: "",
+                                                    }));
                                                 }}
                                             />
+
                                             {errors[`subjectName_${index}`] && (
                                                 <p className="text-red-500 text-sm mt-1">{errors[`subjectName_${index}`]}</p>
                                             )}

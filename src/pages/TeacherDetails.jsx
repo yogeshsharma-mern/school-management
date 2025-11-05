@@ -294,19 +294,19 @@ export default function TeacherDetailPage() {
           <h2 className="text-xl font-semibold mb-6 text-yellow-600 flex items-center gap-2">
             <BookOpen className="w-5 h-5" /> Subjects Handled
           </h2>
-          {teacher.subjectsHandled?.length ? (
+          {teacher.subjectsInfo?.length ? (
             <div className="grid md:grid-cols-3 gap-6">
-              {teacher.subjectsHandled.map((sub, idx) => (
+              {teacher.subjectsInfo.map((sub, idx) => (
                 <div
                   key={idx}
                   className="bg-white rounded-2xl p-5 shadow-lg border border-gray-100 hover:shadow-xl transition transform hover:-translate-y-1 hover:bg-gradient-to-tr from-white to-indigo-50"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-bold text-yellow-500">{sub.subjectCode}</h3>
+                    <h3 className="text-lg font-bold text-yellow-500">{sub.name}</h3>
                     <CheckCircle2 className="text-green-500 w-5 h-5" />
                   </div>
-                  <p className="text-gray-700"><strong>Subject :</strong> {sub.subjectName}</p>
-                  <p className="text-gray-700"><strong>Class :</strong> {sub.classId}</p>
+                  <p className="text-gray-700"><strong>Subject :</strong> {sub.code}</p>
+                  {/* <p className="text-gray-700"><strong>Class :</strong> {sub.classId}</p> */}
                 </div>
               ))}
             </div>

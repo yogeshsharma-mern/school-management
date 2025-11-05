@@ -212,6 +212,10 @@ const handleSubmit = (e) => {
   // Table columns
   const columns = useMemo(
     () => [
+      {
+                header: "S No.",
+                cell: ({ row }) => row.index + 1,
+            },
       { accessorKey: "name", header: "Class" },
       { accessorKey: "section", header: "Section" },
       { accessorKey: "studentCount", header: "Students" },
