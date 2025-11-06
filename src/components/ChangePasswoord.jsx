@@ -62,7 +62,7 @@ const ResetPassword = () => {
   return (
     <div className="h-[85vh]  flex items-center justify-center  ">
       {/* <Toaster position="top-right" /> */}
-      <div className="w-full max-w-md bg-white/80 backdrop-blur-xl  rounded-3xl border border-gray-100 p-8 transition-all duration-300 hover:shadow-[0_0_30px_rgba(59,130,246,0.2)]">
+      <div className="w-full max-w-md bg-white/80 backdrop-blur-xl  rounded-3xl border border-gray-100 p-8 transition-all duration-300 shadow-[0_0_30px_rgba(59,130,246,0.2)] hover:shadow-[0_0_30px_rgba(59,130,246,0.2)]">
         {/* Header */}
         <div className="flex flex-col cursor-pointer items-center mb-8">
           <div className="bg-blue-100 text-yellow-500  p-4 rounded-full shadow-inner">
@@ -160,9 +160,9 @@ const ResetPassword = () => {
           <button
             type="submit"
             disabled={mutation.isPending}
-            className={`w-full h-12 rounded-xl text-white font-semibold text-lg transition-all duration-200 shadow-md ${mutation.isPending
+            className={`w-full h-12 rounded-xl  font-semibold text-lg transition-all duration-200 shadow-md ${mutation.isPending
                 ? "bg-yellow-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-yellow-500 to-yellow-500 cursor-pointer hover:from-yellow-500 hover:to-yellow-500"
+                : "bg-[image:var(--gradient-primary)] cursor-pointer hover:from-yellow-500 hover:to-yellow-500"
               }`}
           >
             {mutation.isPending ? "Updating..." : "Change Password"}

@@ -404,6 +404,7 @@ export default function StudentDetailPage() {
                 studentId={student._id}
                 onClose={() => setShowFeesModal(false)}
                 queryClient={queryClient}
+                remainingFee={student?.feesDetails[0]?.remaining}
               />
             </Modal>
 
@@ -416,7 +417,7 @@ export default function StudentDetailPage() {
 
               <button
                 onClick={() => setShowFeesModal(true)}
-                className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white font-medium px-4 py-2 rounded-lg shadow-sm transition"
+                className="flex items-center gap-2 bg-[image:var(--gradient-primary)]  cursor-pointer font-medium px-4 py-2 rounded-lg shadow-sm transition"
               >
                 <PlusCircle className="w-4 h-4" />
                 Add Fees
@@ -666,7 +667,7 @@ export default function StudentDetailPage() {
               )}
               <button
                 onClick={downloadAllMarksheetsAsPDF}
-                className="px-4 py-2 bg-yellow-500 text-black rounded-sm hover:bg-yellow-600 cursor-pointer transition mt-4"
+                className="px-4 py-2 bg-[image:var(--gradient-primary)] text-black rounded-sm cursor-pointer transition mt-4"
               >
                 Download All Marksheets as ZIP
               </button>

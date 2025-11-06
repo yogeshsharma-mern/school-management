@@ -205,7 +205,9 @@ export default function FeesStructure() {
         {/* Fees Structure Display */}
         {feesLoading ? (
           <div className="text-center py-10">
-            <CircularProgress color="warning" />
+          <div className="h-[10vh] inset-0 flex items-center justify-center  bg-opacity-70 z-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+      </div>
             <p className="mt-2 text-gray-600">Loading fees structure...</p>
           </div>
         ) : feesData?.results ? (
@@ -363,8 +365,6 @@ export default function FeesStructure() {
                     type="number"
                     placeholder="Enter 6-digit amount"
                     value={head.amount}
-                    min="100000"
-                    max="999999"
                     onChange={(e) => {
                       const value = e.target.value;
 

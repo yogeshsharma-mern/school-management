@@ -11,7 +11,6 @@ import {
   FormControlLabel,
   Checkbox,
 } from "@mui/material";
-import axios from "axios";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import PhoneInput from "react-phone-input-2";
 import Select from "react-select";
@@ -25,7 +24,7 @@ import toast from "react-hot-toast";
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://api.example.com";
 
 const stateOptions = [
-  { value: "Maharashtra", label: "Maharashtra" },
+  { value: "Rajasthan", label: "Rajasthan" },
   { value: "Delhi", label: "Delhi" },
   { value: "Karnataka", label: "Karnataka" },
 ];
@@ -38,21 +37,6 @@ const countryOptions = [
 
 export default function SchoolSettings() {
   const queryClient = useQueryClient();
-  // const [schoolData, setSchoolData] = useState({
-  //   schoolName: "",
-  //   status: "inactive",
-  //   address: { street: "", city: "", state: "", zip: "", country: "" },
-  //   contact: { phone: "", email: "", website: "" },
-  //   schoolTiming: { startTime: "09:00", endTime: "15:00" },
-  //   periods: {
-  //     totalPeriods: "",
-  //     periodDuration: "",
-  //     breakDuration: "",
-  //     lunchBreak: { isEnabled: false, time: "", duration: "" },
-  //   },
-  //   academicSession: { startDate: "", endDate: "", currentSession: "" },
-  //   schoolLogo: null,
-  // });
   const [schoolData, setSchoolData] = useState({
     schoolName: "",
     status: "inactive",
@@ -98,80 +82,21 @@ export default function SchoolSettings() {
     socialUrl: [], // array of URLs
     schoolLogo: null,
   });
-
+  const [urlErrors, setUrlErrors] = useState([]);
+  console.log("urlerrors", urlErrors);
   const [logoPreview, setLogoPreview] = useState(null);
   const formatDateForInput = (isoDate) => {
     if (!isoDate) return "";
     return isoDate.split("T")[0]; // "2025-10-13"
   };
 
-  // GET existing settings
-  // const { data:schData, isLoading } = useQuery({
-  //   queryKey: ["school-settings"],
-  //   queryFn: async () => {
-  //     const res = await apiGet(apiPath.SchoolSettings);
-  //     return res.data.results || {};
-  //   },
-  //   onSuccess: (data) => {
-  //     // console.log("data",data)
-  //     setSchoolData(data);
-  //     if (data.schoolLogo) setLogoPreview(data.schoolLogo);
-  //   },
-  // });
-  // console.log("schdata",schData);
+
   const { data: studentData, isLoading } = useQuery({
     queryKey: ["school-settings"],
     queryFn: () => apiGet(apiPath.SchoolSettings) // only fetch if id exists
   });
   console.log("first", studentData);
-  // Update state whenever query data changes
-  // useEffect(() => {
-  //   if (!studentData?.results) return;
 
-  //   const s = studentData.results;
-
-  //   const formatDateForInput = (isoDate) => isoDate ? isoDate.split("T")[0] : "";
-
-  //   setSchoolData({
-  //     schoolName: s.schoolName || "",
-  //     status: s.status || "inactive",
-  //     address: {
-  //       street: s.address?.street || "",
-  //       city: s.address?.city || "",
-  //       state: s.address?.state || "",
-  //       zip: s.address?.zip || "",
-  //       country: s.address?.country || "",
-  //     },
-  //     contact: {
-  //       phone: s.contact?.phone || "",
-  //       email: s.contact?.email || "",
-  //       website: s.contact?.website || "",
-  //     },
-  //     schoolTiming: {
-  //       startTime: s.schoolTiming?.startTime || "09:00",
-  //       endTime: s.schoolTiming?.endTime || "15:00",
-  //     },
-  //     periods: {
-  //       totalPeriods: s.periods?.totalPeriods || "",
-  //       periodDuration: s.periods?.periodDuration || "",
-  //       breakDuration: s.periods?.breakDuration || "",
-  //       lunchBreak: {
-  //         isEnabled: s.periods?.lunchBreak?.isEnabled || false,
-  //         time: s.periods?.lunchBreak?.time || "",
-  //         duration: s.periods?.lunchBreak?.duration || "",
-  //       },
-  //     },
-  //     academicSession: {
-  //       startDate: formatDateForInput(s.academicSession?.startDate),
-  //       endDate: formatDateForInput(s.academicSession?.endDate),
-  //       currentSession: s.academicSession?.currentSession || "",
-  //     },
-  //     schoolLogo: null, // keep null, preview handled separately
-  //   });
-
-  //   if (s.schoolLogo) setLogoPreview(`${s.schoolLogo}`);
-
-  // }, [studentData]);
   useEffect(() => {
     if (!studentData?.results) return;
     const s = studentData.results;
@@ -228,6 +153,26 @@ export default function SchoolSettings() {
     if (s.schoolLogo) setLogoPreview(s.schoolLogo);
   }, [studentData]);
 
+  const handleUrlChange = (e, index) => {
+    const value = e.target.value.trim();
+    const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[^\s]*)?$/;
+
+    // Validate the current field
+    const newErrors = [...urlErrors];
+    console.log("newErrors", newErrors);
+    if (value && !urlPattern.test(value)) {
+      newErrors[index] = "Please enter a valid URL (e.g. https://example.com)";
+    } else {
+      newErrors[index] = "";
+    }
+    setUrlErrors(newErrors);
+
+    // Update the array of URLs
+    handleChange(
+      "socialUrl",
+      schoolData.socialUrl.map((u, i) => (i === index ? value : u))
+    );
+  };
 
   // POST / PUT Save
   const mutation = useMutation({
@@ -287,17 +232,22 @@ export default function SchoolSettings() {
 
   // Nested state updater
   const handleChange = (path, value) => {
+    console.log("path",path);
     setSchoolData((prev) => {
       const newData = { ...prev };
+      console.log("newData",newData);
       const keys = path.split(".");
+      //schoolname
+      console.log("keys.length",keys.length)
       let temp = newData;
+      console.log("temp",temp);
       for (let i = 0; i < keys.length - 1; i++) temp = temp[keys[i]];
 
       // Validation for school timing (08:00 - 16:00)
       if (keys[0] === "schoolTiming") {
         const time = value;
         const [h, m] = time.split(":").map(Number);
-        if (h < 8 || h > 16) return prev; // ignore invalid
+        if (h < 7 || h > 16) return prev; // ignore invalid
       }
 
       // Validation for lunch duration <= 60
@@ -366,7 +316,7 @@ export default function SchoolSettings() {
   return (
     <Box className="p-6" >
       <Typography
-        className="text-black  font-bold tracking-wide"
+        className="text-black font-bold tracking-wide"
         variant="h5"
         align="center"
         gutterBottom
@@ -380,12 +330,22 @@ export default function SchoolSettings() {
           <CardContent>
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={12} sm={6}>
-                <TextField
+                {/* <TextField
                   label="School Name"
                   value={schoolData.schoolName || ""}
                   onChange={(e) => handleChange("schoolName", e.target.value)}
                   fullWidth
+                /> */}
+                <TextField
+                  label="School Name"
+                  value={schoolData.schoolName || ""}
+                  onChange={(e) => {
+                    const onlyLetters = e.target.value.replace(/[^a-zA-Z\s]/g, ""); // allow letters and spaces
+                    handleChange("schoolName", onlyLetters);
+                  }}
+                  fullWidth
                 />
+
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="subtitle1" gutterBottom>
@@ -432,9 +392,18 @@ export default function SchoolSettings() {
                 <TextField
                   label="Website"
                   value={schoolData.contact.website || ""}
-                  onChange={(e) => handleChange("contact.website", e.target.value)}
+                  onChange={(e) => {
+                    const input = e.target.value.trim();
+
+                    // ✅ Allow only letters, digits, dots, hyphens, slashes, and colons
+                    const clean = input.replace(/[^a-zA-Z0-9\-._:/]/g, "");
+
+                    handleChange("contact.website", clean);
+                  }}
                   fullWidth
+                  placeholder="https://www.example.com"
                 />
+
               </Grid>
             </Grid>
           </CardContent>
@@ -451,17 +420,26 @@ export default function SchoolSettings() {
                 <TextField
                   label="Street"
                   value={schoolData.address.street || ""}
-                  onChange={(e) => handleChange("address.street", e.target.value)}
+                  onChange={(e) => {
+                    // allow letters, numbers, and spaces only
+                    const cleanValue = e.target.value.replace(/[^a-zA-Z0-9\s]/g, "");
+                    handleChange("address.street", cleanValue);
+                  }}
                   fullWidth
                 />
+
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="City"
                   value={schoolData.address.city || ""}
-                  onChange={(e) => handleChange("address.city", e.target.value)}
+                  onChange={(e) => {
+                    const onlyLetters = e.target.value.replace(/[^a-zA-Z\s]/g, ""); // allow only letters and spaces
+                    handleChange("address.city", onlyLetters);
+                  }}
                   fullWidth
                 />
+
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Select
@@ -496,9 +474,14 @@ export default function SchoolSettings() {
                 <TextField
                   label="ZIP"
                   value={schoolData.address.zip || ""}
-                  onChange={(e) => handleChange("address.zip", e.target.value)}
+                  onChange={(e) => {
+                    // Allow only numbers and limit to 6 digits
+                    const onlyDigits = e.target.value.replace(/\D/g, "").slice(0, 6);
+                    handleChange("address.zip", onlyDigits);
+                  }}
                   fullWidth
                 />
+
               </Grid>
             </Grid>
           </CardContent>
@@ -551,20 +534,30 @@ export default function SchoolSettings() {
                   type="number"
                   label="Total Periods"
                   value={schoolData.periods.totalPeriods || ""}
-                  onChange={(e) =>
-                    handleChange("periods.totalPeriods", e.target.value)
-                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    // Allow only numbers between 1 and 10
+                    if (value === "" || (Number(value) >= 1 && Number(value) <= 10)) {
+                      handleChange("periods.totalPeriods", value);
+                    }
+                  }}
+                  // inputProps={{ min: 1, max: 10 }}
                   fullWidth
                 />
+
               </Grid>
               <Grid item xs={12} sm={4}>
                 <TextField
                   type="number"
                   label="Period Duration (min)"
                   value={schoolData.periods.periodDuration || ""}
-                  onChange={(e) =>
-                    handleChange("periods.periodDuration", e.target.value)
-                  }
+                  onChange={(e) => {
+                    let value = e.target.value.replace(/\D/g, ""); // only digits
+                    if (value.length > 3) value = value.slice(0, 3); // limit to 3 digits
+                    handleChange("periods.periodDuration", value);
+                  }}
+                  inputProps={{ maxLength: 3, min: 0 }}
                   fullWidth
                 />
               </Grid>
@@ -573,11 +566,18 @@ export default function SchoolSettings() {
                   type="number"
                   label="Break Duration (min)"
                   value={schoolData.periods.breakDuration || ""}
-                  onChange={(e) =>
-                    handleChange("periods.breakDuration", e.target.value)
-                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (Number(value) > 30) {
+                      toast.error("Break duration cannot exceed 30 minutes");
+                      return;
+                    }
+                    handleChange("periods.breakDuration", value);
+                  }}
+                  // inputProps={{ min: 0, max: 550 }}
                   fullWidth
                 />
+
               </Grid>
               <Grid item xs={12}>
                 <FormControlLabel
@@ -714,7 +714,7 @@ export default function SchoolSettings() {
             <Typography variant="h6" gutterBottom>
               🏫 School Logo
             </Typography>
-            <Button variant="contained" component="label">
+            <Button style={{ background: "var(--gradient-primary)", color: "black" }} component="label">
               Upload Logo
               <input
                 hidden
@@ -750,7 +750,17 @@ export default function SchoolSettings() {
               fullWidth
               label="Toll-Free Number"
               value={schoolData.tollFree || ""}
-              onChange={(e) => handleChange("tollFree", e.target.value)}
+              onChange={(e) => {
+                let value = e.target.value.replace(/\D/g, ""); // only digits allowed
+
+                if (value.length > 11) {
+                  toast.error("Toll-free number must be 11 digits only");
+                  value = value.slice(0, 11); // limit to 11 digits
+                }
+
+                handleChange("tollFree", value);
+              }}
+              inputProps={{ maxLength: 11 }}
             />
           </CardContent>
         </Card>
@@ -765,9 +775,13 @@ export default function SchoolSettings() {
               fullWidth
               label="Title"
               value={schoolData.about?.title || ""}
-              onChange={(e) => handleChange("about.title", e.target.value)}
+              onChange={(e) => {
+                const onlyLetters = e.target.value.replace(/[^a-zA-Z\s]/g, ""); // allow only letters & spaces
+                handleChange("about.title", onlyLetters);
+              }}
               sx={{ mb: 2 }}
             />
+
             <TextField
               fullWidth
               multiline
@@ -878,7 +892,7 @@ export default function SchoolSettings() {
             <Button
               variant="contained"
               component="label"
-              sx={{ backgroundColor: "#1976d2", color: "#fff", mb: 2 }}
+              sx={{ background: "var(--gradient-primary)", color: "black", mb: 2 }}
             >
               Upload Banner
               <input
@@ -960,7 +974,7 @@ export default function SchoolSettings() {
             <Button
               variant="contained"
               component="label"
-              sx={{ backgroundColor: "#1976d2", color: "#fff", mb: 2 }}
+              sx={{ background: "var(--gradient-primary)", color: "black", mb: 2 }}
             >
               Upload Gallery
               <input
@@ -1029,25 +1043,22 @@ export default function SchoolSettings() {
 
 
         {/* Social URLs */}
+        {/* Social URLs */}
         <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               🌐 Social Media Links
             </Typography>
+
             {(schoolData.socialUrl || []).map((url, index) => (
               <Box key={index} display="flex" gap={2} alignItems="center" mb={1}>
                 <TextField
                   fullWidth
                   label={`Social URL ${index + 1}`}
                   value={url}
-                  onChange={(e) =>
-                    handleChange(
-                      "socialUrl",
-                      schoolData.socialUrl.map((u, i) =>
-                        i === index ? e.target.value : u
-                      )
-                    )
-                  }
+                  onChange={(e) => handleUrlChange(e, index)} // ✅ pass index here
+                  error={!!urlErrors[index]}
+                  helperText={urlErrors[index]}
                 />
                 <Button
                   variant="outlined"
@@ -1074,8 +1085,6 @@ export default function SchoolSettings() {
             </Button>
           </CardContent>
         </Card>
-
-        {/* Buttons */}
         <Box display="flex" justifyContent="space-between" mt={4}>
           <Button
             variant="outlined"
@@ -1086,8 +1095,9 @@ export default function SchoolSettings() {
           </Button>
           <Button
             type="submit"
-            variant="contained"
-            color="primary"
+            // variant="contained"
+            style={{ background: "var(--gradient-primary)", color: "black" }}
+            // color="primary"
             disabled={mutation.isPending}
           >
             {mutation.isPending ? "Saving..." : "Save Settings"}

@@ -160,11 +160,67 @@ export default function CreateTeacherPage() {
         queryFn: () => apiGet(`${apiPath.getParticularTeacher}/${id}`),
         enabled: !!id, // only fetch if id exists
     });
+    // useEffect(() => {
+    //     if (!teacherData?.results) return;
+
+    //     const t = teacherData.results;
+    //     console.log("t", t);
+
+    //     setteacher(prev => ({
+    //         ...prev,
+    //         ...t,
+    //         dob: t.dob ? t.dob.split("T")[0] : "",
+    //         dateOfJoining: t.dateOfJoining ? t.dateOfJoining.split("T")[0] : "",
+
+    //         address: t.address || prev.address,
+    //         emergencyContact: {
+    //             name: t.emergencyContact?.name || "",
+    //             relation: t.emergencyContact?.relation || "",
+    //             phone: t.emergencyContact?.phone || "",
+    //             address: t.emergencyContact?.address || "",
+    //         },
+
+    //         qualifications: t.qualifications || prev.qualifications,
+    //         specialization: t.specialization || prev.specialization,
+    //         classes: t.teachingClasses?.map(cls => cls._id) || prev.classes,
+    //         subjectsHandled:
+    //             t.subjectsInfo?.map((subj, i) => ({
+    //                 subjectName: subj.name,
+    //                 subjectCode: subj.code,
+    //                 classId: t.teachingClasses?.[i]?._id || "", // ✅ Assign class automatically
+    //             })) || prev.subjectsHandled,
+    //         salaryInfo: t.salaryInfo || prev.salaryInfo,
+    //         physicalDisability: t.physicalDisability || false,
+
+    //         // 🟩 FIX: actually set file URLs in teacher.documents
+    //         documents: {
+    //             ...prev.documents,
+    //             profilePic: t.profilePic ? `${BASE_URL}${t.profilePic}` : null,
+    //             aadharFront: t.aadharFront?.fileUrl ? `${BASE_URL}${t.aadharFront}` : null,
+    //             aadharBack: t.aadharBack?.fileUrl ? `${BASE_URL}${t.aadharBack.fileUrl}` : null,
+    //             certificates:
+    //                 t.certificates?.map(c => (c.fileUrl ? `${BASE_URL}${c.fileUrl}` : `${BASE_URL}${c}`)) || [],
+    //             marksheets:
+    //                 t.marksheets?.map(c => (c.fileUrl ? `${BASE_URL}${c.fileUrl}` : `${BASE_URL}${c}`)) || [],
+    //         },
+    //     }));
+
+    //     // Previews remain the same
+    //     setPreviews({
+    //         profilePic: t.profilePic ? `${BASE_URL}${t.profilePic}` : null,
+    //         aadharFront: t.aadharFront ? `${BASE_URL}${t.aadharFront}` : null,
+    //         aadharBack: t.aadharBack ? `${BASE_URL}${t.aadharBack}` : null,
+    //         certificates:
+    //             t.certificates?.map(c => (c.fileUrl ? `${BASE_URL}${c.fileUrl}` : `${BASE_URL}${c}`)) || [],
+    //         marksheets:
+    //             t.marksheets?.map(c => (c.fileUrl ? `${BASE_URL}${c.fileUrl}` : `${BASE_URL}${c}`)) || [],
+    //     });
+    // }, [teacherData]);
+
+
     useEffect(() => {
         if (!teacherData?.results) return;
-
         const t = teacherData.results;
-        console.log("t", t);
 
         setteacher(prev => ({
             ...prev,
@@ -183,16 +239,23 @@ export default function CreateTeacherPage() {
             qualifications: t.qualifications || prev.qualifications,
             specialization: t.specialization || prev.specialization,
             classes: t.teachingClasses?.map(cls => cls._id) || prev.classes,
-            subjectsHandled: t.subjectsHandled?.length ? t.subjectsHandled : prev.subjectsHandled,
+
+            // ✅ Automatically pair each subject with a class
+            subjectsHandled:
+                t.subjectsInfo?.map((subj, i) => ({
+                    subjectName: subj.name,
+                    subjectCode: subj.code,
+                    classId: t.teachingClasses?.[i]?._id || "",
+                })) || prev.subjectsHandled,
+
             salaryInfo: t.salaryInfo || prev.salaryInfo,
             physicalDisability: t.physicalDisability || false,
 
-            // 🟩 FIX: actually set file URLs in teacher.documents
             documents: {
                 ...prev.documents,
                 profilePic: t.profilePic ? `${BASE_URL}${t.profilePic}` : null,
-                aadharFront: t.aadharFront?.fileUrl ? `${BASE_URL}${t.aadharFront}` : null,
-                aadharBack: t.aadharBack?.fileUrl ? `${BASE_URL}${t.aadharBack.fileUrl}` : null,
+                aadharFront: t.aadharFront ? `${BASE_URL}${t.aadharFront}` : null,
+                aadharBack: t.aadharBack ? `${BASE_URL}${t.aadharBack}` : null,
                 certificates:
                     t.certificates?.map(c => (c.fileUrl ? `${BASE_URL}${c.fileUrl}` : `${BASE_URL}${c}`)) || [],
                 marksheets:
@@ -200,7 +263,6 @@ export default function CreateTeacherPage() {
             },
         }));
 
-        // Previews remain the same
         setPreviews({
             profilePic: t.profilePic ? `${BASE_URL}${t.profilePic}` : null,
             aadharFront: t.aadharFront ? `${BASE_URL}${t.aadharFront}` : null,
@@ -211,8 +273,6 @@ export default function CreateTeacherPage() {
                 t.marksheets?.map(c => (c.fileUrl ? `${BASE_URL}${c.fileUrl}` : `${BASE_URL}${c}`)) || [],
         });
     }, [teacherData]);
-
-
 
     console.log("subjects", subjects);
     console.log("classess", classes);
@@ -1203,19 +1263,20 @@ export default function CreateTeacherPage() {
                                                         ? {
                                                             value: subject.subjectName,
                                                             label: subjects?.results?.docs.find(
-                                                                (subj) => subj._id === subject.subjectName
+                                                                (subj) => subj.name === subject.subjectName
                                                             )?.name,
                                                         }
                                                         : null
                                                 }
                                                 onChange={(selected) => {
+                                                    console.log("sltected",selected)
                                                     const foundSubject = subjects?.results?.docs.find(
                                                         (subj) => subj._id === selected?.value
                                                     );
                                                     const updatedSubjects = [...teacher.subjectsHandled];
                                                     updatedSubjects[index] = {
                                                         ...updatedSubjects[index],
-                                                        subjectName: selected?.value || "",
+                                                        subjectName: selected?.label || "",
                                                         subjectCode: foundSubject?.code || "",
                                                     };
                                                     setteacher({ ...teacher, subjectsHandled: updatedSubjects });
@@ -1292,15 +1353,16 @@ export default function CreateTeacherPage() {
                                                     subject.classId
                                                         ? {
                                                             value: subject.classId,
-                                                            label:
-                                                                (() => {
-                                                                    const foundClass = classes?.results?.docs.find((cls) => cls._id === subject.classId);
-                                                                    return foundClass ? `${foundClass.name} ${foundClass.section}` : "";
-                                                                })(),
-
+                                                            label: (() => {
+                                                                const foundClass = classes?.results?.docs.find(
+                                                                    cls => cls._id === subject.classId
+                                                                );
+                                                                return foundClass ? `${foundClass.name} ${foundClass.section}` : "";
+                                                            })(),
                                                         }
                                                         : null
                                                 }
+
                                                 onChange={(selected) => {
                                                     const updatedSubjects = [...teacher.subjectsHandled];
                                                     updatedSubjects[index] = {

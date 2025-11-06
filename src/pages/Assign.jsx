@@ -38,7 +38,13 @@ export function generateTimeSlotsFromSettings(settings) {
   let lunchDone = false;
 
   while (count < totalPeriods && current < end) {
-    if (lunch.isEnabled && !lunchDone && lunchStart && lunchStart <= current) {
+  if (
+  lunch.isEnabled &&
+  !lunchDone &&
+  lunchStart &&
+  lunchStart >= current &&
+  lunchStart < new Date(current.getTime() + periodDuration * 60000)
+) {
       const ls = new Date(lunchStart);
       const le = new Date(lunchStart.getTime() + lunchDuration * 60000);
       slots.push({

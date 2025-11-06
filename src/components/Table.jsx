@@ -252,8 +252,8 @@ export default function ReusableTable({
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
-console.log("error",isError);
-console.log("isfetching,loading",fetching,loading);
+  console.log("error", isError);
+  console.log("isfetching,loading", fetching, loading);
   // if (loading)
   //   return (
   //     <Box display="flex" justifyContent="center" mt={8}>
@@ -262,35 +262,38 @@ console.log("isfetching,loading",fetching,loading);
   //   );
   return (
     <div className="bg-[var(--color-neutral)] shadow w-full rounded-lg p-4 overflow-x-auto">
-      
+
       {/* Header with search */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
         <input
           value={globalFilter || ""}
-          onChange={(e) => setGlobalFilter(e.target.value)}
+          onChange={(e) => {
+            const sanitizedValue = e.target.value.replace(/[^A-Za-z0-9\s]/g, "");
+            setGlobalFilter(sanitizedValue);
+          }}
           placeholder={tablePlaceholder}
           className="p-2 border border-gray-300 rounded w-full md:w-1/3"
         />
       </div>
-<div className="relative">
-  {/* Loader Overlay */}
-  {(loading || fetching) && (
-    <div className="absolute top-18 inset-0 flex items-center justify-center bg-white bg-opacity-70 z-50">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
-    </div>
-  )}
-  </div>
+      <div className="relative">
+        {/* Loader Overlay */}
+        {(loading || fetching) && (
+          <div className="absolute top-18 inset-0 flex items-center justify-center bg-white bg-opacity-70 z-50">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+          </div>
+        )}
+      </div>
       {/* Scrollable table */}
       {isError && (
-  <div className="bg-red-100 text-red-700 p-2 rounded mb-2">
-    {error?.message || "Something went wrong while fetching data."}
-  </div>
-)}
+        <div className="bg-red-100 text-red-700 p-2 rounded mb-2">
+          {error?.message || "Something went wrong while fetching data."}
+        </div>
+      )}
 
       <div className="overflow-x-auto">
-        
+
         <table className="min-w-full border border-gray-200 table-auto">
-          
+
           <thead className="bg-gray-100 text-gray-700 text-left  top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
@@ -313,14 +316,14 @@ console.log("isfetching,loading",fetching,loading);
 
 
           <tbody>
-            
+
             {table.getRowModel().rows.map((row) => (
-              
+
               <tr
                 key={row.id}
                 className="hover:bg-gray-50 transition duration-200 text-sm"
               >
-                
+
                 {row.getVisibleCells().map((cell) => (
                   <td
                     key={cell.id}
@@ -331,7 +334,7 @@ console.log("isfetching,loading",fetching,loading);
                 ))}
               </tr>
             ))}
-            
+
           </tbody>
         </table>
       </div>
@@ -365,7 +368,7 @@ console.log("isfetching,loading",fetching,loading);
             onChange={(e) => table.setPageSize(Number(e.target.value))}
             className="p-1 border rounded"
           >
-            {[ 10, 20, 50].map((size) => (
+            {[10, 20, 50].map((size) => (
               <option key={size} value={size}>
                 {size} / page
               </option>
