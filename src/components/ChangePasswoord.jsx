@@ -25,7 +25,7 @@ const ResetPassword = () => {
 
   const mutation = useMutation({
     mutationFn: async (data) => {
-      const res = await apiPost(`${BASE_URL}/admins/auth/change-password`, data);
+      const res = await apiPost(`${BASE_URL}admins/auth/change-password`, data);
       return res;
     },
     onSuccess: (data) => {

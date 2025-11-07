@@ -363,6 +363,7 @@ import { Card, CardContent } from "../components/Card";
 import apiPath from "../api/apiPath";
 import { apiGet } from "../api/apiFetch";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 
 export default function Dashboard() {
   const { data: dashboardData, isLoading, error } = useQuery({
@@ -446,40 +447,46 @@ export default function Dashboard() {
               value: results.totalNumberOfStudents,
               label: "Total Students",
               color: "from-indigo-500/10 to-indigo-500/20",
+              path: "/admin/students"
             },
             {
               icon: <FaChalkboardTeacher size={30} className="text-green-500" />,
               value: results.totalNumberOfTeachers,
               label: "Total Teachers",
               color: "from-green-500/10 to-green-500/20",
+              path: "/admin/teachers"
             },
             {
               icon: <FaSchool size={30} className="text-blue-500" />,
               value: results.totalNumberOfClasses,
               label: "Classes Active",
               color: "from-blue-500/10 to-blue-500/20",
+              path: "/admin/classess"
             },
             {
               icon: <FaChalkboardTeacher size={30} className="text-yellow-500" />,
               value: results.teachersPresentToday ?? 0,
-              label: "Teachers Present Today",
+              label: "Teachers Today",
               color: "from-yellow-500/10 to-yellow-500/20",
+              path: "/admin/teacher/attendance"
             },
           ].map((item, i) => (
-            <Card
-              key={i}
-              className={`bg-gradient-to-br ${item.color} backdrop-blur-md border border-white/30 shadow-md hover:shadow-xl transition-all duration-300`}
-            >
-              <CardContent className="flex items-center gap-4 p-5">
-                <div className="p-3 bg-white/70 rounded-xl shadow-sm">
-                  {item.icon}
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-gray-900">{item.value}</p>
-                  <p className="text-gray-600">{item.label}</p>
-                </div>
-              </CardContent>
-            </Card>
+            <Link to={item.path}>
+              <Card
+                key={i}
+                className={`bg-gradient-to-br ${item.color} backdrop-blur-md border border-white/30 shadow-md hover:shadow-xl transition-all duration-300`}
+              >
+                <CardContent className="flex items-center gap-4 p-5">
+                  <div className="p-3 bg-white/70 rounded-xl shadow-sm">
+                    {item.icon}
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold text-gray-900">{item.value}</p>
+                    <p className="text-gray-600">{item.label}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
 

@@ -79,7 +79,7 @@ export default function StudentDetailPage() {
     const zip = new JSZip();
 
     for (const ms of student.marksheets) {
-      const url = `${import.meta.env.VITE_API_BASE_URL}${ms.fileUrl}`;
+      const url = `${ms.fileUrl}`;
       const img = await loadImage(url);
       const pdf = new jsPDF({
         orientation: img.width > img.height ? "landscape" : "portrait",
@@ -126,7 +126,7 @@ export default function StudentDetailPage() {
       </button>
 
       {/* Header */}
-      <div className="flex justify-between items-center bg-[#1b263b] p-6 rounded-2xl shadow text-white">
+      <div className="flex justify-between items-center  p-6 rounded-2xl shadow  bg-gradient-to-r from-yellow-500 via-yellow-200 to-yellow-500">
         <div className="flex items-center gap-6">
           <img
             className="rounded-full w-[100px] h-[100px]"
@@ -626,7 +626,7 @@ export default function StudentDetailPage() {
                       onClick={() =>
                         downloadImageAsPDF(doc.file, `${student.name}_${doc.label}`)
                       }
-                      className="text-sm text-blue-600 hover:underline"
+                      className="text-sm text-blue-600 cursor-pointer hover:underline"
                     >
                       Download PDF
                     </button>
@@ -655,7 +655,7 @@ export default function StudentDetailPage() {
                         onClick={() =>
                           downloadImageAsPDF(ms.fileUrl, `${student.name}_${ms.exam}`)
                         }
-                        className="text-sm text-blue-600 hover:underline"
+                        className="text-sm text-blue-600 cursor-pointer hover:underline"
                       >
                         Download PDF
                       </button>
@@ -698,7 +698,7 @@ export default function StudentDetailPage() {
                             `${student.name}_${cert.name || "Certificate"}`
                           )
                         }
-                        className="text-sm text-blue-600 hover:underline"
+                        className="text-sm text-blue-600 cursor-pointer hover:underline"
                       >
                         Download PDF
                       </button>

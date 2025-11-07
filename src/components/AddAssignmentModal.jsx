@@ -510,6 +510,7 @@ export default function AddAssignmentModal({
 
   const [teacherId, setTeacherId] = useState(existing?.teacherId || "");
   const [subjectId, setSubjectId] = useState(existing?.subjectId || "");
+  console.log("subjectid",subjectId);
   const [section, setSection] = useState(existing?.section || "A");
   const [startTime, setStartTime] = useState(defaultStart);
   const [endTime, setEndTime] = useState(defaultEnd);
@@ -553,11 +554,12 @@ useEffect(() => {
 
   // 🔹 Subjects for selected teacher
   const teacherSubjects = selectedTeacher?.subjectsHandled || selectedTeacher?.subjects || [];
+  console.log("teachersubject",teacherSubjects);
 
   // 🔹 Reset subject if teacher changes and current subject is invalid
   useEffect(() => {
     if (!teacherId) return;
-    if (!teacherSubjects.some((s) => s._id === subjectId || s.id === subjectId)) {
+    if (!teacherSubjects.some((s) => s.subjectId === subjectId || s.id === subjectId)) {
       setSubjectId("");
     }
   }, [teacherId, teacherSubjects, subjectId]);
@@ -665,7 +667,7 @@ useEffect(() => {
                   <MenuItem disabled>No subjects assigned</MenuItem>
                 ) : (
                   teacherSubjects.map((s) => (
-                    <MenuItem key={s._id || s.id} value={s._id || s.id}>
+                    <MenuItem key={s._id || s.id} value={s.subjectId }>
                       {s.subjectCode ? `${s.subjectCode} — ${s.subjectName}` : s.subjectName || s.name}
                     </MenuItem>
                   ))

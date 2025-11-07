@@ -57,7 +57,7 @@ export default function TeacherDetailPage() {
   // 📄 Download individual document as PDF
   const downloadDocument = async (fileUrl, label) => {
     if (!fileUrl) return toast.error("No file available");
-    const url = `${apiBase}${fileUrl}`;
+    const url = `${fileUrl}`;
     const isPDF = typeof url === "string" && url.toLowerCase().endsWith(".pdf");
 
     if (isPDF) {
@@ -129,7 +129,7 @@ export default function TeacherDetailPage() {
       </button>
 
       {/* 🧑‍🏫 Header */}
-      <div className="flex justify-between items-center bg-[#1b263b] p-6 rounded-2xl text-white ">
+      <div className="flex justify-between items-center bg-gradient-to-r from-yellow-500 via-yellow-200 to-yellow-500 p-6 rounded-2xl text-white ">
         <div className="flex items-center gap-6">
           <img
             src={`${teacher.profilePic}`}
@@ -323,7 +323,7 @@ export default function TeacherDetailPage() {
             <h2 className="text-xl font-semibold text-yellow-600">Documents</h2>
             <button
               onClick={downloadAllDocs}
-              className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-indigo-700 transition"
+              className="flex items-center gap-2 px-4 py-2 bg-[image:var(--gradient-primary)] cursor-pointer  rounded-lg  transition"
             >
               <Download className="w-4 h-4" /> Download All
             </button>
@@ -358,7 +358,7 @@ export default function TeacherDetailPage() {
                     onClick={() =>
                       downloadDocument(fileUrl, i === 0 ? "Aadhar Front" : "Aadhar Back")
                     }
-                    className="absolute bottom-3 right-3 bg-yellow-500 cursor-pointer text-white px-3 py-1.5 text-sm rounded-md flex items-center gap-1 opacity-0 group-hover:opacity-100 transition"
+                    className="absolute bottom-3 right-3 bg-[image:var(--gradient-primary)] cursor-pointer  px-3 py-1.5 text-sm rounded-md flex items-center gap-1 opacity-0 group-hover:opacity-100 transition"
                   >
                     <Download className="w-4 h-4" /> Download PDF
                   </button>

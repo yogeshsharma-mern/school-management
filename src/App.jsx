@@ -36,7 +36,7 @@ const TeacherAttendance = lazy(() => import("./pages/TeacherAttendance.jsx"));
 const TeacherSalary = lazy(() => import("./pages/TeacherSalary.jsx"));
 const TeacherMonthlyAttendance = lazy(() => import("./pages/TeacherMonthlyAttendance.jsx"));
 const NoFound = lazy(() => import("./pages/NotFound.jsx"));
-const salaryDetail = lazy(()=>import("./pages/SalaryDetail.jsx"));
+const salaryDetail = lazy(() => import("./pages/SalaryDetail.jsx"));
 // const EditFeesForm=lazy(()=>import('./pages/EditFeesForm.jsx'));
 const Assign = lazy(() => import('./pages/Assign.jsx'));
 
@@ -88,7 +88,7 @@ export default function App() {
 
 
             <Route path="teacher-attendance/:id" element={<TeacherMonthlyAttendance />} />
-            
+
 
 
 
@@ -101,7 +101,7 @@ export default function App() {
 
 
           </Route>
-                  <Route path="/admin/*" element={<NotFound />} />
+          <Route path="/admin/*" element={<NotFound />} />
         </Route>
       </Routes>
     </QueryClientProvider>

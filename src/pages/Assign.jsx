@@ -7,6 +7,7 @@ import apiPath from "../api/apiPath";
 import AddAssignmentModal from "../components/AddAssignmentModal";
 import toast from "react-hot-toast";
 import { CircularProgress } from "@mui/material";
+import { PaymentOutlined } from "@mui/icons-material";
 
 
 // 🔹 Generate Time Slots
@@ -132,6 +133,7 @@ const resetMutation = useMutation({
   const classes = classesQuery.data?.results?.docs || classesQuery.data || [];
   const teachers = teachersQuery.data?.results?.docs || teachersQuery.data || [];
   const subjects = subjectsQuery.data?.results?.docs || subjectsQuery.data || [];
+  console.log("subjects",subjects);
   const allAssignments =
     assignmentsQuery.data?.timetable?.timetable || assignmentsQuery.data || [];
 
@@ -218,6 +220,7 @@ useEffect(() => {
 
   const map = {};
   const timetable = assignmentsQuery.data.timetable; // backend timetable object
+  console.log("timetable",timetable);
 
   for (const [day, dayAssignments] of Object.entries(timetable)) {
     // console.log("dayassigent",dayAssignments);
@@ -257,19 +260,23 @@ useEffect(() => {
   };
 
   const handleLocalAssign = ({ day, slot, teacherId, subjectId }) => {
+    console.log("subjecgid",subjectId)
     const teacher =
       teachers.find((t) => t._id === teacherId || t.id === teacherId) || {};
+      console.log("subjectsssss",subjects);
+      
     const subject =
       subjects.find((s) => s._id === subjectId || s.id === subjectId) || {};
-      console.log("subject",subject);
+      console.log("subjectttttt",subject);
       console.log("teacher",teacher)
+      
 
     const key = `${day}_${slot.startTime}_${slot.endTime}`;
     const newItem = {
       classId: selectedClassId,
       teacherId,
       teacherName: teacher.name || teacher.fullName || "",
-      subjectId,
+      subjectId:subject._id,
       subjectName: subject.name || subject.title || "",
       period: slot.period,
       day,
@@ -284,6 +291,9 @@ useEffect(() => {
   // 🔹 Bulk Save (excluding Lunch Break)
   const bulkSaveMutation = useMutation({
     mutationFn: async (payloads) => {
+      console.log(
+        "payloadds",payloads
+      )
       return apiPost(
         apiPath.postAssignmentBulk || "/api/admins/teachers/assign-teacher-bulk",
         payloads
@@ -304,7 +314,7 @@ useEffect(() => {
       toast.error(error.message);
     },
   });
-
+console.log("loaclassilgnment",localAssignments);
   const collectUnsavedPayloads = () =>
     Object.values(localAssignments).filter(
       (v) => !v.saved && v.period !== "Lunch Break"
@@ -312,6 +322,8 @@ useEffect(() => {
 
   const handleSaveAll = () => {
     const payloads = collectUnsavedPayloads();
+    console.log("payloads",payloads);
+  
     if (!payloads.length) return;
     bulkSaveMutation.mutate(payloads);
   };
@@ -492,6 +504,7 @@ slotData={modalSlot}
           assignments={filteredAssignments}
           createAssignment={{
             mutateAsync: (payload) =>
+
               new Promise((resolve) => {
                 handleLocalAssign({
                   ...payload,

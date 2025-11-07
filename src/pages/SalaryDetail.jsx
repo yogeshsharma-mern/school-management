@@ -203,7 +203,7 @@ export default function SalaryDetail() {
             </button>
             {/* Header with Back Button */}
             <Box
-                display="flex"
+                display="md:flex"
                 justifyContent="space-between"
                 alignItems="center"
                 mb={3}
@@ -213,7 +213,7 @@ export default function SalaryDetail() {
                 </Typography>
 
                 {/* ✅ Back Button */}
-                <Button
+                {/* <Button
                     variant="outlined"
                     color="primary"
                     onClick={() => navigate(-1)} // Go back one step in history
@@ -225,7 +225,7 @@ export default function SalaryDetail() {
                     }}
                 >
                     ← Back
-                </Button>
+                </Button> */}
             </Box>
 
             {/* Year Filter */}
