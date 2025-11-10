@@ -427,7 +427,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-8 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    <div className="md:p-8 p-4 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
       <div className="max-w-7xl mx-auto space-y-10">
         {/* --- Header --- */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -466,7 +466,7 @@ export default function Dashboard() {
             {
               icon: <FaChalkboardTeacher size={30} className="text-yellow-500" />,
               value: results.teachersPresentToday ?? 0,
-              label: "Teachers Today",
+              label: "Teachers ",
               color: "from-yellow-500/10 to-yellow-500/20",
               path: "/admin/teacher/attendance"
             },
@@ -492,18 +492,7 @@ export default function Dashboard() {
 
         {/* --- Charts --- */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* 📈 Daily Attendance */}
-          <Card className="p-6 bg-white shadow-sm border border-gray-100 rounded-2xl hover:shadow-md transition-all">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-              📅 Daily Teacher Attendance
-            </h2>
-            <ReactApexChart
-              options={lineOptions}
-              series={[{ name: "Attendance", data: dailyAttendanceData }]}
-              type="line"
-              height={280}
-            />
-          </Card>
+      
 
           {/* 🍩 Teacher by Subject */}
           <Card className="p-6 bg-white shadow-sm border border-gray-100 rounded-2xl hover:shadow-md transition-all">
@@ -531,6 +520,18 @@ export default function Dashboard() {
             />
           </Card>
         </div>
+            {/* 📈 Daily Attendance */}
+          <Card className="p-6 bg-white shadow-sm border border-gray-100 rounded-2xl hover:shadow-md transition-all">
+            <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
+              📅 Daily Teacher Attendance
+            </h2>
+            <ReactApexChart
+              options={lineOptions}
+              series={[{ name: "Attendance", data: dailyAttendanceData }]}
+              type="line"
+              height={280}
+            />
+          </Card>
       </div>
     </div>
   );

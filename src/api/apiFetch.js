@@ -110,7 +110,7 @@
 
 // function apiPost(url, body) {
 //   const isFormData = body instanceof FormData;
-//   console.log("isformdata",isFormData);
+//   // console.log("isformdata",isFormData);
 //   return instance.post(url, body, {
 //     headers: isFormData ? {} : { "Content-Type": "application/json" },
 //   }).then((res) => res.data);

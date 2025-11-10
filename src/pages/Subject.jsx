@@ -31,7 +31,7 @@ export default function ClassPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingClass, setEditingClass] = useState(null);
     const [formData, setFormData] = useState({ name: "", code: "", description: "", credits: "" });
-    console.log("formdata",formData);
+    // console.log("formdata",formData);
     const [errors, setErrors] = useState({});
     const debouncedSearch = useDebounce(globalFilter, 500);
 
@@ -58,7 +58,7 @@ export default function ClassPage() {
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["subjects"] });
-            console.log("data", data);
+            // console.log("data", data);
             if (editingClass) {
                 toast.success(data.message || "Subject updated successfully 🎉");
             } else {
@@ -70,7 +70,7 @@ export default function ClassPage() {
             setFormData({ name: "", code: "", description: "" });
         },
         onError: (error) => {
-            console.log("error", error);
+            // console.log("error", error);
             // Show server error message if available
             const errorMessage =
                 error?.response?.data?.message || "Something went wrong. Please try again.";
@@ -205,7 +205,7 @@ export default function ClassPage() {
                 accessorKey: "isActive",
                 cell: ({ row }) => {
                     const subject = row.original;
-                    console.log("subject", subject);
+                    // console.log("subject", subject);
                     // Mutation for toggling active/inactive
                     const toggleMutation = useMutation({
                         mutationFn: (newStatus) =>
@@ -310,7 +310,7 @@ export default function ClassPage() {
 
 
     const tableData = useMemo(() => classesData?.results?.docs || [], [classesData]);
-    console.log("classdata", classesData)
+    // console.log("classdata", classesData)
 
     const totalPages = classesData?.results?.totalPages || 1;
 

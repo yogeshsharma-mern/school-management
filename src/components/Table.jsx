@@ -232,6 +232,7 @@ export default function ReusableTable({
   fetching,
   loading
 }) {
+
   const table = useReactTable({
     data,
     columns,
@@ -246,14 +247,15 @@ export default function ReusableTable({
     onPaginationChange: setPaginationState,
     onSortingChange: setSortingState,
     onColumnFiltersChange: setColumnFilters,
-    onGlobalFilterChange: setGlobalFilter,
+    onGlobalFilterChange: setGlobalFilter,  
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
-  console.log("error", isError);
-  console.log("isfetching,loading", fetching, loading);
+  // console.log("onPaginationChange",setPaginationState);
+  // console.log("error", isError);
+  // console.log("isfetching,loading", fetching, loading);
   // if (loading)
   //   return (
   //     <Box display="flex" justifyContent="center" mt={8}>
@@ -340,7 +342,7 @@ export default function ReusableTable({
       </div>
 
       {/* Pagination */}
-      <div className="mt-4 flex flex-col md:flex-row justify-between items-start md:items-center text-sm gap-2">
+      <div className="mt-4 flex md:flex-col items-center  md:flex-row justify-between items-start md:items-center text-sm gap-2">
         <span>
           Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
         </span>

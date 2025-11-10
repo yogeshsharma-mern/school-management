@@ -24,12 +24,12 @@ export default function ClassPage() {
   const [columnFilters, setColumnFilters] = useState([]);
   const [addclassTeacherModal,setClassTeacherModal] = useState(false);
   const [selectedTeacher,setSelectedTeacher] = useState(null);
-  console.log("selectedteacher",selectedTeacher);
+  // console.log("selectedteacher",selectedTeacher);
 
 
   const handleteacherChange=(item)=>
   {
-// console.log("item",item.value);
+// // console.log("item",item.value);
 setSelectedTeacher(item.value);
   }
   // Modal state
@@ -59,7 +59,7 @@ setSelectedTeacher(item.value);
     queryFn: () =>
       apiGet(apiPath.getTeachers),
   });
-console.log("teacherdata",TeachersData);
+// console.log("teacherdata",TeachersData);
 // Get all teacher IDs already assigned as class teachers
 const assignedTeacherIds = classesData?.results?.docs
   ?.filter(cls => cls.classTeacher?._id)
@@ -139,14 +139,13 @@ const handleSubmit = (e) => {
   const newErrors = {};
   const validClasses = [
     "Prep", "1st", "2nd", "3rd", "4th", "5th", "6th",
-    "7th", "8th", "9th", "10th", "11th", "12th","11th sci","11th science","12th sci","12th science","11th com","11th commerce","12th com","12th commerce","11th arts",
-    "12th arts"
+    "7th", "8th", "9th", "10th", "11th", "12th",
   ];
 
   // Class name validation
   if (!formData.name) newErrors.name = "Class name is required";
   else if (!validClasses.includes(formData.name.trim()))
-    newErrors.name = "Invalid class name. Must be Prep or 1st to 12th (12th sci)(12th arts)(12th commerce)";
+    newErrors.name = "Invalid class name. Must be Prep or 1st to 12th ";
 
   // Section validation (only A-D)
   if (!formData.section) newErrors.section = "Section is required";

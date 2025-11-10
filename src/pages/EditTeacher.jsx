@@ -131,9 +131,9 @@ export default function CreateTeacherPage() {
             certificates: [],
         },
     });
-    console.log("teacher", teacher);
+    // console.log("teacher", teacher);
     const [errors, setErrors] = useState({});
-    console.log("errors", errors);
+    // console.log("errors", errors);
     const [showPassword, setShowPassword] = useState(false);
     const [activeStep, setActiveStep] = useState(0);
     const [previews, setPreviews] = useState({
@@ -164,7 +164,7 @@ export default function CreateTeacherPage() {
     //     if (!teacherData?.results) return;
 
     //     const t = teacherData.results;
-    //     console.log("t", t);
+    //     // console.log("t", t);
 
     //     setteacher(prev => ({
     //         ...prev,
@@ -221,6 +221,7 @@ export default function CreateTeacherPage() {
     useEffect(() => {
         if (!teacherData?.results) return;
         const t = teacherData.results;
+        console.log("gt",t)
 
         setteacher(prev => ({
             ...prev,
@@ -238,15 +239,8 @@ export default function CreateTeacherPage() {
 
             qualifications: t.qualifications || prev.qualifications,
             specialization: t.specialization || prev.specialization,
-            classes: t.teachingClasses?.map(cls => cls._id) || prev.classes,
-
-            // ✅ Automatically pair each subject with a class
-            subjectsHandled:
-                t.subjectsInfo?.map((subj, i) => ({
-                    subjectName: subj.name,
-                    subjectCode: subj.code,
-                    classId: t.teachingClasses?.[i]?._id || "",
-                })) || prev.subjectsHandled,
+          classes: t.subjectsHandled?.map(cls => cls.classId) || prev.classes,
+    subjectsHandled: t.subjectsHandled?.length ? t.subjectsHandled : prev.subjectsHandled,
 
             salaryInfo: t.salaryInfo || prev.salaryInfo,
             physicalDisability: t.physicalDisability || false,
@@ -274,8 +268,8 @@ export default function CreateTeacherPage() {
         });
     }, [teacherData]);
 
-    console.log("subjects", subjects);
-    console.log("classess", classes);
+    // console.log("subjects", subjects);
+    // console.log("classess", classes);
 
 
     const steps = ["Personal Details", "Professional Information", "Academic & Documents"];
@@ -611,7 +605,7 @@ export default function CreateTeacherPage() {
         }
 
         setErrors(newErrors);
-        console.log("Validation errors:", newErrors); // helpful for debugging
+        // console.log("Validation errors:", newErrors); // helpful for debugging
         return Object.keys(newErrors).length === 0;
     };
 
@@ -701,17 +695,17 @@ export default function CreateTeacherPage() {
 
             // For debugging
             for (let [key, value] of formData.entries()) {
-                console.log(key, value);
+                // console.log(key, value);
             }
 
             const res = await apiPut(`${apiPath.updateTeacher}/${teacher._id}`, formData);
-            console.log("respponseeeeeee---------", res);
+            // console.log("respponseeeeeee---------", res);
             toast.success(res.message || "Teacher updated successfully ✅");
             // toast.success("teacher created successfully ✅");
             navigate(-1);
         } catch (err) {
             console.error(err);
-            toast.error(err.message || "Failed to update teacher ❌");
+            toast.error(err?.response?.data?.message || "Failed to update teacher ❌");
         }
     };
 
@@ -1269,7 +1263,7 @@ export default function CreateTeacherPage() {
                                                         : null
                                                 }
                                                 onChange={(selected) => {
-                                                    console.log("sltected",selected)
+                                                    // console.log("sltected",selected)
                                                     const foundSubject = subjects?.results?.docs.find(
                                                         (subj) => subj._id === selected?.value
                                                     );

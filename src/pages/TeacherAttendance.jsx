@@ -27,7 +27,7 @@ const {data:teachersData,isLoading,isFetching,error}= useQuery({
     queryFn:()=>
         apiGet(apiPath.getTeachers,{
             page:pagination.pageIndex+1,
-            limit:pagination.pageIndex,
+            limit:pagination.pageSize,
             name:debouncedSearch,
         }),
 })
@@ -35,7 +35,7 @@ const {data:teachersData,isLoading,isFetching,error}= useQuery({
     queryKey: ["dashboardData"],
     queryFn: () => apiGet(apiPath.dashboardData),
   });
-  console.log("dashboarddata",dashboardData);
+  // console.log("dashboarddata",dashboardData);
 
 const attendanceMutation = useMutation({
   mutationFn: async ({ teacherId, status }) => {
@@ -85,26 +85,26 @@ const attendanceMutation = useMutation({
                     </div>
                 ),
             },
-            {
-                header: "Subjects",
-                cell: ({ row }) => {
-                    const subjects = row.original.subjectsHandled || [];
-                    return subjects.length ? (
-                        <div className="flex flex-wrap gap-2">
-                            {subjects.map((s, idx) => (
-                                <span
-                                    key={idx}
-                                    className="px-2 py-1 text-xs bg-indigo-100 text-indigo-700 rounded-md font-medium"
-                                >
-                                    {s.subjectCode || s.subjectName || "N/A"}
-                                </span>
-                            ))}
-                        </div>
-                    ) : (
-                        <span className="text-gray-400">—</span>
-                    );
-                },
-            },
+            // {
+            //     header: "Subjects",
+            //     cell: ({ row }) => {
+            //         const subjects = row.original.subjectsHandled || [];
+            //         return subjects.length ? (
+            //             <div className="flex flex-wrap gap-2">
+            //                 {subjects.map((s, idx) => (
+            //                     <span
+            //                         key={idx}
+            //                         className="px-2 py-1 text-xs bg-indigo-100 text-indigo-700 rounded-md font-medium"
+            //                     >
+            //                         {s.subjectCode || s.subjectName || "N/A"}
+            //                     </span>
+            //                 ))}
+            //             </div>
+            //         ) : (
+            //             <span className="text-gray-400">—</span>
+            //         );
+            //     },
+            // },
             {
                 header: "Department",
                 cell: ({ row }) =>

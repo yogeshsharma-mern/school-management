@@ -12,7 +12,7 @@ import toast from "react-hot-toast";
 export default function ResetPassword() {
   const { token } = useParams();
   const {id} =useParams();
-  console.log("token",token);
+  // console.log("token",token);
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

@@ -98,7 +98,7 @@ export default function AdminLayout() {
   const menuRef = useRef(null);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  console.log("user",user);
+  // console.log("user",user);
   const config = genConfig({ sex: "man", faceColor: "#d2a679", bgColor: "yellow" });
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);

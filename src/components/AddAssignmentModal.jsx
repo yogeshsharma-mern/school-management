@@ -33,7 +33,7 @@
 //   const defaultEnd = slot?.endTime || "";
   
 
-//   console.log("assignment",assignments);
+//   // console.log("assignment",assignments);
 
 //   const [teacherId, setTeacherId] = useState(existing?.teacherId || "");
 //   const [subjectId, setSubjectId] = useState(existing?.subjectId || "");
@@ -332,7 +332,7 @@
 //     return apiPost(apiPath.verifyAssignment || "/api/admins/verify-assignment", payload);
 //   },
 //   onSuccess: (res) => {
-//     console.log("res", res.data); // ✅ Always log response
+//     // console.log("res", res.data); // ✅ Always log response
 
 //     if (res.success) {
 //       toast.success("Teacher is available for this slot ✅");
@@ -379,7 +379,7 @@
 //     try {
 //       setLoading(true);
 //       const res = await verifyMutation.mutateAsync(payload);
-//       console.log("res",res);
+//       // console.log("res",res);
 
 
 //     } catch (err) {
@@ -502,7 +502,7 @@ export default function AddAssignmentModal({
   createAssignment,
 }) {
   const existing = slotData?.existing;
-  console.log("existing",existing);
+  // console.log("existing",existing);
   const slot = slotData?.slot;
 
   const defaultStart = slot?.startTime || "";
@@ -510,7 +510,7 @@ export default function AddAssignmentModal({
 
   const [teacherId, setTeacherId] = useState(existing?.teacherId || "");
   const [subjectId, setSubjectId] = useState(existing?.subjectId || "");
-  console.log("subjectid",subjectId);
+  // console.log("subjectid",subjectId);
   const [section, setSection] = useState(existing?.section || "A");
   const [startTime, setStartTime] = useState(defaultStart);
   const [endTime, setEndTime] = useState(defaultEnd);
@@ -553,8 +553,16 @@ useEffect(() => {
   );
 
   // 🔹 Subjects for selected teacher
+  // const teacherSubjects = selectedTeacher?.subjectsHandled || selectedTeacher?.subjects || [];
   const teacherSubjects = selectedTeacher?.subjectsHandled || selectedTeacher?.subjects || [];
-  console.log("teachersubject",teacherSubjects);
+
+// ✅ Remove duplicates by `subjectId`
+const uniqueSubjects = teacherSubjects.filter(
+  (subj, index, self) =>
+    index === self.findIndex((s) => s.subjectId === subj.subjectId)
+);
+
+  // console.log("teachersubject",teacherSubjects);
 
   // 🔹 Reset subject if teacher changes and current subject is invalid
   useEffect(() => {
@@ -663,10 +671,10 @@ useEffect(() => {
                 onChange={(e) => setSubjectId(e.target.value)}
                 required
               >
-                {teacherSubjects.length === 0 ? (
+                {uniqueSubjects.length === 0 ? (
                   <MenuItem disabled>No subjects assigned</MenuItem>
                 ) : (
-                  teacherSubjects.map((s) => (
+                  uniqueSubjects.map((s) => (
                     <MenuItem key={s._id || s.id} value={s.subjectId }>
                       {s.subjectCode ? `${s.subjectCode} — ${s.subjectName}` : s.subjectName || s.name}
                     </MenuItem>

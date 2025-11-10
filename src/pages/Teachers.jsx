@@ -203,7 +203,7 @@ export default function StudentPage() {
 
 
   const tableData = useMemo(() => studentsData?.results?.docs || [], [studentsData]);
-  const totalPages = studentsData?.results?.totalPages || 1;
+  const totalPages = studentsData?.results?.pagination?.totalPages || 1;
 
   return (
     <div>

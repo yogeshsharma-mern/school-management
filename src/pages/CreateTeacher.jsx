@@ -142,9 +142,8 @@ export default function CreateTeacherPage() {
             certificates: [],
         },
     });
-    console.log("student", student);
+
     const [errors, setErrors] = useState({});
-    console.log("errors", errors);
     const [showPassword, setShowPassword] = useState(false);
     const [activeStep, setActiveStep] = useState(0);
     const [previews, setPreviews] = useState({
@@ -165,8 +164,8 @@ export default function CreateTeacherPage() {
         queryKey: ["subjectForTeacher"],
         queryFn: () => apiGet(apiPath.getSubjects),
     });
-    console.log("subjects", subjects);
-    console.log("classess", classes);
+    // console.log("subjects", subjects);
+    // console.log("classess", classes);
     const steps = ["Personal Details", "Professional Information", "Academic & Documents"];
 
     // --- Handle Input Changes ---
@@ -495,7 +494,7 @@ export default function CreateTeacherPage() {
         }
 
         setErrors(newErrors);
-        console.log("Validation errors:", newErrors); // helpful for debugging
+        // console.log("Validation errors:", newErrors); // helpful for debugging
         return Object.keys(newErrors).length === 0;
     };
 
@@ -585,16 +584,16 @@ export default function CreateTeacherPage() {
 
             // For debugging
             for (let [key, value] of formData.entries()) {
-                console.log(key, value);
+                // console.log(key, value);
             }
 
             const res = await apiPost(apiPath.createTeacher, formData);
-            //  console.log("resofteacher",res);
+            //  // console.log("resofteacher",res);
             toast.success(res.message);
             navigate(-1);
         } catch (err) {
             console.error(err);
-            toast.error("Failed to create student ❌");
+            toast.error(err?.response?.data?.message);
         }
     };
 
@@ -1161,7 +1160,7 @@ export default function CreateTeacherPage() {
                                                         : null
                                                 }
                                                 onChange={(selected) => {
-                                                    console.log("selected:", selected);
+                                                    // console.log("selected:", selected);
 
                                                     // Find subject data by selected id
                                                     const foundSubject = subjects?.results?.docs.find(

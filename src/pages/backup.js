@@ -22,7 +22,7 @@
                       const selectedClassObj = classes?.results?.docs?.find(
                         (cls) => cls._id === selectedId
                       );
-                      console.log("selectedclassobj", selectedClassObj);
+                      // console.log("selectedclassobj", selectedClassObj);
 
                       setStudent({ ...student, classId: selectedId });
                       setSelectedClass(selectedClassObj?.name || "");

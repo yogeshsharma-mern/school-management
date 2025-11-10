@@ -83,7 +83,7 @@ export default function SchoolSettings() {
     schoolLogo: null,
   });
   const [urlErrors, setUrlErrors] = useState([]);
-  console.log("urlerrors", urlErrors);
+  // console.log("urlerrors", urlErrors);
   const [logoPreview, setLogoPreview] = useState(null);
   const formatDateForInput = (isoDate) => {
     if (!isoDate) return "";
@@ -95,7 +95,7 @@ export default function SchoolSettings() {
     queryKey: ["school-settings"],
     queryFn: () => apiGet(apiPath.SchoolSettings) // only fetch if id exists
   });
-  console.log("first", studentData);
+  // console.log("first", studentData);
 
   useEffect(() => {
     if (!studentData?.results) return;
@@ -159,7 +159,7 @@ export default function SchoolSettings() {
 
     // Validate the current field
     const newErrors = [...urlErrors];
-    console.log("newErrors", newErrors);
+    // console.log("newErrors", newErrors);
     if (value && !urlPattern.test(value)) {
       newErrors[index] = "Please enter a valid URL (e.g. https://example.com)";
     } else {
@@ -232,15 +232,15 @@ export default function SchoolSettings() {
 
   // Nested state updater
   const handleChange = (path, value) => {
-    console.log("path",path);
+    // console.log("path",path);
     setSchoolData((prev) => {
       const newData = { ...prev };
-      console.log("newData",newData);
+      // console.log("newData",newData);
       const keys = path.split(".");
       //schoolname
-      console.log("keys.length",keys.length)
+      // console.log("keys.length",keys.length)
       let temp = newData;
-      console.log("temp",temp);
+      // console.log("temp",temp);
       for (let i = 0; i < keys.length - 1; i++) temp = temp[keys[i]];
 
       // Validation for school timing (08:00 - 16:00)

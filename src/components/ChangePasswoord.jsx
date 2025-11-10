@@ -29,7 +29,7 @@ const ResetPassword = () => {
       return res;
     },
     onSuccess: (data) => {
-      // console.log(data);
+      // // console.log(data);
       // toast.success("Password changed successfully! Please login again.");
       toast.success(data?.message);
       setForm({ oldPassword: "", password: "", confirmPassword: "" });

@@ -71,8 +71,8 @@ export default function CreateStudentPage() {
     certificates: [],
   });
 
-  console.log("profileppic", previews.profilePic);
-  console.log("studentinfo", student);
+  // console.log("profileppic", previews.profilePic);
+  // console.log("studentinfo", student);
   const states = [
     { value: "Rajasthan", label: "Maharashtra" },
     // { value: "Karnataka", label: "Karnataka" },
@@ -100,7 +100,7 @@ export default function CreateStudentPage() {
     if (!studentData?.results?.length) return;
 
     const s = studentData.results[0];
-    console.log("s",s)
+    // console.log("s",s)
     setStudent(prev => ({
       ...prev,
       ...s,
@@ -149,9 +149,9 @@ export default function CreateStudentPage() {
       feeHeads: formData.feeHeads.filter((_, i) => i !== index),
     });
 
-  console.log("query data", studentData, "loading:", isFetching, "error:", err);
+  // console.log("query data", studentData, "loading:", isFetching, "error:", err);
 
-  console.log("studentdata", studentData);
+  // console.log("studentdata", studentData);
 
   const steps = ["Personal Details", "Parent & Guardian", "Academic & Documents"];
 
@@ -277,7 +277,7 @@ export default function CreateStudentPage() {
       // Combine existing files with new files, but limit to 5
       const existingFiles = student.documents[field] || [];
       const combinedFiles = [...Array.from(inputFiles), ...existingFiles];
-      console.log("combined files", combinedFiles);
+      // console.log("combined files", combinedFiles);
       const filesToSet = combinedFiles.slice(0, 5); // max 5
       setStudent(prev => ({
         ...prev,
@@ -313,7 +313,7 @@ export default function CreateStudentPage() {
     enabled: !!selectedClass,
   });
   // 🔄 Sync fees data into formData whenever it changes
-  console.log("feedata",feesData);
+  // console.log("feedata",feesData);
   useEffect(() => {
     if (feesData?.success && feesData?.results?.feeHeads?.length) {
       setFormData(prev => ({
@@ -415,7 +415,7 @@ export default function CreateStudentPage() {
     }
 
     setErrors(newErrors);
-    console.log("Validation errors:", newErrors); // helpful for debugging
+    // console.log("Validation errors:", newErrors); // helpful for debugging
     return Object.keys(newErrors).length === 0;
   };
 
@@ -455,7 +455,7 @@ export default function CreateStudentPage() {
   //       ["name", "dob", "gender", "bloodGroup", "email", "password", "phone", "classId", "academicYear", "physicalDisability", "disabilityDetails"].forEach(key => {
   //         formData.append(key, student[key]);
   //       });
-  // console.log("formdata",formData)
+  // // console.log("formdata",formData)
   //       await apiPost(apiPath.studentReg,formData);
   //       toast.success("Student created successfully ✅");
   //       navigate(-1);
@@ -519,7 +519,7 @@ export default function CreateStudentPage() {
 
   //     // 🔹 Debug — check payload
   //     for (let [key, val] of formData.entries()) {
-  //       console.log("entries>>>>",
+  //       // console.log("entries>>>>",
   //         formData.entries()
   //       );
   //     }
@@ -527,7 +527,7 @@ export default function CreateStudentPage() {
   //     // 🔹 Call API (you can switch this depending on edit/create)
   //     if (student._id) {
   //       const res = await apiPut(`${apiPath.updateStudent}/${student._id}`, formData);
-  //       // console.log("responsestudent",res);
+  //       // // console.log("responsestudent",res);
   //       if (res.success === true) {
   //         toast.success(res.message);
   //       }
@@ -901,7 +901,7 @@ export default function CreateStudentPage() {
                     helperText={errors[`parent_${index}_email`]}
                   />
                   <div>
-                    <label className="block text-gray-600 font-medium mb-1">Phone</label>
+                    {/* <label className="block text-gray-600 font-medium mb-1">Phone</label> */}
                     <PhoneInput
                       country="in"
                       enableSearch
@@ -942,7 +942,7 @@ export default function CreateStudentPage() {
                   />
                 ))}
                 <div>
-                  <label className="block text-gray-600 font-medium mb-1">Phone</label>
+                  {/* <label className="block text-gray-600 font-medium mb-1">Phone</label> */}
                   <PhoneInput
                     country="in"
                     enableSearch
@@ -980,7 +980,7 @@ export default function CreateStudentPage() {
                   />
                 ))}
                 <div>
-                  <label className="block text-gray-600 font-medium mb-1">Phone</label>
+                  {/* <label className="block text-gray-600 font-medium mb-1">Phone</label> */}
                   <PhoneInput
                     country="in"
                     enableSearch

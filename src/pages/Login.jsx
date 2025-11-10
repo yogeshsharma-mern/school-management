@@ -48,7 +48,7 @@
 
 // try {
 //   const res = await apiPost(apiPath.loginadmin, formData);
-//   console.log("res",res);
+//   // console.log("res",res);
 
 //   if (res.success === true && res.results?.token) {
 //     dispatch(
@@ -393,7 +393,7 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await apiPost(apiPath.loginadmin, formData);
-      console.log("loginres",res);
+      // console.log("loginres",res);
       if (res.success === true && res.results?.token) {
         dispatch(loginSuccess({ user: res.results, token: res.results.token }));
         toast.success(res?.message);

@@ -78,7 +78,7 @@ export default function AdminProfile() {
       return apiPost(apiPath.updateAdminProfile, formDataToSend);
     },
     onSuccess: (data) => {
-      console.log(data,"data");
+      // console.log(data,"data");
       toast.success(data.message || "Profile updated successfully!");
       queryClient.invalidateQueries(["adminDetails"]);
       setIsModalOpen(false);

@@ -28,12 +28,12 @@ const navigate = useNavigate();
     teacherId: "",
     month: "",
   });
-  console.log("salaryform", salaryForm);
+  // console.log("salaryform", salaryForm);
   const [salaryErrors, setSalaryErrors] = useState({});
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
-  console.log("currentMonth", currentMonth);
-  console.log("currentyear", currentYear);
+  // console.log("currentMonth", currentMonth);
+  // console.log("currentyear", currentYear);
   const debouncedSearch = useDebounce(globalFilter, 500);
 
   // ✅ Fetch Teacher Salary List
@@ -64,7 +64,7 @@ const navigate = useNavigate();
       toast.error(error?.response?.data?.message || "Failed to generate salary ❌");
     },
   });
-console.log("salarymutiaton loading",salaryMutation.isPending);
+// console.log("salarymutiaton loading",salaryMutation.isPending);
   // ✅ Handle Salary Change
   const handleSalaryChange = (e) => {
     const { name, value } = e.target;
@@ -180,7 +180,7 @@ console.log("salarymutiaton loading",salaryMutation.isPending);
   );
 
   const tableData = useMemo(() => TeacherSalary?.results || [], [TeacherSalary]);
-  const totalPages = TeacherSalary?.results?.totalPages || 1;
+  const totalPages = TeacherSalary?.pagination?.totalPages || 1;
 
   return (
     <div className="md:p-6 p-2">

@@ -133,7 +133,7 @@ const resetMutation = useMutation({
   const classes = classesQuery.data?.results?.docs || classesQuery.data || [];
   const teachers = teachersQuery.data?.results?.docs || teachersQuery.data || [];
   const subjects = subjectsQuery.data?.results?.docs || subjectsQuery.data || [];
-  console.log("subjects",subjects);
+  // console.log("subjects",subjects);
   const allAssignments =
     assignmentsQuery.data?.timetable?.timetable || assignmentsQuery.data || [];
 
@@ -146,8 +146,8 @@ const filteredTeachers = Array.isArray(teachers)
   : [];
 
 
-    console.log("teachers",teachers);
-    console.log("filterdteachers",filteredTeachers);
+    // console.log("teachers",teachers);
+    // console.log("filterdteachers",filteredTeachers);
   // 🔹 Default class
   useEffect(() => {
     if (!selectedClassId && classes.length) {
@@ -175,13 +175,13 @@ const filteredTeachers = Array.isArray(teachers)
   const filteredAssignments = useMemo(() => {
     return flattenedAssignments.filter(
       (a) =>
-        // console.log("aaaa",a);
+        // // console.log("aaaa",a);
         a.classId === selectedClassId ||
         a.classId?._id === selectedClassId ||
         a.class?._id === selectedClassId
     );
   }, [flattenedAssignments, selectedClassId]);
-  console.log("filteredassiignmennts",filteredAssignments);
+  // console.log("filteredassiignmennts",filteredAssignments);
 
   // 🔹 Time slots
   const settingsData = settingsQuery.data?.results;
@@ -220,13 +220,13 @@ useEffect(() => {
 
   const map = {};
   const timetable = assignmentsQuery.data.timetable; // backend timetable object
-  console.log("timetable",timetable);
+  // console.log("timetable",timetable);
 
   for (const [day, dayAssignments] of Object.entries(timetable)) {
-    // console.log("dayassigent",dayAssignments);
+    // // console.log("dayassigent",dayAssignments);
     if (!Array.isArray(dayAssignments)) continue; // safety
     dayAssignments.forEach((a) => {
-      console.log("aaa",a);
+      // console.log("aaa",a);
       // Find matching time slot by period
       const slot = timeSlots.find((s) => Number(s.period) === Number(a.period));
       if (!slot) return;
@@ -260,15 +260,15 @@ useEffect(() => {
   };
 
   const handleLocalAssign = ({ day, slot, teacherId, subjectId }) => {
-    console.log("subjecgid",subjectId)
+    // console.log("subjecgid",subjectId)
     const teacher =
       teachers.find((t) => t._id === teacherId || t.id === teacherId) || {};
-      console.log("subjectsssss",subjects);
+      // console.log("subjectsssss",subjects);
       
     const subject =
       subjects.find((s) => s._id === subjectId || s.id === subjectId) || {};
-      console.log("subjectttttt",subject);
-      console.log("teacher",teacher)
+      // console.log("subjectttttt",subject);
+      // console.log("teacher",teacher)
       
 
     const key = `${day}_${slot.startTime}_${slot.endTime}`;
@@ -291,9 +291,7 @@ useEffect(() => {
   // 🔹 Bulk Save (excluding Lunch Break)
   const bulkSaveMutation = useMutation({
     mutationFn: async (payloads) => {
-      console.log(
-        "payloadds",payloads
-      )
+      // console.log(     "payloadds",payload   )
       return apiPost(
         apiPath.postAssignmentBulk || "/api/admins/teachers/assign-teacher-bulk",
         payloads
@@ -314,7 +312,7 @@ useEffect(() => {
       toast.error(error.message);
     },
   });
-console.log("loaclassilgnment",localAssignments);
+// console.log("loaclassilgnment",localAssignments);
   const collectUnsavedPayloads = () =>
     Object.values(localAssignments).filter(
       (v) => !v.saved && v.period !== "Lunch Break"
@@ -322,7 +320,7 @@ console.log("loaclassilgnment",localAssignments);
 
   const handleSaveAll = () => {
     const payloads = collectUnsavedPayloads();
-    console.log("payloads",payloads);
+    // console.log("payloads",payloads);
   
     if (!payloads.length) return;
     bulkSaveMutation.mutate(payloads);
@@ -439,7 +437,7 @@ if (
               {days.map((day) => {
                 const a = getAssignmentFor(day, slot);
 
-                console.log("aaaaa",a);
+                // console.log("aaaaa",a);
                 const isLunch = slot.isBreak && slot.period === "Lunch Break";
 
                 if (isLunch) {

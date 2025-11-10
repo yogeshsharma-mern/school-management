@@ -21,7 +21,7 @@ export default function ForgotPassword() {
     },
     onSuccess: (data) => {
       // setMessage(data.message || "Password reset link sent successfully!");
-      console.log(
+      // console.log(
         "data",data
       );
       toast.success(data.message);

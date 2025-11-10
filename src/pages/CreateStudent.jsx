@@ -72,7 +72,7 @@ export default function CreateStudentPage() {
       certificates: [],
     },
   });
-  console.log("student", student);
+
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
@@ -104,7 +104,7 @@ export default function CreateStudentPage() {
     ],
     totalAmount: 0,
   });
-  console.log("formdata", formData);
+
   const addFeeHead = () =>
     setFormData({
       ...formData,
@@ -167,7 +167,6 @@ export default function CreateStudentPage() {
     }
   }, [feesData]);
 
-  console.log("feesdata", feesData);
   const steps = ["Personal Details", "Parent & Guardian", "Academic & Documents", "Fees Details"];
 
   // --- Handle Input Changes ---
@@ -239,42 +238,7 @@ export default function CreateStudentPage() {
   };
 
 
-  // --- Handle File Upload ---
-  // const handleFileUpload = (e, field, section = null) => {
-  //   const inputFiles = e.target.files;
-  //   if (!inputFiles || inputFiles.length === 0) return;
 
-  //   // Multiple files (marksheets, certificates)
-  //   if (["marksheets", "certificates"].includes(field)) {
-  //     const files = Array.from(inputFiles).slice(0, 5);
-  //     setStudent(prev => ({
-  //       ...prev,
-  //       documents: {
-  //         ...prev.documents,
-  //         [field]: files,
-  //       },
-  //     }));
-  //     setPreviews(prev => ({
-  //       ...prev,
-  //       [field]: files.map(f => URL.createObjectURL(f)),
-  //     }));
-  //   } 
-  //   // Single files inside documents section
-  //   else if (section === "documents") {
-  //     const file = inputFiles[0];
-  //     setStudent(prev => ({
-  //       ...prev,
-  //       documents: { ...prev.documents, [field]: file },
-  //     }));
-  //     setPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
-  //   } 
-  //   // Single file outside documents
-  //   else {
-  //     const file = inputFiles[0];
-  //     setStudent(prev => ({ ...prev, [field]: file }));
-  //     setPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
-  //   }
-  // };
   const handleFileUpload = (e, field, section = null) => {
     const inputFiles = e.target.files;
     if (!inputFiles || inputFiles.length === 0) return;
@@ -395,7 +359,6 @@ export default function CreateStudentPage() {
     }
 
     setErrors(newErrors);
-    console.log("Validation errors:", newErrors); // helpful for debugging
     return Object.keys(newErrors).length === 0;
   };
 
@@ -407,63 +370,7 @@ export default function CreateStudentPage() {
   const prevStep = () => setActiveStep(prev => prev - 1);
 
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   if (!validateStep()) return;
 
-  //   try {
-  //     const formData = new FormData();
-
-  //     // Add JSON fields
-  //     ["address", "parents", "guardian", "emergencyContact"].forEach((key) => {
-  //       formData.append(key, JSON.stringify(student[key]));
-  //     });
-
-  //     // ✅ Corrected document handling
-  //     Object.entries(student.documents).forEach(([key, value]) => {
-  //       if (!value) return;
-
-  //       if (Array.isArray(value)) {
-  //         value.forEach((file) => {
-  //           formData.append(key, file); // no [0]
-  //         });
-  //       } else if (value instanceof File) {
-  //         formData.append(key, value);
-  //       }
-  //     });
-
-  //     // Add remaining primitive fields
-  //     [
-  //       "name",
-  //       "dob",
-  //       "gender",
-  //       "bloodGroup",
-  //       "email",
-  //       "password",
-  //       "phone",
-  //       "classId",
-  //       "academicYear",
-  //       "physicalDisability",
-  //       "disabilityDetails",
-  //     ].forEach((key) => {
-  //       formData.append(key, student[key]);
-  //     });
-
-  //     // For debugging
-  //     for (let [key, value] of formData.entries()) {
-  //       console.log(key, value);
-  //     }
-
-  //     const res = await apiPost(apiPath.studentReg, formData);
-  //     // console.log("res student created",res);
-  //     if (res.success == true)
-  //       toast.success("Student created successfully ✅");
-  //     navigate(-1);
-  //   } catch (err) {
-  //     console.error(err);
-  //     toast.error(err?.response?.data?.message || "Failed to add student ❌");
-  //   }
-  // };
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateStep()) return;
@@ -518,7 +425,7 @@ export default function CreateStudentPage() {
 
       // 🧾 For debugging
       for (let [key, value] of formDataObj.entries()) {
-        console.log(key, value);
+        // // console.log(key, value);
       }
 
       // ✅ Send single combined payload
@@ -1281,7 +1188,7 @@ export default function CreateStudentPage() {
                       const selectedClassObj = classes?.results?.docs?.find(
                         (cls) => cls._id === selectedId
                       );
-                      console.log("selectedclassobj", selectedClassObj);
+
 
                       setStudent({ ...student, classId: selectedId });
                       setSelectedClass(selectedClassObj?.name || "");
@@ -1469,7 +1376,7 @@ export default function CreateStudentPage() {
                         {formData.feeHeads.length < 4 && (
                           <Button
                             // variant="contained"
-                            style={{background:"var(--gradient-primary)",color:"black"}}
+                            style={{ background: "var(--gradient-primary)", color: "black" }}
                             startIcon={<FaPlusCircle />}
                             onClick={addFeeHead}
                             className="bg-yellow-400 hover:bg-yellow-500 text-white font-semibold rounded-lg mt-3 shadow-md"
