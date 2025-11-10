@@ -12,6 +12,11 @@ import { RiImageEditLine } from "react-icons/ri";
 import ToggleButton from "../components/ToggleButton";
 import { IoIosAddCircleOutline } from "react-icons/io";
 import Select from "react-select";
+import Papa from "papaparse";
+import { saveAs } from "file-saver";
+import { FaFileExport } from "react-icons/fa";
+
+
 
 
 export default function ClassPage() {
@@ -32,6 +37,63 @@ export default function ClassPage() {
 // // console.log("item",item.value);
 setSelectedTeacher(item.value);
   }
+  const handleExportCSV = () => {
+  try {
+    const docs = classesData?.results?.docs || [];
+
+    if (!docs.length) {
+      toast.error("No data to export");
+      return;
+    }
+
+    // 👉 Map your table rows to a flat CSV-friendly shape
+    const rows = docs.map((cls, idx) => {
+      // status ko normalize: true/'active' -> Active else Inactive
+      const statusNorm =
+        cls?.status === true || cls?.status === "active" ? "Active" : "Inactive";
+
+      // subjects: string[] ya null
+      const subjects =
+        Array.isArray(cls?.classTeacher?.subjectsHandled) ? cls?.classTeacher?.subjectsHandled?.map((c)=>c?.subjectName).join(", ") : "N/A";
+
+      return {
+        "S No.": idx + 1,
+        Class: cls?.name || "",
+        Section: cls?.section || "",
+        Students: cls?.studentCount ?? 0,
+        Status: statusNorm,
+        "Teacher Name": cls?.classTeacher?.name || "N/A",
+        "Teacher Email": cls?.classTeacher?.email || "N/A",
+        "Teacher Specialization": cls?.classTeacher?.specialization || "N/A",
+        // "Class Timing": cls?.startTime && cls?.endTime ? `${cls.startTime} - ${cls.endTime}` : "N/A",
+        Subjects: subjects,
+        "Class ID": cls?._id || "",
+      };
+    });
+
+    // 👉 Convert JSON → CSV
+    const csv = Papa.unparse(rows, {
+      quotes: false,        // har field ke around quotes nahi
+      delimiter: ",",       // default comma
+      header: true,         // header row include
+      newline: "\r\n",      // windows/mac friendly new lines
+    });
+
+    // 👉 File name with date
+    const stamp = new Date().toISOString().replace(/[:]/g, "-").split(".")[0]; // 2025-11-10T12-34-56
+    const filename = `Classes_${stamp}.csv`;
+
+    // 👉 Trigger download
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    saveAs(blob, filename);
+
+    toast.success("CSV exported successfully ✅");
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to export CSV ❌");
+  }
+};
+
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
@@ -261,11 +323,16 @@ const handleSubmit = (e) => {
             ? `${row.startTime} - ${row.endTime}`
             : "N/A",
       },
-      {
-        accessorKey: "subjects",
-        header: "Subjects",
-        cell: ({ getValue }) => (getValue() ? getValue().join(", ") : "N/A"),
-      },
+  {
+  accessorKey: "classTeacher.subjectsHandled",
+  header: "Subjects",
+  cell: ({ getValue }) => {
+    const subjects = getValue();
+    if (!subjects || subjects.length === 0) return "N/A";
+    return subjects.map((s) => s.subjectName).join(", ");
+  },
+  }
+,
       {
         header: "Actions",
         cell: ({ row }) => (
@@ -313,7 +380,7 @@ const handleSubmit = (e) => {
     <div>
       <div className="flex justify-between p-6 items-center mb-4">
         <h1 className="text-2xl font-bold">Classes</h1>
-        <button
+        {/* <button
           onClick={() => {
             setEditingClass(null);
             setFormData({ name: "", section: "", startTime: "", endTime: "" });
@@ -322,7 +389,30 @@ const handleSubmit = (e) => {
           className="px-4 py-2 bg-[image:var(--gradient-primary)] cursor-pointer rounded-lg hover:bg-yellow-400 transition"
         >
           Add Class
-        </button>
+        </button> */}
+
+  <div className="flex gap-3">
+    <button
+      onClick={handleExportCSV}
+      className="px-4 flex gap-1 items-center py-2 px-4 py-2 bg-[image:var(--gradient-primary)]  rounded-lg cursor-pointer hover:bg-blue-700 transition"
+    >
+      <FaFileExport />
+
+      Export CSV
+    </button>
+
+    <button
+      onClick={() => {
+        setEditingClass(null);
+        setFormData({ name: "", section: "", startTime: "", endTime: "" });
+        setIsModalOpen(true);
+      }}
+      className="px-4 py-2 bg-[image:var(--gradient-primary)] cursor-pointer rounded-lg hover:opacity-90 transition"
+    >
+      Add Class
+    </button>
+  </div>
+        
       </div>
 
       <div className="overflow-x-auto  w-[98vw] md:w-[80vw]">

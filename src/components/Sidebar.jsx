@@ -606,7 +606,10 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                 <BsClockHistory size={15} />
                 <span>Attendance</span>
               </NavLink>
-
+      <NavLink to="/admin/teacher/attendance/clockwise" className={subItemClass} onClick={handleSubmenuClick}>
+                <BsClockHistory size={15} />
+                <span>Attendance clockwise</span>
+              </NavLink>
               <NavLink to="/admin/teacher/salary" className={subItemClass} onClick={handleSubmenuClick}>
                 <BsWallet2 size={15} />
                 <span>Salary</span>
