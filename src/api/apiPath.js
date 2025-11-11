@@ -50,7 +50,10 @@ AddClassTeacher:"admins/teachers/class-teacherOf",
 generateTeacherSalary:"/admins/teachersalary/generate-salary",
 importStudents:"/admins/students/bulk-upload",
 getIpAddress:"/admins/ipAddress/getipAddress",
-registerIp:"/admins/ipAddress/register/ipAddress"
+registerIp:"/admins/ipAddress/register/ipAddress",
+updateIp:"/admins/ipAddress/updateipAddress",
+deleteIp:"/admins/ipAddress/deleteipAddress"
+
   // getTeachers:"/admins/teachers/getAllTeacher",
 //   getTeacherDetails:"/admins/teachers/getTeacherProfile",
 //   teacherDelete:"/admins/teachers/soft-delete",

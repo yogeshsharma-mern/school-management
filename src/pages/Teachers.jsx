@@ -13,6 +13,10 @@ import { FaRegEye } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { MdDelete } from "react-icons/md";
 import { IoIosAddCircleOutline } from "react-icons/io";
+import { FaFileExport } from "react-icons/fa";
+import Papa from "papaparse";
+import { saveAs } from "file-saver";
+import { IoIosAddCircle } from "react-icons/io";
 
 
 export default function StudentPage() {
@@ -45,7 +49,117 @@ export default function StudentPage() {
         search: debouncedSearch,
       }),
   });
+  const handleExportCSV = () => {
+    try {
+      const docs = studentsData?.results?.docs || [];
 
+      if (!docs.length) {
+        toast.error("No data to export");
+        return;
+      }
+
+      // 👉 Map your table rows to a flat CSV-friendly shape
+      const rows = docs.map((cls, idx) => {
+  const formatDate = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  console.log("year",year);
+  const month = String(date.getMonth() + 1) // 01-12
+  const day = String(date.getDate()).padStart(2, "0"); // 01-31
+  return `${year}/${month}/${day}`; // → "2013/02/05"
+};
+console.log("format?????????", formatDate(cls?.dob));
+
+  const formatcreatedandupdated = (dateStr) => {
+                    if (!dateStr) return "N/A";
+                    const date = new Date(dateStr);
+                    return date.toLocaleString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    });
+                };
+        
+
+        // status ko normalize: true/'active' -> Active else Inactive
+ const subjects =
+    Array.isArray(cls?.subjectsHandled) && cls.subjectsHandled.length > 0
+      ? cls.subjectsHandled
+          .map(
+            (s) =>
+              `${s?.subjectName || "N/A"}${
+                s?.subjectCode ? ` (${s.subjectCode})` : ""
+              }`
+          )
+          .join(", ")
+      : "N/A";
+
+        // subjects: string[] ya null
+        //   const subjects =
+        //     Array.isArray(cls?.classTeacher?.subjectsHandled) ? cls?.classTeacher?.subjectsHandled?.map((c)=>c?.subjectName).join(", ") : "N/A";
+return {
+    "Name": cls?.name || "",
+    "email": cls?.email || "",
+    "phone": cls?.phone || "",
+    "dob": formatDate(cls?.dob),
+    "gender": cls?.gender || "",
+    "bloodGroup": cls?.bloodGroup || "",
+    "designation": cls?.designation || "",
+    "specialization": Array.isArray(cls?.specialization)
+      ? cls.specialization.join(", ")
+      : "",
+    "qualifications": Array.isArray(cls?.qualifications)
+      ? cls.qualifications.join(", ")
+      : "",
+    "experience (years)": cls?.experience ?? "",
+    "dateOfJoining": formatDate(cls?.dateOfJoining),
+    "subjectsHandled": subjects,
+    "salary_basic": cls?.salaryInfo?.basic ?? "",
+    "salary_allowances": cls?.salaryInfo?.allowances ?? "",
+    "salary_deductions": cls?.salaryInfo?.deductions ?? "",
+    "salary_net": cls?.salaryInfo?.netSalary ?? "",
+    "street": cls?.address?.street || "",
+    "city": cls?.address?.city || "",
+    "state": cls?.address?.state || "",
+    "zip": cls?.address?.zip || "",
+    "country": cls?.address?.country || "",
+    "aadharFront": cls?.aadharFront?.fileUrl || "",
+    "aadharBack": cls?.aadharBack?.fileUrl || "",
+    "emergencyContactName": cls?.emergencyContact?.name || "",
+    "emergencyContactRelation": cls?.emergencyContact?.relation || "",
+    "emergencyContactPhone": cls?.emergencyContact?.phone || "",
+    "status": cls?.status,
+    "createdAt": formatcreatedandupdated(cls?.createdAt),
+    "updatedAt": formatcreatedandupdated(cls?.updatedAt),
+  };
+
+      });
+
+      // 👉 Convert JSON → CSV
+      const csv = Papa.unparse(rows, {
+        quotes: false,        // har field ke around quotes nahi
+        delimiter: ",",       // default comma
+        header: true,         // header row include
+        newline: "\r\n",      // windows/mac friendly new lines
+      });
+
+      // 👉 File name with date
+      const stamp = new Date().toISOString().replace(/[:]/g, "-").split(".")[0]; // 2025-11-10T12-34-56
+      const filename = `teachers${stamp}.csv`;
+
+      // 👉 Trigger download
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      saveAs(blob, filename);
+
+      toast.success("CSV exported successfully ✅");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to export CSV ❌");
+    }
+  };
   // Mutation for create/update student
   // const studentMutation = useMutation({
   //   mutationFn: (studentObj) => {
@@ -232,12 +346,25 @@ export default function StudentPage() {
 
       <div className="flex p-6 justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Teachers</h1>
-        <button
+<div className="flex gap-2">
+         
+ <button
+              onClick={handleExportCSV}
+              className="px-4 flex gap-1 items-center py-2 px-4 py-2 bg-[image:var(--gradient-primary)]  rounded-lg cursor-pointer hover:bg-blue-700 transition"
+            >
+              <FaFileExport />
+
+              Export CSV
+            </button>
+             <button
           onClick={() => navigate("/admin/teachers/create")}
-          className="px-4 py-2 bg-[image:var(--gradient-primary)] rounded-lg hover:bg-yellow-500 cursor-pointer transition"
+          className="px-4 py-2 flex gap-1 items-center bg-[image:var(--gradient-primary)] rounded-lg hover:bg-yellow-500 cursor-pointer transition"
         >
+          <IoIosAddCircle />
           Add Teacher
         </button>
+
+</div>
       </div>
       <Modal isOpen={deleteModalOpen} title={`Delete ${deleteTarget.name}?`} onClose={() => setDeleteModalOpen(false)}>
         <div className="space-y-4">
