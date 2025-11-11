@@ -335,6 +335,16 @@ export default function IpSettings() {
                             name="ipAddress"
                             value={form.ipAddress}
                             onChange={handleChange}
+                            onKeyDown={(e) =>
+                                 { 
+                                    //  Allow control
+                                    //   keys (Backspace, Tab, Delete, Arrows)
+                                       if ( e.key === "Backspace" || e.key === "Tab" || e.key === "Delete" || e.key === "ArrowLeft" || e.key === "ArrowRight" ) { return; } 
+                                 // Allow only digits
+                                //   (0-9) and dots (.)
+                                   if (!/[0-9.]/.test(e.key)) { e.preventDefault(); setIpError("Only numbers and dots are allowed (e.g. 192.168.1.1)"); } else { setIpError("");
+                                     // clear error when valid 
+                                     } }}
                             placeholder="e.g. 192.168.2.53"
                             className={`w-full border rounded-lg px-3 py-2 focus:ring-2 outline-none ${ipError
                                     ? "border-red-400 focus:ring-red-400"
@@ -355,12 +365,19 @@ export default function IpSettings() {
                             value={form.note}
                             onChange={handleChange}
                             placeholder="e.g. Main Office"
+                            onKeyDown={(e) => {
+                                 if (/[0-9]/.test(e.key)) 
+                                    { e.preventDefault(); 
+                                        setNoteError("Only characters are allowed")
+                                    }
+                                }
+                                }
                             className={`w-full border rounded-lg px-3 py-2 focus:ring-2 outline-none ${noteError
                                     ? "border-red-400 focus:ring-red-400"
                                     : "border-gray-300 focus:ring-yellow-400"
                                 }`}
                         />
-                        {noteError && <p className="text-xs text-red-500 mt-1">{noteError}</p>}
+                {noteError && ( <p className="text-xs text-red-500 mt-1">{noteError}</p> )}
                     </div>
 
                     {/* Submit */}
