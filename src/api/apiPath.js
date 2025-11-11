@@ -47,7 +47,10 @@ const apiPath = Object.freeze({
   LinkresetApi:"admins/auth/reset-password",
   TeacherSalary:"admins/teachersalary/salary-status",
 AddClassTeacher:"admins/teachers/class-teacherOf",
-generateTeacherSalary:"/admins/teachersalary/generate-salary"
+generateTeacherSalary:"/admins/teachersalary/generate-salary",
+importStudents:"/admins/students/bulk-upload",
+getIpAddress:"/admins/ipAddress/getipAddress",
+registerIp:"/admins/ipAddress/register/ipAddress"
   // getTeachers:"/admins/teachers/getAllTeacher",
 //   getTeacherDetails:"/admins/teachers/getTeacherProfile",
 //   teacherDelete:"/admins/teachers/soft-delete",

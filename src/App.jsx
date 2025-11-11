@@ -36,6 +36,7 @@ const TeacherAttendance = lazy(() => import("./pages/TeacherAttendance.jsx"));
 const TeacherSalary = lazy(() => import("./pages/TeacherSalary.jsx"));
 const TeacherMonthlyAttendance = lazy(() => import("./pages/TeacherMonthlyAttendance.jsx"));
 const ClockwiseAttendanceUi=lazy(()=>import("./pages/ClockwiseAttendanceUi.jsx"));
+const IpSetting =lazy(()=>import("./pages/IpSetting.jsx"));
 const NoFound = lazy(() => import("./pages/NotFound.jsx"));
 const salaryDetail = lazy(() => import("./pages/SalaryDetail.jsx"));
 // const EditFeesForm=lazy(()=>import('./pages/EditFeesForm.jsx'));
@@ -98,6 +99,7 @@ export default function App() {
             {/* <Route path="teachers/:id" element={<TeacherDetails />} /> */}
             <Route path="teachers/edit/:id" element={<EditTeacher />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="school/ip-setting" element={<IpSetting/>}/>
             <Route path="password" element={<ChangePassword />} />
             <Route path="assign" element={<Assign />} />
 

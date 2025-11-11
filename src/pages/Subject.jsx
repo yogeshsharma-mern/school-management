@@ -16,6 +16,9 @@ import ConfirmBox from "../components/ConfirmBox";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
 import { FaFileExport } from "react-icons/fa";
+import * as XLSX from "xlsx";
+// import toast from "react-hot-toast";
+
 
 
 
@@ -121,6 +124,70 @@ export default function ClassPage() {
     };
 
 
+    const handleExportCSV = () => {
+        try {
+            const docs = classesData?.results?.docs || [];
+
+            if (!docs.length) {
+                toast.error("No data to export");
+                return;
+            }
+
+            // 👉 Map your table rows to a flat CSV-friendly shape
+            const rows = docs.map((cls, idx) => {
+                const formatDate = (dateStr) => {
+                    if (!dateStr) return "N/A";
+                    const date = new Date(dateStr);
+                    return date.toLocaleString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    });
+                };
+                // status ko normalize: true/'active' -> Active else Inactive
+                const statusNorm =
+                    cls?.status === true || cls?.status === "active" ? "Active" : "Inactive";
+
+                // subjects: string[] ya null
+                //   const subjects =
+                //     Array.isArray(cls?.classTeacher?.subjectsHandled) ? cls?.classTeacher?.subjectsHandled?.map((c)=>c?.subjectName).join(", ") : "N/A";
+
+                return {
+                    "S No.": idx + 1,
+                    "Subject Name": cls?.name || "",
+                    Description: cls?.description || "",
+                    code: cls?.code ?? 0,
+                    Status: statusNorm,
+                    "Created At": formatDate(cls?.createdAt),
+                    "Updated At": formatDate(cls?.updatedAt),
+
+                };
+            });
+
+            // 👉 Convert JSON → CSV
+            const csv = Papa.unparse(rows, {
+                quotes: false,        // har field ke around quotes nahi
+                delimiter: ",",       // default comma
+                header: true,         // header row include
+                newline: "\r\n",      // windows/mac friendly new lines
+            });
+
+            // 👉 File name with date
+            const stamp = new Date().toISOString().replace(/[:]/g, "-").split(".")[0]; // 2025-11-10T12-34-56
+            const filename = `Subjects_${stamp}.csv`;
+
+            // 👉 Trigger download
+            const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+            saveAs(blob, filename);
+
+            toast.success("CSV exported successfully ✅");
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to export CSV ❌");
+        }
+    };
 
 
 
@@ -340,16 +407,26 @@ export default function ClassPage() {
             </Modal>
             <div className="flex p-6 justify-between items-center cursor-pointer mb-4">
                 <h1 className="text-2xl font-bold">Subjects</h1>
-                <button
-                    onClick={() => {
-                        setEditingClass(null);
-                        setFormData({ name: "", section: "", subjects: "" });
-                        setIsModalOpen(true);
-                    }}
-                    className="px-4 py-2 bg-[image:var(--gradient-primary)] cursor-pointer  rounded-lg hover:bg-yellow-500 cursor-pointer transition"
-                >
-                    Add Subject
-                </button>
+                <div className="flex gap-2 items-center">
+                    <button
+                          onClick={handleExportCSV}
+                        className="px-4 flex gap-1 items-center py-2 px-4 py-2 bg-[image:var(--gradient-primary)]  rounded-lg cursor-pointer hover:bg-blue-700 transition"
+                    >
+                        <FaFileExport />
+
+                        Export CSV
+                    </button>
+                    <button
+                        onClick={() => {
+                            setEditingClass(null);
+                            setFormData({ name: "", section: "", subjects: "" });
+                            setIsModalOpen(true);
+                        }}
+                        className="px-4 py-2 bg-[image:var(--gradient-primary)] cursor-pointer  rounded-lg hover:bg-yellow-500 cursor-pointer transition"
+                    >
+                        Add Subject
+                    </button>
+                </div>
             </div>
             <div className="overflow-x-auto  realtive w-[98vw] md:w-[80vw]">
 
@@ -377,7 +454,7 @@ export default function ClassPage() {
 
             </div>
             {/* Modal for create/edit */}
-            <ConfirmBox   message="Are you sure you want to delete this subject? This action cannot be undone." isOpen={confirmOpen} onCancel={() => {
+            <ConfirmBox message="Are you sure you want to delete this subject? This action cannot be undone." isOpen={confirmOpen} onCancel={() => {
                 setConfirmOpen(false)
             }
             } onConfirm={() => {
