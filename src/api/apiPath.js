@@ -52,7 +52,11 @@ importStudents:"/admins/students/bulk-upload",
 getIpAddress:"/admins/ipAddress/getipAddress",
 registerIp:"/admins/ipAddress/register/ipAddress",
 updateIp:"/admins/ipAddress/updateipAddress",
-deleteIp:"/admins/ipAddress/deleteipAddress"
+deleteIp:"/admins/ipAddress/deleteipAddress",
+getHolidays:"/admins/calender/getholidays",
+holidays:"/admins/calender/holidays-calender",
+holidaysUpdate:"/admins/calender/update",
+holidaysDelete:"/admins/calender/delete"
 
   // getTeachers:"/admins/teachers/getAllTeacher",
 //   getTeacherDetails:"/admins/teachers/getTeacherProfile",

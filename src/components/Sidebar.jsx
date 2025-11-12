@@ -16,16 +16,18 @@ import { useDispatch } from "react-redux";
 import { useState } from "react";
 import { logout } from "../redux/features/auth/authslice";
 import { motion, AnimatePresence } from "framer-motion";
+import { IoCalendar } from "react-icons/io5";
+
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
   const dispatch = useDispatch();
   const [openTeacherMenu, setOpenTeacherMenu] = useState(false);
-  const [openSchoolSettingMenu,setOpenSchoolSettingMenu] = useState(false);
+  const [openSchoolSettingMenu, setOpenSchoolSettingMenu] = useState(false);
 
   // ✅ When clicking any main nav item (not submenu), close teacher menu
   const handleMainNavClick = () => {
     if (openTeacherMenu) setOpenTeacherMenu(false);
-    if(openSchoolSettingMenu) setOpenSchoolSettingMenu(false);
+    if (openSchoolSettingMenu) setOpenSchoolSettingMenu(false);
     if (toggleSidebar) toggleSidebar();
   };
 
@@ -35,17 +37,15 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   };
 
   const navItemClass = ({ isActive }) =>
-    `flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${
-      isActive
-        ? "bg-[image:var(--gradient-primary)]  text-black shadow-lg"
-        : "text-gray-300 hover:text-[var(--heading-hover)] hover:bg-[#1a263b]/70"
+    `flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${isActive
+      ? "bg-[image:var(--gradient-primary)]  text-black shadow-lg"
+      : "text-gray-300 hover:text-[var(--heading-hover)] hover:bg-[#1a263b]/70"
     }`;
 
   const subItemClass = ({ isActive }) =>
-    `flex items-center space-x-3 px-4 py-2.5 text-sm rounded-lg transition-all duration-200 ${
-      isActive
-        ? "bg-[#1b263b] text-[var(--heading-hover)]"
-        : "text-gray-400 hover:text-[var(--heading-hover)] hover:bg-[#1b263b]/60"
+    `flex items-center space-x-3 px-4 py-2.5 text-sm rounded-lg transition-all duration-200 ${isActive
+      ? "bg-[#1b263b] text-[var(--heading-hover)]"
+      : "text-gray-400 hover:text-[var(--heading-hover)] hover:bg-[#1b263b]/60"
     }`;
 
   return (
@@ -100,11 +100,10 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         {/* ==== Teachers Section (with icons in submenu) ==== */}
         <button
           onClick={() => setOpenTeacherMenu(!openTeacherMenu)}
-          className={`flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-            openTeacherMenu
+          className={`flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${openTeacherMenu
               ? "bg-[image:var(--gradient-primary)]  text-black shadow-lg"
               : "text-gray-300 hover:text-[var(--heading-hover)] hover:bg-[#1a263b]/70"
-          }`}
+            }`}
         >
           <div className="flex items-center space-x-3">
             <FaChalkboardTeacher size={18} />
@@ -127,13 +126,13 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                 <span>All Teachers</span>
               </NavLink>
 
-              <NavLink to="/admin/teacher/attendance" className={subItemClass} onClick={handleSubmenuClick}>
+              {/* <NavLink to="/admin/teacher/attendance" className={subItemClass} onClick={handleSubmenuClick}>
                 <BsClockHistory size={15} />
                 <span>Attendance</span>
-              </NavLink>
-      <NavLink to="/admin/teacher/attendance/clockwise" className={subItemClass} onClick={handleSubmenuClick}>
+              </NavLink> */}
+              <NavLink to="/admin/teacher/attendance/clockwise" className={subItemClass} onClick={handleSubmenuClick}>
                 <BsClockHistory size={15} />
-                <span>Attendance clockwise</span>
+                <span>Attendance</span>
               </NavLink>
               <NavLink to="/admin/teacher/salary" className={subItemClass} onClick={handleSubmenuClick}>
                 <BsWallet2 size={15} />
@@ -147,18 +146,17 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           <FaMoneyBill size={18} />
           <span>Fees</span>
         </NavLink>
-{/* 
+        {/* 
         <NavLink to="/admin/settings" className={navItemClass} onClick={handleMainNavClick}>
           <IoIosSettings size={18} />
           <span>School Settings</span>
         </NavLink> */}
-     <button
+        <button
           onClick={() => setOpenSchoolSettingMenu(!openSchoolSettingMenu)}
-          className={`flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-            openSchoolSettingMenu
+          className={`flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${openSchoolSettingMenu
               ? "bg-[image:var(--gradient-primary)]  text-black shadow-lg"
               : "text-gray-300 hover:text-[var(--heading-hover)] hover:bg-[#1a263b]/70"
-          }`}
+            }`}
         >
           <div className="flex items-center space-x-3">
             <FaChalkboardTeacher size={18} />
@@ -166,8 +164,8 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           </div>
           {openSchoolSettingMenu ? <IoChevronUp size={18} /> : <IoChevronDown size={18} />}
         </button>
-            <AnimatePresence>
-          {openSchoolSettingMenu&& (
+        <AnimatePresence>
+          {openSchoolSettingMenu && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
@@ -184,12 +182,15 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                 <BsClockHistory size={15} />
                 <span>Ip Setting</span>
               </NavLink>
-   
+
             </motion.div>
           )}
         </AnimatePresence>
-
-{/* // */}
+        <NavLink to="/admin/event-calendar" className={navItemClass} onClick={handleMainNavClick}>
+          <IoCalendar size={18} />
+          <span>Event Calendar</span>
+        </NavLink>
+        {/* // */}
         <NavLink to="/admin/password" className={navItemClass} onClick={handleMainNavClick}>
           <TbLockPassword size={18} />
           <span>Change Password</span>

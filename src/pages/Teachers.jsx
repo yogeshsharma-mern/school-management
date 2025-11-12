@@ -17,6 +17,24 @@ import { FaFileExport } from "react-icons/fa";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
 import { IoIosAddCircle } from "react-icons/io";
+import Select from "react-select";
+import { AddCircleOutline, DeleteOutline } from "@mui/icons-material";
+import {
+  InputAdornment,
+  IconButton,
+  TextField,
+  MenuItem,
+  Checkbox,
+  FormControlLabel,
+  Button,
+  Stepper,
+  Step,
+  StepLabel,
+  Grid,
+  Paper,
+  Tooltip,
+  Divider
+} from "@mui/material";
 
 
 export default function StudentPage() {
@@ -25,12 +43,26 @@ export default function StudentPage() {
   const navigate = useNavigate();
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [sorting, setSorting] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState([]);
   const [viewModal, setViewModal] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [viewData, setViewData] = useState([]);
   const [classFilter, setClassFilter] = useState("");
   const [academicYearFilter, setAcademicYearFilter] = useState("");
+
+  const [excelData, setExcelData] = useState({
+    classes: [],
+    subjectsHandled: [
+      {
+        subjectName: "",
+        subjectCode: "",
+        classId: ""           // Class ID
+      }
+    ],
+  });
+  console.log("exceldata", excelData);
 
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,6 +71,14 @@ export default function StudentPage() {
   const debouncedSearch = useDebounce(globalFilter, 500);
 
   // Fetch students
+  const { data: classes = [], isLoading: classesloadiing, isError } = useQuery({
+    queryKey: ["classesForStudent"],
+    queryFn: () => apiGet(apiPath.classes),
+  });
+  const { data: subjects = [], isLoading: isloading, isError: iserr } = useQuery({
+    queryKey: ["subjectForTeacher"],
+    queryFn: () => apiGet(apiPath.getSubjects),
+  });
   const { data: studentsData, isLoading, isFetching, error } = useQuery({
     queryKey: ["teachers", pagination.pageIndex, pagination.pageSize, debouncedSearch, classFilter,
       academicYearFilter],
@@ -49,6 +89,16 @@ export default function StudentPage() {
         search: debouncedSearch,
       }),
   });
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.name.endsWith(".csv") && !file.name.endsWith(".csv")) {
+      toast.error("Please upload a valid Excel file (.csv)");
+      return;
+    }
+    setSelectedFile(file);
+  };
   const handleExportCSV = () => {
     try {
       const docs = studentsData?.results?.docs || [];
@@ -60,81 +110,80 @@ export default function StudentPage() {
 
       // 👉 Map your table rows to a flat CSV-friendly shape
       const rows = docs.map((cls, idx) => {
-  const formatDate = (dateString) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  console.log("year",year);
-  const month = String(date.getMonth() + 1) // 01-12
-  const day = String(date.getDate()).padStart(2, "0"); // 01-31
-  return `${year}/${month}/${day}`; // → "2013/02/05"
-};
-console.log("format?????????", formatDate(cls?.dob));
+        const formatDate = (dateString) => {
+          if (!dateString) return "";
+          const date = new Date(dateString);
+          const year = date.getFullYear();
+          console.log("year", year);
+          const month = String(date.getMonth() + 1) // 01-12
+          const day = String(date.getDate()).padStart(2, "0"); // 01-31
+          return `${year}/${month}/${day}`; // → "2013/02/05"
+        };
+        console.log("format?????????", formatDate(cls?.dob));
 
-  const formatcreatedandupdated = (dateStr) => {
-                    if (!dateStr) return "N/A";
-                    const date = new Date(dateStr);
-                    return date.toLocaleString("en-IN", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    });
-                };
-        
+        const formatcreatedandupdated = (dateStr) => {
+          if (!dateStr) return "N/A";
+          const date = new Date(dateStr);
+          return date.toLocaleString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        };
+
 
         // status ko normalize: true/'active' -> Active else Inactive
- const subjects =
-    Array.isArray(cls?.subjectsHandled) && cls.subjectsHandled.length > 0
-      ? cls.subjectsHandled
-          .map(
-            (s) =>
-              `${s?.subjectName || "N/A"}${
-                s?.subjectCode ? ` (${s.subjectCode})` : ""
-              }`
-          )
-          .join(", ")
-      : "N/A";
+        const subjects =
+          Array.isArray(cls?.subjectsHandled) && cls.subjectsHandled.length > 0
+            ? cls.subjectsHandled
+              .map(
+                (s) =>
+                  `${s?.subjectName || "N/A"}${s?.subjectCode ? ` (${s.subjectCode})` : ""
+                  }`
+              )
+              .join(", ")
+            : "N/A";
 
         // subjects: string[] ya null
         //   const subjects =
         //     Array.isArray(cls?.classTeacher?.subjectsHandled) ? cls?.classTeacher?.subjectsHandled?.map((c)=>c?.subjectName).join(", ") : "N/A";
-return {
-    "Name": cls?.name || "",
-    "email": cls?.email || "",
-    "phone": cls?.phone || "",
-    "dob": formatDate(cls?.dob),
-    "gender": cls?.gender || "",
-    "bloodGroup": cls?.bloodGroup || "",
-    "designation": cls?.designation || "",
-    "specialization": Array.isArray(cls?.specialization)
-      ? cls.specialization.join(", ")
-      : "",
-    "qualifications": Array.isArray(cls?.qualifications)
-      ? cls.qualifications.join(", ")
-      : "",
-    "experience (years)": cls?.experience ?? "",
-    "dateOfJoining": formatDate(cls?.dateOfJoining),
-    "subjectsHandled": subjects,
-    "salary_basic": cls?.salaryInfo?.basic ?? "",
-    "salary_allowances": cls?.salaryInfo?.allowances ?? "",
-    "salary_deductions": cls?.salaryInfo?.deductions ?? "",
-    "salary_net": cls?.salaryInfo?.netSalary ?? "",
-    "street": cls?.address?.street || "",
-    "city": cls?.address?.city || "",
-    "state": cls?.address?.state || "",
-    "zip": cls?.address?.zip || "",
-    "country": cls?.address?.country || "",
-    "aadharFront": cls?.aadharFront?.fileUrl || "",
-    "aadharBack": cls?.aadharBack?.fileUrl || "",
-    "emergencyContactName": cls?.emergencyContact?.name || "",
-    "emergencyContactRelation": cls?.emergencyContact?.relation || "",
-    "emergencyContactPhone": cls?.emergencyContact?.phone || "",
-    "status": cls?.status,
-    "createdAt": formatcreatedandupdated(cls?.createdAt),
-    "updatedAt": formatcreatedandupdated(cls?.updatedAt),
-  };
+        return {
+          "Name": cls?.name || "",
+          "email": cls?.email || "",
+          "phone": cls?.phone || "",
+          "dob": formatDate(cls?.dob),
+          "gender": cls?.gender || "",
+          "bloodGroup": cls?.bloodGroup || "",
+          "designation": cls?.designation || "",
+          "specialization": Array.isArray(cls?.specialization)
+            ? cls.specialization.join(", ")
+            : "",
+          "qualifications": Array.isArray(cls?.qualifications)
+            ? cls.qualifications.join(", ")
+            : "",
+          "experience (years)": cls?.experience ?? "",
+          "dateOfJoining": formatDate(cls?.dateOfJoining),
+          "subjectsHandled": subjects,
+          "salary_basic": cls?.salaryInfo?.basic ?? "",
+          "salary_allowances": cls?.salaryInfo?.allowances ?? "",
+          "salary_deductions": cls?.salaryInfo?.deductions ?? "",
+          "salary_net": cls?.salaryInfo?.netSalary ?? "",
+          "street": cls?.address?.street || "",
+          "city": cls?.address?.city || "",
+          "state": cls?.address?.state || "",
+          "zip": cls?.address?.zip || "",
+          "country": cls?.address?.country || "",
+          "aadharFront": cls?.aadharFront?.fileUrl || "",
+          "aadharBack": cls?.aadharBack?.fileUrl || "",
+          "emergencyContactName": cls?.emergencyContact?.name || "",
+          "emergencyContactRelation": cls?.emergencyContact?.relation || "",
+          "emergencyContactPhone": cls?.emergencyContact?.phone || "",
+          "status": cls?.status,
+          "createdAt": formatcreatedandupdated(cls?.createdAt),
+          "updatedAt": formatcreatedandupdated(cls?.updatedAt),
+        };
 
       });
 
@@ -159,6 +208,43 @@ return {
       console.error(err);
       toast.error("Failed to export CSV ❌");
     }
+  };
+  const handleImportSubmit = (e) => {
+    e.preventDefault();
+
+    // === Validation checks ===
+    if (classes.length === 0) {
+      toast.error("Please select a class!");
+      return;
+    }
+    // if (!academicYear) {
+    //   toast.error("please select academic year");
+    //   return;
+    // }
+
+    // if (!feesData?.results?._id) {
+    //   toast.error("Fee structure not found! Please ensure one exists for this class.");
+    //   return;
+    // }
+
+    if (!selectedFile) {
+      toast.error("Please upload an Excel/CSV file!");
+      return;
+    }
+
+    // if (!academicYear) {
+    //   toast.error("Please select an academic year!");
+    //   return;
+    // }
+
+    // === Prepare FormData ===
+    const formData = new FormData();
+    formData.append("classId", classes);
+    // formData.append("csvfile", selectedFile);
+    // formData.append("feeStructureId", feesData?.results?._id);
+    // formData.append("academicYear", academicYear);
+
+    importMutation.mutate(formData);
   };
   // Mutation for create/update student
   // const studentMutation = useMutation({
@@ -234,9 +320,9 @@ return {
   const columns = useMemo(
     () => [
       {
-                header: "S No.",
-                cell: ({ row }) => row.index + 1,
-            },
+        header: "S No.",
+        cell: ({ row }) => row.index + 1,
+      },
       {
         accessorKey: "profilePic",
         header: "Profile Pic",
@@ -346,25 +432,36 @@ return {
 
       <div className="flex p-6 justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Teachers</h1>
-<div className="flex gap-2">
-         
- <button
-              onClick={handleExportCSV}
-              className="px-4 flex gap-1 items-center py-2 px-4 py-2 bg-[image:var(--gradient-primary)]  rounded-lg cursor-pointer hover:bg-blue-700 transition"
-            >
-              <FaFileExport />
+        <div className="flex gap-2">
 
-              Export CSV
-            </button>
-             <button
-          onClick={() => navigate("/admin/teachers/create")}
-          className="px-4 py-2 flex gap-1 items-center bg-[image:var(--gradient-primary)] rounded-lg hover:bg-yellow-500 cursor-pointer transition"
-        >
-          <IoIosAddCircle />
-          Add Teacher
-        </button>
+          <button
+            onClick={handleExportCSV}
+            className="px-4 flex gap-1 items-center py-2 px-4 py-2 bg-[image:var(--gradient-primary)]  rounded-lg cursor-pointer hover:bg-blue-700 transition"
+          >
+            <FaFileExport />
 
-</div>
+            Export CSV
+          </button>
+          <button
+            // onClick={handleExportCSV}
+            onClick={() => setModalOpen(true)}
+            className="px-4 flex gap-1 items-center py-2 px-4 py-2 bg-[image:var(--gradient-primary)]  rounded-lg cursor-pointer hover:bg-blue-700 transition"
+          >
+            <FaFileExport />
+
+            Import CSV
+          </button>
+
+          <button
+            onClick={() => navigate("/admin/teachers/create")}
+            className="px-4 py-2 flex gap-1 items-center bg-[image:var(--gradient-primary)] rounded-lg hover:bg-yellow-500 cursor-pointer transition"
+          >
+            <IoIosAddCircle />
+            Add Teacher
+          </button>
+
+
+        </div>
       </div>
       <Modal isOpen={deleteModalOpen} title={`Delete ${deleteTarget.name}?`} onClose={() => setDeleteModalOpen(false)}>
         <div className="space-y-4">
@@ -392,7 +489,296 @@ return {
           </div>
         </div>
       </Modal>
+      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Upload Details For Excel Import" >
+   <form>
+         <Select
+          isMulti
+          placeholder="Select classes..."
+          classNamePrefix="select"
+          styles={{
+            control: (base, state) => ({
+              ...base,
+              minHeight: "56px",
+              borderRadius: "8px",
+              borderColor: state.isFocused ? "#1976d2" : "#d1d5db",
+              boxShadow: state.isFocused ? "0 0 0 2px rgba(25,118,210,0.1)" : "none",
+              "&:hover": { borderColor: "#1976d2" },
+            }),
+          }}
+          options={classes?.results?.docs.map((cls) => ({
+            value: cls._id,
+            label: `${cls.name} ${cls.section}`,
+          }))}
+          value={excelData.classes.map((clsId) => {
+            const found = classes?.results?.docs.find((cls) => cls._id === clsId);
+            return found ? { value: found._id, label: `${found.name} ${found.section}` } : null;
+          })}
+          onChange={(selected) => {
+            setExcelData({
+              ...excelData,
+              classes: selected ? selected.map((s) => s.value) : [],
+            });
+            setErrors((prev) => ({ ...prev, classes: "" }));
 
+          }
+
+          }
+
+
+        />
+        <Paper elevation={3} className="p-8 mt-3 rounded-3xl">
+          {/* Section Header */}
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+                📚 Subjects Handled
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Add the subjects this teacher is responsible for
+              </p>
+            </div>
+
+            <Tooltip title="Add new subject">
+              <IconButton
+                color="primary"
+                onClick={() =>
+                  setExcelData({
+                    ...excelData,
+                    subjectsHandled: [
+                      ...excelData.subjectsHandled,
+                      { subjectName: "", subjectCode: "", classId: "" },
+                    ],
+                  })
+                }
+              >
+                <AddCircleOutline fontSize="large" />
+              </IconButton>
+            </Tooltip>
+          </div>
+
+          {/* Subjects List */}
+          {excelData.subjectsHandled.map((subject, index) => (
+            <Paper
+              key={index}
+              elevation={1}
+              className="p-6 mb-6 rounded-2xl border border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 hover:shadow-md transition-all duration-300"
+            >
+              <div className="flex justify-between items-center mb-5">
+                <h3 className="text-lg font-semibold text-gray-700">
+                  Subject {index + 1}
+                </h3>
+                {excelData.subjectsHandled.length > 1 && (
+                  <Tooltip title="Remove subject">
+                    <IconButton
+                      color="error"
+                      onClick={() => {
+                        const updated = [...excelData.subjectsHandled];
+                        updated.splice(index, 1);
+                        setExcelData({ ...excelData, subjectsHandled: updated });
+                      }}
+                    >
+                      <DeleteOutline />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </div>
+
+              <Grid container spacing={3} alignItems="center">
+                {/* Subject Name */}
+                {/* Subject Name */}
+                <Grid item xs={12} sm={4}>
+                  <Select
+                    key={index}
+                    placeholder="Select subject..."
+                    classNamePrefix="select"
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        minHeight: "56px",
+                        borderRadius: "8px",
+                        borderColor: errors[`subjectName_${index}`]
+                          ? "red"
+                          : state.isFocused
+                            ? "#1976d2"
+                            : "#d1d5db",
+                        boxShadow: state.isFocused
+                          ? "0 0 0 2px rgba(25,118,210,0.1)"
+                          : "none",
+                        "&:hover": {
+                          borderColor: state.isFocused ? "#1976d2" : "#d1d5db",
+                        },
+                      }),
+                    }}
+                    options={subjects?.results?.docs.map((subj) => ({
+                      value: subj._id, // still keep ID as value
+                      label: subj.name, // label shown in UI
+                    }))}
+                    value={
+                      subject.subjectName
+                        ? {
+                          value: subjects?.results?.docs.find(
+                            (subj) => subj.name === subject.subjectName
+                          )?._id,
+                          label: subject.subjectName,
+                        }
+                        : null
+                    }
+                    onChange={(selected) => {
+                      // console.log("selected:", selected);
+
+                      // Find subject data by selected id
+                      const foundSubject = subjects?.results?.docs.find(
+                        (subj) => subj._id === selected?.value
+                      );
+
+                      const updatedSubjects = [...excelData.subjectsHandled];
+                      updatedSubjects[index] = {
+                        ...updatedSubjects[index],
+                        // ✅ Send subject name (label) to backend, not the ID
+                        subjectName: selected?.label || "",
+                        subjectCode: foundSubject?.code || "",
+                      };
+
+                      setExcelData({ ...excelData, subjectsHandled: updatedSubjects });
+
+                      // 🔹 Clear error on change
+                      setErrors((prev) => ({
+                        ...prev,
+                        [`subjectName_${index}`]: "",
+                      }));
+                    }}
+                  />
+
+                  {errors[`subjectName_${index}`] && (
+                    <p className="text-red-500 text-sm mt-1">{errors[`subjectName_${index}`]}</p>
+                  )}
+                </Grid>
+
+
+                {/* Subject Code */}
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    fullWidth
+                    label="Subject Code"
+                    value={subject.subjectCode}
+                    disabled
+                    onChange={(e) => {
+                      const updated = [...excelData.subjectsHandled];
+                      updated[index].subjectCode = e.target.value;
+                      setExcelData({ ...excelData, subjectsHandled: updated });
+                    }}
+                    InputProps={{
+                      style: { height: "56px", borderRadius: "8px" },
+                    }}
+                  />
+                </Grid>
+
+
+                {/* Class */}
+                <Grid item xs={12} sm={4}>
+                  <Select
+                    key={index}
+                    placeholder="Select class..."
+                    classNamePrefix="select"
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        minHeight: "56px",
+                        borderRadius: "8px",
+                        borderColor: errors[`classId_${index}`]
+                          ? "red"
+                          : state.isFocused
+                            ? "#1976d2"
+                            : "#d1d5db",
+                        boxShadow: state.isFocused
+                          ? "0 0 0 2px rgba(25,118,210,0.1)"
+                          : "none",
+                        "&:hover": {
+                          borderColor: state.isFocused ? "#1976d2" : "#d1d5db",
+                        },
+                      }),
+                    }}
+                    options={
+                      classes?.results?.docs
+                        ?.filter((cls) =>
+                          // ✅ 1️⃣ show only assigned classes
+                          excelData.classes.includes(cls._id) &&
+                          // ✅ 2️⃣ exclude classes already selected in other subjects
+                          !excelData.subjectsHandled.some(
+                            (sub, i) => sub.classId === cls._id && i !== index
+                          )
+                        )
+                        ?.map((cls) => ({
+                          value: cls._id,
+                          label: `${cls.name} ${cls.section}`,
+                        }))
+                    }
+                    value={
+                      subject.classId
+                        ? {
+                          value: subject.classId,
+                          label:
+                            (() => {
+                              const foundClass = classes?.results?.docs.find((cls) => cls._id === subject.classId);
+                              return foundClass ? `${foundClass.name} ${foundClass.section}` : "";
+                            })(),
+                        }
+                        : null
+                    }
+                    onChange={(selected) => {
+                      const updatedSubjects = [...excelData.subjectsHandled];
+                      updatedSubjects[index] = {
+                        ...updatedSubjects[index],
+                        classId: selected?.value || "",
+                      };
+                      setExcelData({ ...excelData, subjectsHandled: updatedSubjects });
+
+                      // clear error
+                      setErrors((prev) => ({ ...prev, [`classId_${index}`]: "" }));
+                    }}
+                  />
+
+                  {errors[`classId_${index}`] && (
+                    <p className="text-red-500 text-sm mt-1">{errors[`classId_${index}`]}</p>
+                  )}
+                </Grid>
+
+              </Grid>
+
+              {index !== excelData.subjectsHandled.length - 1 && (
+                <Divider className="mt-6" />
+              )}
+            </Paper>
+          ))}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Upload Excel File <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={handleFileChange}
+              className="w-full border border-gray-300 p-2 rounded-md cursor-pointer"
+            />
+            {selectedFile && (
+              <p className="text-xs mt-1 text-gray-500">
+                Selected: {selectedFile.name}
+              </p>
+            )}
+          </div>
+        </Paper>
+        <button
+          type="submit"
+          // disabled={importMutation.isLoading}
+          className="w-full flex mt-3 gap-1 justify-center  items-center bg-[image:var(--gradient-primary)]  py-2 rounded-lg  cursor-pointer transition"
+        >
+          <FaFileExport />
+
+          {/* {importMutation.isLoading ? "Importing..." : "Start Import"} */}
+          "Submit"
+        </button>
+   </form>
+      </Modal>
       <div className="overflow-x-auto  w-[98vw] md:w-[80vw]">
         <ReusableTable
           columns={columns}
