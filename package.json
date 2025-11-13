@@ -20,6 +20,7 @@
     "@tanstack/react-table": "^8.21.3",
     "apexcharts": "^5.3.5",
     "axios": "^1.12.2",
+    "date-fns": "^4.1.0",
     "dayjs": "^1.11.18",
     "file-saver": "^2.0.5",
     "framer-motion": "^12.23.24",

@@ -239,47 +239,118 @@ export default function CreateStudentPage() {
 
 
 
+  // const handleFileUpload = (e, field, section = null) => {
+  //   const inputFiles = e.target.files;
+  //   if (!inputFiles || inputFiles.length === 0) return;
+
+  //   if (["marksheets", "certificates"].includes(field)) {
+  //     const newFiles = Array.from(inputFiles);
+  //     setStudent(prev => {
+  //       const updatedFiles = [...(prev.documents[field] || []), ...newFiles].slice(0, 5);
+  //       return {
+  //         ...prev,
+  //         documents: {
+  //           ...prev.documents,
+  //           [field]: updatedFiles,
+  //         },
+  //       };
+  //     });
+  //     setPreviews(prev => {
+  //       const updatedPreviews = [
+  //         ...(prev[field] || []),
+  //         ...newFiles.map(f => URL.createObjectURL(f)),
+  //       ].slice(0, 5);
+  //       return { ...prev, [field]: updatedPreviews };
+  //     });
+  //   } else if (section === "documents") {
+  //     const file = inputFiles[0];
+  //     setStudent(prev => ({
+  //       ...prev,
+  //       documents: { ...prev.documents, [field]: file },
+  //     }));
+  //     setPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
+  //   } else {
+  //     const file = inputFiles[0];
+  //     setStudent(prev => ({ ...prev, [field]: file }));
+  //     setPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
+  //   }
+
+  //   // 🔧 Reset the input value so the same files can be re-selected if needed
+  //   e.target.value = "";
+  // };
+
+  // --- Validation Function ---
   const handleFileUpload = (e, field, section = null) => {
     const inputFiles = e.target.files;
     if (!inputFiles || inputFiles.length === 0) return;
 
+    // ----------------------------
+    // MULTIPLE FILE UPLOAD (marksheets, certificates)
+    // ----------------------------
     if (["marksheets", "certificates"].includes(field)) {
       const newFiles = Array.from(inputFiles);
-      setStudent(prev => {
-        const updatedFiles = [...(prev.documents[field] || []), ...newFiles].slice(0, 5);
-        return {
-          ...prev,
-          documents: {
-            ...prev.documents,
-            [field]: updatedFiles,
-          },
-        };
-      });
-      setPreviews(prev => {
-        const updatedPreviews = [
+
+      setStudent(prev => ({
+        ...prev,
+        documents: {
+          ...prev.documents,
+          [field]: [...(prev.documents[field] || []), ...newFiles].slice(0, 5),
+        },
+      }));
+
+      setPreviews(prev => ({
+        ...prev,
+        [field]: [
           ...(prev[field] || []),
-          ...newFiles.map(f => URL.createObjectURL(f)),
-        ].slice(0, 5);
-        return { ...prev, [field]: updatedPreviews };
-      });
-    } else if (section === "documents") {
+          ...newFiles.map(file => ({
+            url: URL.createObjectURL(file),
+            type: file.type,
+          })),
+        ].slice(0, 5),
+      }));
+    }
+
+    // ----------------------------
+    // SINGLE FILE - documents section
+    // ----------------------------
+    else if (section === "documents") {
       const file = inputFiles[0];
+
       setStudent(prev => ({
         ...prev,
         documents: { ...prev.documents, [field]: file },
       }));
-      setPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
-    } else {
-      const file = inputFiles[0];
-      setStudent(prev => ({ ...prev, [field]: file }));
-      setPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
+
+      setPreviews(prev => ({
+        ...prev,
+        [field]: {
+          url: URL.createObjectURL(file),
+          type: file.type,
+        },
+      }));
     }
 
-    // 🔧 Reset the input value so the same files can be re-selected if needed
+    // ----------------------------
+    // NORMAL SINGLE FILE (profilePic, aadhar)
+    // ----------------------------
+    else {
+      const file = inputFiles[0];
+
+      setStudent(prev => ({ ...prev, [field]: file }));
+
+      setPreviews(prev => ({
+        ...prev,
+        [field]: {
+          url: URL.createObjectURL(file),
+          type: file.type,
+        },
+      }));
+    }
+
     e.target.value = "";
   };
 
-  // --- Validation Function ---
+
   const validateStep = () => {
     const newErrors = {};
 
@@ -600,11 +671,22 @@ export default function CreateStudentPage() {
                   className="flex flex-col items-center w-full justify-center w-full py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-yellow-300 transition-colors bg-gray-50"
                 >
                   {previews.profilePic ? (
-                    <img
-                      src={previews.profilePic}
-                      alt="preview"
-                      className=" rounded-full w-[100px] h-[100px] object-cover"
-                    />
+                    previews.profilePic.type === "application/pdf" ? (
+                      <div className="flex flex-col items-center">
+                        <embed
+                          src={previews.profilePic.url}
+                          type="application/pdf"
+                          className="w-[100px] h-[100px] border rounded-md"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">PDF Preview</p>
+                      </div>
+                    ) : (
+                      <img
+                        src={previews.profilePic.url}
+                        alt="preview"
+                        className="rounded-full w-[100px] h-[100px] object-cover"
+                      />
+                    )
                   ) : (
                     <div className="text-center text-gray-400">
                       <BsCloudUpload size={26} className="mx-auto text-blue-500" />
@@ -614,7 +696,7 @@ export default function CreateStudentPage() {
                   <input
                     id="profilePic"
                     type="file"
-                    accept="image/*"
+                    accept="image/*,application/pdf"
                     className="hidden"
                     onChange={(e) => {
                       handleFileUpload(e, "profilePic", "documents");
@@ -980,7 +1062,7 @@ export default function CreateStudentPage() {
 
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/*,application/pdf"
                       onChange={(e) => {
                         handleFileUpload(e, side, "documents");
                         setErrors((prev) => ({ ...prev, [side]: "" }));
@@ -988,28 +1070,36 @@ export default function CreateStudentPage() {
                       className="hidden"
                       id={side}
                     />
+
                     <label
                       htmlFor={side}
                       className="cursor-pointer flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl hover:bg-yellow-50 transition"
                     >
                       {previews[side] ? (
-                        <img
-                          src={previews[side]}
-                          alt={side}
-                          className="w-40 h-28 object-cover rounded-lg shadow"
-                        />
+                        previews[side].type === "application/pdf" ? (
+                          <embed
+                            src={previews[side].url}
+                            type="application/pdf"
+                            className="w-40 h-28 rounded-lg shadow border"
+                          />
+                        ) : (
+                          <img
+                            src={previews[side].url}
+                            alt={side}
+                            className="w-40 h-28 object-cover rounded-lg shadow"
+                          />
+                        )
                       ) : (
                         <>
                           <div className="w-12 h-12 mb-2 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-2xl font-bold">
                             +
                           </div>
-                          <p className="text-gray-500 text-sm">
-                            Click or drag to upload
-                          </p>
+                          <p className="text-gray-500 text-sm">Click or drag to upload</p>
                         </>
                       )}
                     </label>
 
+                    {/* Delete button */}
                     {previews[side] && (
                       <button
                         type="button"
@@ -1025,6 +1115,8 @@ export default function CreateStudentPage() {
                         ✕
                       </button>
                     )}
+
+                    {/* Error message */}
                     {errors[side] && (
                       <p className="text-red-500 text-sm mt-2">{errors[side]}</p>
                     )}
@@ -1038,6 +1130,7 @@ export default function CreateStudentPage() {
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
                 Upload Marksheets (Max 5)
               </h2>
+
               <label
                 htmlFor="marksheets"
                 className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-yellow-400 cursor-pointer bg-gray-50 hover:bg-yellow-50 transition"
@@ -1046,6 +1139,7 @@ export default function CreateStudentPage() {
                   Click or drag files here
                 </div>
               </label>
+
               <input
                 id="marksheets"
                 type="file"
@@ -1057,16 +1151,27 @@ export default function CreateStudentPage() {
 
               {previews.marksheets?.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mt-4">
-                  {previews.marksheets.map((src, idx) => (
+                  {previews.marksheets.map((file, idx) => (
                     <div
                       key={idx}
                       className="relative group border rounded-lg overflow-hidden shadow hover:scale-105 transition-transform duration-200"
                     >
-                      <img
-                        src={src}
-                        alt={`marksheet-${idx}`}
-                        className="w-full h-32 object-cover"
-                      />
+                      {/* IMAGE OR PDF PREVIEW */}
+                      {file.type === "application/pdf" ? (
+                        <embed
+                          src={file.url}
+                          type="application/pdf"
+                          className="w-full h-32 border rounded-md"
+                        />
+                      ) : (
+                        <img
+                          src={file.url}
+                          alt={`marksheet-${idx}`}
+                          className="w-full h-32 object-cover"
+                        />
+                      )}
+
+                      {/* DELETE BUTTON */}
                       <button
                         type="button"
                         className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -1095,6 +1200,8 @@ export default function CreateStudentPage() {
               )}
             </div>
 
+
+
             {/* 🏅 Certificates Upload */}
             <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
@@ -1109,6 +1216,7 @@ export default function CreateStudentPage() {
                   Click or drag files here
                 </div>
               </label>
+
               <input
                 id="certificates"
                 type="file"
@@ -1120,16 +1228,27 @@ export default function CreateStudentPage() {
 
               {previews.certificates?.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mt-4">
-                  {previews.certificates.map((src, idx) => (
+                  {previews.certificates.map((file, idx) => (
                     <div
                       key={idx}
                       className="relative group border rounded-lg overflow-hidden shadow hover:scale-105 transition-transform duration-200"
                     >
-                      <img
-                        src={src}
-                        alt={`certificate-${idx}`}
-                        className="w-full h-32 object-cover"
-                      />
+                      {/* IMAGE OR PDF PREVIEW */}
+                      {file.type === "application/pdf" ? (
+                        <embed
+                          src={file.url}
+                          type="application/pdf"
+                          className="w-full h-32 border rounded-md"
+                        />
+                      ) : (
+                        <img
+                          src={file.url}
+                          alt={`certificate-${idx}`}
+                          className="w-full h-32 object-cover"
+                        />
+                      )}
+
+                      {/* DELETE BUTTON */}
                       <button
                         type="button"
                         className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -1140,6 +1259,7 @@ export default function CreateStudentPage() {
                           const updatedPreviews = previews.certificates.filter(
                             (_, i) => i !== idx
                           );
+
                           setStudent((prev) => ({
                             ...prev,
                             documents: {
@@ -1147,6 +1267,7 @@ export default function CreateStudentPage() {
                               certificates: updatedFiles,
                             },
                           }));
+
                           setPreviews((prev) => ({
                             ...prev,
                             certificates: updatedPreviews,
@@ -1160,6 +1281,7 @@ export default function CreateStudentPage() {
                 </div>
               )}
             </div>
+
           </div>
         )}
 
