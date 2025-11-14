@@ -366,6 +366,9 @@ import apiPath from "../api/apiPath";
 import { format } from "date-fns";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
+import toast from "react-hot-toast";
+import { FaEdit } from "react-icons/fa";
+
 
 /* ---------- helpers ---------- */
 function getDaysInMonth(month, year) {
@@ -424,7 +427,7 @@ export default function AttendanceTable() {
       apiGet(apiPath.getAttendanceClockwise, {
         page,
         limit,
-        search: debouncedSearch,
+        name: debouncedSearch,
         month: selectedMonth + 1,
         year: selectedYear,
       }),
@@ -438,17 +441,16 @@ export default function AttendanceTable() {
   // ---------------- UPDATE (single or bulk) ----------------
   const updateMutation = useMutation({
     mutationFn: (payload) => apiPut(apiPath.updateClockwiseAttendance, payload),
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries(["attendance"]);
       setModalOpen(false);
       setModalStatus("");
       setModalDate("");
       setSelectedTeacherIds([]);
-      alert("Attendance updated!");
+      toast.success(res?.message);
     },
     onError: (err) => {
-      console.error(err);
-      alert("Failed to update attendance");
+      toast.error(err?.response?.data?.message);
     },
   });
 
@@ -554,7 +556,8 @@ export default function AttendanceTable() {
       return;
     }
     if (modalMode === "specific" && selectedTeacherIds.length === 0) {
-      alert("Please select at least one teacher.");
+    //   alert("Please select at least one teacher.");
+    toast.error("Please select at least one teacher. ");
       return;
     }
 
@@ -564,7 +567,7 @@ export default function AttendanceTable() {
       applyTo: modalMode, // 'all' or 'specific'
     };
 
-    if (modalMode === "specific") payload.teacherIds = selectedTeacherIds;
+    if (modalMode === "specific") payload.teachers = selectedTeacherIds;
     updateMutation.mutate(payload);
   };
 
@@ -580,6 +583,7 @@ export default function AttendanceTable() {
 
         <div className="flex items-center justify-end md:justify-normal gap-3">
           {/* Update Attendance Button */}
+      
           <button
             onClick={() => {
               setModalOpen(true);
@@ -588,8 +592,9 @@ export default function AttendanceTable() {
               setModalStatus("");
               setSelectedTeacherIds([]);
             }}
-            className="px-3 py-2 rounded-md  bg-[image:var(--gradient-primary)] shadow hover:scale-105 transition"
+            className="px-3 py-2 flex gap-1 items-center cursor-pointer rounded-md  bg-[image:var(--gradient-primary)] shadow hover:scale-105 transition"
           >
+                <FaEdit />
             Update Attendance
           </button>
 
@@ -695,7 +700,7 @@ export default function AttendanceTable() {
                     <td
                       key={d.dateString}
                       className="text-center px-2 py-2 cursor-pointer hover:scale-105 transition"
-                      onClick={() => updateMutation.mutate({ teacherId: item._id, date: d.dateString, status: "Present" })}
+                    //   onClick={() => updateMutation.mutate({ teacherId: item._id, date: d.dateString, status: "Present" })}
                     >
                       {statusIcon(attendMap[d.dateString])}
                     </td>
@@ -720,7 +725,7 @@ export default function AttendanceTable() {
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-6 relative">
-            <button onClick={() => setModalOpen(false)} className="absolute top-3 right-3 text-gray-500 hover:text-gray-800">✕</button>
+            <button onClick={() => setModalOpen(false)} className="absolute cursor-pointer top-3 right-3 text-gray-500 hover:text-gray-800">✕</button>
             <h3 className="text-xl font-semibold mb-4">Update Attendance</h3>
 
             {/* Date + Status */}
@@ -784,7 +789,7 @@ export default function AttendanceTable() {
             <div className="flex justify-end gap-3">
               <button onClick={() => setModalOpen(false)} className="px-4 py-2 rounded cursor-pointer bg-gray-200">Cancel</button>
               <button onClick={handleModalSubmit} disabled={!modalDate || !modalStatus || (modalMode === "specific" && selectedTeacherIds.length === 0)} className="px-4 py-2 rounded bg-yellow-500 cursor-pointer text-white">
-                Apply
+            {updateMutation.isPending?"Applying...":"Apply"}    
               </button>
             </div>
           </div>

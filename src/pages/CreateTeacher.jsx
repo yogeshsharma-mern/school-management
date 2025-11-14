@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { apiPost, apiGet } from "../api/apiFetch";
 import toast from "react-hot-toast";
 import PhoneInput from "react-phone-input-2";
@@ -9,6 +9,8 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import Select from "react-select";
 import countryList from "react-select-country-list";
 import { AddCircleOutline, DeleteOutline } from "@mui/icons-material";
+import { useRef } from "react";
+import { useLayoutEffect } from "react";
 
 
 import {
@@ -28,6 +30,7 @@ import {
     Divider
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+
 
 const customSelectStyles = {
     control: (provided, state) => ({
@@ -61,6 +64,9 @@ const customSelectStyles = {
 };
 export default function CreateTeacherPage() {
     const navigate = useNavigate();
+    const formTopRef = useRef(null);
+
+
     const qualificationOptions = [
         { value: "B.Ed", label: "B.Ed" },
         { value: "M.Ed", label: "M.Ed" },
@@ -596,9 +602,24 @@ export default function CreateTeacherPage() {
             toast.error(err?.response?.data?.message);
         }
     };
+    useLayoutEffect(() => {
+        const scrollToTop = () => {
+            if (formTopRef.current) {
+                formTopRef.current.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            }
+        };
+
+        // Small delay to ensure DOM is updated
+        const timeoutId = setTimeout(scrollToTop, 100);
+
+        return () => clearTimeout(timeoutId);
+    }, [activeStep]);
 
     return (
-        <div className="max-w-6xl mx-auto md:p-8 p-3 bg-[var(--color-)] rounded-2xl shadow-xl">
+        <div ref={formTopRef} className="max-w-6xl mx-auto md:p-8 p-3 bg-[var(--color-)] rounded-2xl shadow-xl">
             <button
                 onClick={() => navigate(-1)}
                 className="mb-4 cursor-pointer px-4 py-1 bg-gray-100 rounded-lg hover:bg-gray-200"

@@ -8,6 +8,7 @@ import Loader from "./components/Loading.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import SalaryDetail from "./pages/SalaryDetail.jsx";
 
+import ScrollToTop from "./ScrollToTop";
 
 
 
@@ -48,10 +49,12 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster />
+              <ScrollToTop /> {/* Auto-scroll on route change */}
 
       <Routes>
         {/* Admin Layout with nested routes */}
         {/* public routes */}
+
         <Route element={<PublicRoute />}>
           <Route path="/" element={<Login />} />
           <Route path="reset-password" element={<ResetPassword />} />

@@ -59,41 +59,53 @@ export default function StudentPage() {
   });
   const downloadStudentTemplate = () => {
     // Columns you want the admin to fill
-    const templateRows = [
-      {
-        "Name": "john",
-        "email": "john@gmail.com",           // e.g., 10th
-        "phone": "9876543210",         // e.g., A
-        "dob": "2004/10/08",
-        "gender": "Male",
-        "bloodGroup": "A+",          // Male/Female/Other
-        "parent1Name": "Doe",             // 2025-11-10 or 10/11/2025
-        "parent1Occupation": "doctor",
-        "parent1Phone": "8767673647",
-        "parent1Email": "doe@gmail.coom",    // active/inactive (optional)
-        "parent2Name": "Fiza",
-        "parent2Email": "fiza@gmail.com",
-        "guardianName": "amily",
-        "guardianRelation": "sister",
-        "guardianOccupation": "teacher",
-        "guardianPhone": "9867463546",
-        "emergencyContactName": "honey",
-        "emergencyContactRelation": "brother",
-        "emergencyContactPhone": "9867475748",
-        "street": "first",
-        "city": "jaipur",
-        "state": "Rajasthan",
-        "zip": "304040",
-        "country": "India",
-        "aadharFront": "",
-        "aadharBack": "",
-        // "discounts": "",
-        // "feeHeads": ""
+const templateRows = [
+  {
+    employeeId: "EMP-XXXX",
+    name: "John Doe",
+    email: "john.doe@school.com",
+    phone: "9876543210",
+    dob: "1980/03/15",          // Use YYYY/MM/DD format
+    gender: "Male",
 
+    maritalStatus: "Married",   // Married / Single / Divorced / Widowed
 
+    street: "45 MG Road",
+    city: "Delhi",
+    state: "Delhi",
+    zip: "110001",
+    country: "India",
 
-      }
-    ];
+    bloodGroup: "B+",           // A+, A-, B+, B-, AB+, AB-, O+, O-
+
+    physicalDisability: "FALSE",     // TRUE / FALSE
+    disabilityDetails: "",           // Leave empty if FALSE
+
+    designation: "Mathematics Teacher",
+    qualifications: "M.Sc Mathematics;B.Ed", // separate with semicolon
+    specialization: "Mathematics",
+    experience: "15",                 // in years
+
+    dateOfJoining: "2015/06/01",
+
+    classes: "10th-C,12th-B",         // comma separated  
+    subjects: "science,sanskrit",     // comma separated
+
+    basicSalary: "75000",
+    allowances: "15000",
+    deductions: "8000",
+    netSalary: "82000",
+
+    emergencyContactName: "Seema Sharma",
+    emergencyContactRelation: "Spouse",
+    emergencyContactPhone: "9876543211",
+    emergencyContactAddress: "45 MG Road, Delhi",
+
+    aadharFront: "",     // file upload placeholders
+    aadharBack: ""
+  }
+];
+
 
     const ws = XLSX.utils.json_to_sheet(templateRows, { skipHeader: false });
     const wb = XLSX.utils.book_new();

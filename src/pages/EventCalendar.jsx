@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPost, apiPut, apiDelete } from "../api/apiFetch";
 import apiPath from "../api/apiPath";
 import toast from "react-hot-toast";
+import * as XLSX from "xlsx";
 import {
     CalendarDays,
     Loader2,
@@ -23,6 +24,7 @@ export default function CalendarPage() {
     const [showConfirm, setShowConfirm] = useState(false);
     const [editId, setEditId] = useState(null);
     const [deletedId, setDeleteId] = useState(null);
+
 
     // ✅ Fetch holidays
     const { data, isLoading, isFetching } = useQuery({
@@ -346,7 +348,7 @@ export default function CalendarPage() {
                                     ) : (
                                         <PlusCircle className="w-4 h-4" />
                                     )}
-                                    {editId ? "Update" : "Save"}
+                                    {editId ?(addOrUpdateMutation.isPending?"Update":"Updating") :(addOrUpdateMutation.isPending?"Saving":"Save") }
                                 </button>
                             </div>
                         </form>

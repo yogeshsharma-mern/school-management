@@ -11,8 +11,7 @@ import { Edit, School } from "@mui/icons-material";
 // import Select from "@mui/material";
 import Select from "react-select";
 import { FaPlusCircle } from "react-icons/fa";
-import { useEffect } from "react";
-
+import { useEffect, useRef, useLayoutEffect } from "react";
 
 
 import {
@@ -27,7 +26,7 @@ import {
   Step,
   StepLabel,
 } from "@mui/material";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -38,6 +37,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import countryList from "react-select-country-list";
+import ScrollToTop from "../ScrollToTop";
 const countries = countryList().getData();
 
 
@@ -93,6 +93,26 @@ export default function CreateStudentPage() {
     { value: "Delhi", label: "Delhi" },
     { value: "Gujarat", label: "Gujarat" },
   ];
+  const formTopRef = useRef(null);
+
+useLayoutEffect(() => {
+    const scrollToTop = () => {
+      if (formTopRef.current) {
+        formTopRef.current.scrollIntoView({ 
+          behavior: "smooth", 
+          block: "start" 
+        });
+      }
+    };
+
+    // Small delay to ensure DOM is updated
+    const timeoutId = setTimeout(scrollToTop, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [activeStep]);
+
+    
+
 
   const currentYear = new Date().getFullYear();
   const nextYear = currentYear + 1;
@@ -354,80 +374,80 @@ export default function CreateStudentPage() {
   const validateStep = () => {
     const newErrors = {};
 
-    // if (activeStep === 0) {
-    //   if (!student.name.trim()) {
-    //     newErrors.name = "Name is required";
-    //   } else if (!/^[A-Za-z\s]+$/.test(student.name)) {
-    //     newErrors.name = "Name must not contain numbers or special characters";
-    //   }
+    if (activeStep === 0) {
+      if (!student.name.trim()) {
+        newErrors.name = "Name is required";
+      } else if (!/^[A-Za-z\s]+$/.test(student.name)) {
+        newErrors.name = "Name must not contain numbers or special characters";
+      }
 
-    //   if (!student.dob) newErrors.dob = "Date of Birth is required";
-    //   if (!student.gender) newErrors.gender = "Gender is required";
-    //   if (!student.bloodGroup) newErrors.bloodGroup = "Blood group is required";
-    //   if (!student.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email))
-    //     newErrors.email = "Valid email is required";
-    //   if (!student.password || student.password.length < 6)
-    //     newErrors.password = "Password must be at least 6 characters";
-    //   if (!student.phone || student.phone.replace(/\D/g, "").length < 10)
-    //     newErrors.phone = "Valid phone number required";
+      if (!student.dob) newErrors.dob = "Date of Birth is required";
+      if (!student.gender) newErrors.gender = "Gender is required";
+      if (!student.bloodGroup) newErrors.bloodGroup = "Blood group is required";
+      if (!student.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email))
+        newErrors.email = "Valid email is required";
+      if (!student.password || student.password.length < 6)
+        newErrors.password = "Password must be at least 6 characters";
+      if (!student.phone || student.phone.replace(/\D/g, "").length < 10)
+        newErrors.phone = "Valid phone number required";
 
-    //   if (!student.documents?.profilePic) {
-    //     newErrors.documents = { ...(newErrors.documents || {}), profilePic: "Profile picture is required" };
-    //   }
+      if (!student.documents?.profilePic) {
+        newErrors.documents = { ...(newErrors.documents || {}), profilePic: "Profile picture is required" };
+      }
 
-    //   // ✅ Address validation
-    //   newErrors.address = {};
+      // ✅ Address validation
+      newErrors.address = {};
 
-    //   if (!student.address.street.trim()) newErrors.address.street = "Street is required";
-    //   if (!student.address.city.trim()) newErrors.address.city = "City is required";
-    //   if (!student.address.state.trim()) newErrors.address.state = "State is required";
-    //   if (!student.address.zip.trim()) newErrors.address.zip = "ZIP code is required";
-    //   if (!student.address.country.trim()) newErrors.address.country = "Country is required";
+      if (!student.address.street.trim()) newErrors.address.street = "Street is required";
+      if (!student.address.city.trim()) newErrors.address.city = "City is required";
+      if (!student.address.state.trim()) newErrors.address.state = "State is required";
+      if (!student.address.zip.trim()) newErrors.address.zip = "ZIP code is required";
+      if (!student.address.country.trim()) newErrors.address.country = "Country is required";
 
-    //   // 🧹 If no address field has error, remove the address object entirely (avoid empty UI errors)
-    //   if (Object.keys(newErrors.address).length === 0) delete newErrors.address;
-    // }
-    // else if (activeStep === 1) {
-    //   student.parents.forEach((parent, i) => {
-    //     if (!parent.name)
-    //       newErrors[`parent_${i}_name`] = "Parent name is required";
-    //     if (!parent.occupation)
-    //       newErrors[`parent_${i}_occupation`] = "Occupation required";
-    //     if (!parent.phone)
-    //       newErrors[`parent_${i}_phone`] = "Phone is required";
-    //     if (!parent.email) {
-    //       newErrors[`parent_${i}_email`] = "Email is required";
-    //     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parent.email)) {
-    //       newErrors[`parent_${i}_email`] = "Enter valid email";
-    //     }
-    //   });
+      // 🧹 If no address field has error, remove the address object entirely (avoid empty UI errors)
+      if (Object.keys(newErrors.address).length === 0) delete newErrors.address;
+    }
+    else if (activeStep === 1) {
+      student.parents.forEach((parent, i) => {
+        if (!parent.name)
+          newErrors[`parent_${i}_name`] = "Parent name is required";
+        if (!parent.occupation)
+          newErrors[`parent_${i}_occupation`] = "Occupation required";
+        if (!parent.phone)
+          newErrors[`parent_${i}_phone`] = "Phone is required";
+        if (!parent.email) {
+          newErrors[`parent_${i}_email`] = "Email is required";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parent.email)) {
+          newErrors[`parent_${i}_email`] = "Enter valid email";
+        }
+      });
 
-    //   if (!student.emergencyContact.name)
-    //     newErrors.emergencyContact_name = "Contact name required";
-    //   if (!student.emergencyContact.relation)
-    //     newErrors.emergencyContact_relation = "Relation required";
-    //   if (!student.emergencyContact.phone)
-    //     newErrors.emergencyContact_phone = "Phone required";
-    //   if (!student.emergencyContact.address)
-    //     newErrors.emergencyContact_address = "Address required";
-    // }
+      if (!student.emergencyContact.name)
+        newErrors.emergencyContact_name = "Contact name required";
+      if (!student.emergencyContact.relation)
+        newErrors.emergencyContact_relation = "Relation required";
+      if (!student.emergencyContact.phone)
+        newErrors.emergencyContact_phone = "Phone required";
+      if (!student.emergencyContact.address)
+        newErrors.emergencyContact_address = "Address required";
+    }
 
-    // else if (activeStep === 2) {
-    //   // if (!student.classId) newErrors.classId = "Class is required";
-    //   // if (!student.academicYear) newErrors.academicYear = "Academic year is required";
+    else if (activeStep === 2) {
+      // if (!student.classId) newErrors.classId = "Class is required";
+      // if (!student.academicYear) newErrors.academicYear = "Academic year is required";
 
-    //   if (!student.documents?.aadharFront) {
-    //     newErrors.aadharFront = "Aadhar front is required";
-    //   }
+      if (!student.documents?.aadharFront) {
+        newErrors.aadharFront = "Aadhar front is required";
+      }
 
-    //   if (!student.documents?.aadharBack) {
-    //     newErrors.aadharBack = "Aadhar back is required";
-    //   }
-    // }
-    // else if (activeStep === 3) {
-    //   if (!student.classId) newErrors.classId = "Class is required";
-    //   if (!student.academicYear) newErrors.academicYear = "Academic year is required";
-    // }
+      if (!student.documents?.aadharBack) {
+        newErrors.aadharBack = "Aadhar back is required";
+      }
+    }
+    else if (activeStep === 3) {
+      if (!student.classId) newErrors.classId = "Class is required";
+      if (!student.academicYear) newErrors.academicYear = "Academic year is required";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -435,10 +455,14 @@ export default function CreateStudentPage() {
 
 
   const nextStep = () => {
-    if (validateStep()) setActiveStep(prev => prev + 1);
+    if (validateStep()) {
+      setActiveStep(prev => prev + 1);
+    }
   };
 
-  const prevStep = () => setActiveStep(prev => prev - 1);
+  const prevStep = () => {
+    setActiveStep(prev => prev - 1);
+  };
 
 
 
@@ -513,8 +537,13 @@ export default function CreateStudentPage() {
   };
 
 
+
+
+
+
   return (
-    <div className="max-w-[100vw] mx-auto md:p-8 p-2 bg-[var(--color-)] rounded-2xl shadow-xl">
+    <div ref={formTopRef} className="max-w-[100vw  mx-auto md:p-8 p-2 bg-[var(--color-)] rounded-2xl shadow-xl">
+      
       <button
         onClick={() => navigate(-1)}
         className="mb-4 cursor-pointer px-4 py-1 bg-gray-100 rounded-lg hover:bg-gray-200"
@@ -533,6 +562,8 @@ export default function CreateStudentPage() {
           </Step>
         ))}
       </Stepper>
+
+      {/* Auto-scroll to top when step changes */}
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-8">
         {/* Step 1 */}
@@ -828,7 +859,7 @@ export default function CreateStudentPage() {
 
         {/* Step 2 */}
         {activeStep === 1 && (
-          <div className="space-y-8">
+          <div    className="space-y-8">
             {/* --- Parent Details --- */}
             <div className="bg-gray-50 p-6 rounded-2xl shadow-sm border border-gray-100">
               <div className="flex justify-between items-center mb-4">
@@ -1007,7 +1038,9 @@ export default function CreateStudentPage() {
 
         {/* Step 3 */}
         {activeStep === 2 && (
-          <div className="space-y-10">
+          <div  className="space-y-10">
+                                <ScrollToTop /> {/* Auto-scroll on route change */}
+
             {/* 🧠 Disability Section */}
             <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
               <h2 className="text-xl font-semibold text-gray-800 mb-3">
@@ -1288,7 +1321,7 @@ export default function CreateStudentPage() {
         {/* step 4 */}
         {
           activeStep === 3 && (
-            <div className="space-y-8">
+            <div  className="space-y-8">
               {/* === Academic Information === */}
               <div className="bg-gray-50 p-6 rounded-2xl shadow-sm border border-gray-100">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">
@@ -1556,3 +1589,7 @@ export default function CreateStudentPage() {
     </div>
   );
 }
+
+
+
+

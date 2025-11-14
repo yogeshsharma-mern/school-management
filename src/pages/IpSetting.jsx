@@ -255,7 +255,7 @@ export default function IpSettings() {
     const deleteMutation = useMutation({
         mutationFn: (id) => apiDelete(`${apiPath.deleteIp}/${id}`),
         onSuccess: (res) => {
-            toast.success(res.data);
+            toast.success(res.message);
             queryClient.invalidateQueries(["ipAddresses"]);
         },
         onError: (err) =>
