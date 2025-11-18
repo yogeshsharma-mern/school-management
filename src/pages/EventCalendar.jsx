@@ -4,6 +4,13 @@ import { apiGet, apiPost, apiPut, apiDelete } from "../api/apiFetch";
 import apiPath from "../api/apiPath";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
+import { RiImportFill } from "react-icons/ri";
+import Modal from "../components/Modal";
+import { FaFileExport } from "react-icons/fa";
+import { FaDownload } from "react-icons/fa6";
+import Papa from "papaparse";
+import { saveAs } from "file-saver";
+
 import {
     CalendarDays,
     Loader2,
@@ -12,7 +19,21 @@ import {
     Pencil,
     X,
 } from "lucide-react";
-
+const predefinedHolidays = [
+    "New Year's Day",
+    "Makar Sankranti",
+    "Republic Day",
+    "Holi",
+    "Good Friday",
+    "Easter",
+    "Eid al-Fitr",
+    "Eid al-Adha",
+    "Independence Day",
+    "Ganesh Chaturthi",
+    "Dussehra",
+    "Diwali",
+    "Christmas",
+];
 export default function CalendarPage() {
     const queryClient = useQueryClient();
     const now = new Date();
@@ -24,6 +45,8 @@ export default function CalendarPage() {
     const [showConfirm, setShowConfirm] = useState(false);
     const [editId, setEditId] = useState(null);
     const [deletedId, setDeleteId] = useState(null);
+    const [openModal, setOpenModal] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
 
 
     // ✅ Fetch holidays
@@ -32,9 +55,85 @@ export default function CalendarPage() {
         queryFn: () =>
             apiGet(`${apiPath.getHolidays}?month=${selectedMonth}&year=${selectedYear}`),
     });
+    const importMutation = useMutation({
+        mutationFn: async (formData) =>
+            apiPost(apiPath.importCalander, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            }),
+        onSuccess: (res) => {
+            const summary = res?.results?.summary;
 
+            // Base success message
+            toast.success(res?.message || "Holidays imported successfully ✅");
+
+            // Show success/failure summary
+            if (summary) {
+                toast(
+                    `📊 Import Summary:
+Total Records: ${summary.totalProcessed}
+✅ Successfully Created: ${summary.successCount}
+⚠️ Duplicates: ${summary.duplicateCount}
+❌ Errors: ${summary.errorCount}`,
+                    {
+                        icon: "📦",
+                        duration: 6000,
+                    }
+                );
+            }
+
+            // Refresh table and reset form
+            queryClient.invalidateQueries({ queryKey: ["eventcalender"] });
+            setShowModal(false);
+            setSelectedFile(null);
+            setClassId(null);
+        },
+
+        onError: (err) => {
+            toast.error(err?.response?.data?.message || "Import failed ❌");
+        },
+
+    });
     const holidays = data?.results || [];
+    const handleImportSubmit = (e) => {
+        e.preventDefault();
 
+        // === Validation checks ===
+
+
+        // if (!academicYear) {
+        //   toast.error("please select academic year");
+        //   return;
+        // }
+
+        // if (!feesData?.results?._id) {
+        //   toast.error("Fee structure not found! Please ensure one exists for this class.");
+        //   return;
+        // }
+
+        if (!selectedFile) {
+            toast.error("Please upload an Excel/CSV file!");
+            return;
+        }
+
+        // if (!academicYear) {
+        //   toast.error("Please select an academic year!");
+        //   return;
+        // }
+
+        // === Prepare FormData ===
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        importMutation.mutate(formData);
+    };
+    const handleFileChange = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!file.name.endsWith(".csv") && !file.name.endsWith(".csv")) {
+            toast.error("Please upload a valid Excel file (.csv)");
+            return;
+        }
+        setSelectedFile(file);
+    };
     // ✅ Generate calendar days
     const daysInMonth = useMemo(() => {
         const firstDay = new Date(selectedYear, selectedMonth - 1, 1);
@@ -90,7 +189,106 @@ export default function CalendarPage() {
         setSelectedDate({ iso, weekday, display: day });
         setShowModal(true);
     };
+    const downloadStudentTemplate = () => {
+        // Columns you want the admin to fill
+        const templateRows = [
+            {
+                date: "10/02/2024",
+                day: "Wednesday",
+                title: "Mahatma Gandhi Jayanti",
+                description: "Birth anniversary of Mahatma Gandhi",
+            }
+        ];
 
+
+        const ws = XLSX.utils.json_to_sheet(templateRows, { skipHeader: false });
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "CalenderTemplate");
+        XLSX.writeFile(wb, "Calender.xlsx");
+    };
+    const handleExportCSV = () => {
+        try {
+            const docs = data?.results || [];
+
+            if (!docs.length) {
+                toast.error("No data to export");
+                return;
+            }
+
+            // 👉 Map your table rows to a flat CSV-friendly shape
+            const rows = docs.map((item, idx) => {
+                const formatDate = (dateString) => {
+                    if (!dateString) return "";
+                    const date = new Date(dateString);
+                    const year = date.getFullYear();
+                    console.log("year", year);
+                    const month = String(date.getMonth() + 1) // 01-12
+                    const day = String(date.getDate()).padStart(2, "0"); // 01-31
+                    return `${year}/${month}/${day}`; // → "2013/02/05"
+                };
+
+
+                const formatcreatedandupdated = (dateStr) => {
+                    if (!dateStr) return "N/A";
+                    const date = new Date(dateStr);
+                    return date.toLocaleString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    });
+                };
+
+
+                // status ko normalize: true/'active' -> Active else Inactive
+                // const subjects =
+                //   Array.isArray(cls?.subjectsHandled) && cls.subjectsHandled.length > 0
+                //     ? cls.subjectsHandled
+                //       .map(
+                //         (s) =>
+                //           `${s?.subjectName || "N/A"}${s?.subjectCode ? ` (${s.subjectCode})` : ""
+                //           }`
+                //       )
+                //       .join(", ")
+                //     : "N/A";
+
+                // subjects: string[] ya null
+                //   const subjects =
+                //     Array.isArray(cls?.classTeacher?.subjectsHandled) ? cls?.classTeacher?.subjectsHandled?.map((c)=>c?.subjectName).join(", ") : "N/A";
+                return {
+                    "date": item?.date || "",
+                    "day": item?.day || "",
+                    "title": item?.title || "",
+                    "description": item?.description,
+                    "createdAt": formatcreatedandupdated(item?.createdAt),
+                    "updatedAt": formatcreatedandupdated(item?.updatedAt),
+                };
+
+            });
+
+            // 👉 Convert JSON → CSV
+            const csv = Papa.unparse(rows, {
+                quotes: false,        // har field ke around quotes nahi
+                delimiter: ",",       // default comma
+                header: true,         // header row include
+                newline: "\r\n",      // windows/mac friendly new lines
+            });
+
+            // 👉 File name with date
+            const stamp = new Date().toISOString().replace(/[:]/g, "-").split(".")[0]; // 2025-11-10T12-34-56
+            const filename = `teachers${stamp}.csv`;
+
+            // 👉 Trigger download
+            const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+            saveAs(blob, filename);
+
+            toast.success("CSV exported successfully ✅");
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to export CSV ❌");
+        }
+    };
     const handleSave = (e) => {
         e.preventDefault();
         if (!form.title.trim()) return toast.error("Title is required!");
@@ -115,6 +313,67 @@ export default function CalendarPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 px-4 sm:px-6 py-10 text-gray-800">
+            <Modal isOpen={openModal} onClose={() => setOpenModal(false)} title="Import Excel File" >
+                <form
+                    onSubmit={handleImportSubmit}
+                >
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Upload Excel File <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="file"
+                            accept=".xlsx,.xls,.csv"
+                            onChange={handleFileChange}
+                            className="w-full border border-gray-300 p-2 rounded-md cursor-pointer"
+                        />
+                        {selectedFile && (
+                            <p className="text-xs mt-1 text-gray-500">
+                                Selected: {selectedFile.name}
+                            </p>
+                        )}
+                    </div>
+                    <button
+                        type="submit"
+                        // disabled={importMutation.isLoading}
+                        className="w-full mt-2  flex gap-1 justify-center  items-center bg-[image:var(--gradient-primary)]  py-2 rounded-lg  cursor-pointer transition"
+                    >
+                        <FaFileExport />
+
+                        {/* {importMutation.isLoading ? "Importing..." : "Start Import"} */}
+                        Start Import
+                    </button>
+                </form>
+            </Modal>
+            <div className="flex items-center text-[10px] md:text-[14px] gap-3 w-full mb-3 justify-end">
+                <button
+                    //                  date: "10/02/2024",
+                    // day: "Wednesday",
+                    // title: "Mahatma Gandhi Jayanti",
+                    // description: "Birth anniversary of Mahatma Gandhi",
+                    onClick={downloadStudentTemplate}
+                    className="px-3 flex gap-1 items-center md:justify-center py-2 rounded-md bg-[image:var(--gradient-primary)]   cursor-pointer"
+                >
+                    <FaDownload />
+
+                    Download Format
+                </button>
+                <button
+                    onClick={() => setOpenModal(true)}
+                    className="px-3 flex gap-1     items-center justify-end py-2 rounded-md  bg-[image:var(--gradient-primary)] cursor-pointer "
+                >
+                    <RiImportFill />
+                    Import  (Excel)
+                </button>
+                <button
+                    onClick={handleExportCSV}
+                    className="px-4 flex gap-1 items-center py-2 px-4 py-2 bg-[image:var(--gradient-primary)]  rounded-lg cursor-pointer hover:bg-blue-700 transition"
+                >
+                    <FaFileExport />
+
+                    Export CSV
+                </button>
+            </div>
             <div className="max-w-7xl mx-auto backdrop-blur-2xl bg-white/40 border border-white/60 shadow-2xl rounded-3xl p-6 sm:p-10 transition-all">
 
                 {/* Header */}
@@ -258,7 +517,7 @@ export default function CalendarPage() {
                             {editId ? "Update Holiday" : "Add Holiday"} –{" "}
                             <span className="text-yellow-600">{selectedDate?.iso}</span>
                         </h3>
-                        <form onSubmit={handleSave} className="space-y-4">
+                        {/* <form onSubmit={handleSave} className="space-y-4">
                             <div>
                                 <label className="text-sm font-medium text-gray-700 mb-1 block">
                                     Title <span className="text-red-500">*</span>
@@ -348,7 +607,82 @@ export default function CalendarPage() {
                                     ) : (
                                         <PlusCircle className="w-4 h-4" />
                                     )}
-                                    {editId ?(addOrUpdateMutation.isPending?"Update":"Updating") :(addOrUpdateMutation.isPending?"Saving":"Save") }
+                                    {editId ? (addOrUpdateMutation.isPending ? "Update" : "Updating") : (addOrUpdateMutation.isPending ? "Saving" : "Save")}
+                                </button>
+                            </div>
+                        </form> */}
+                        <form onSubmit={handleSave} className="space-y-4">
+                            {/* Holiday Dropdown + Input */}
+                            <div>
+                                <label className="text-sm font-medium text-gray-700 mb-1 block">
+                                    Holiday Title <span className="text-red-500">*</span>
+                                </label>
+
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        list="holidayList"
+                                        value={form.title}
+                                        onChange={(e) =>
+                                            setForm((prev) => ({ ...prev, title: e.target.value }))
+                                        }
+                                        placeholder="Select or type holiday name"
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 outline-none"
+                                    />
+
+                                    {/* Dropdown Options */}
+                                    <datalist id="holidayList">
+                                        {predefinedHolidays.map((holiday, index) => (
+                                            <option key={index} value={holiday} />
+                                        ))}
+                                    </datalist>
+                                </div>
+                            </div>
+
+                            {/* Description Field */}
+                            <div>
+                                <label className="text-sm font-medium text-gray-700 mb-1 block">
+                                    Description
+                                </label>
+                                <textarea
+                                    value={form.description}
+                                    onChange={(e) =>
+                                        setForm((prev) => ({ ...prev, description: e.target.value }))
+                                    }
+                                    placeholder="e.g. National celebration day."
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 outline-none"
+                                />
+                            </div>
+
+                            {/* Buttons */}
+                            <div className="flex justify-end gap-3">
+                                {editId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDelete(editId)}
+                                        className="px-4 py-2 bg-red-500 cursor-pointer text-white rounded-lg hover:bg-red-600 flex items-center gap-1"
+                                    >
+                                        <Trash2 className="w-4 h-4" /> Delete
+                                    </button>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    disabled={addOrUpdateMutation.isLoading}
+                                    className="px-4 py-2 bg-[image:var(--gradient-primary)]  cursor-pointer rounded-lg flex items-center gap-1 hover:opacity-90"
+                                >
+                                    {addOrUpdateMutation.isLoading ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <PlusCircle className="w-4 h-4" />
+                                    )}
+                                    {editId
+                                        ? addOrUpdateMutation.isPending
+                                            ? "Update"
+                                            : "Updating"
+                                        : addOrUpdateMutation.isPending
+                                            ? "Saving"
+                                            : "Save"}
                                 </button>
                             </div>
                         </form>

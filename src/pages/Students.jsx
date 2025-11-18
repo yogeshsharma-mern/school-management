@@ -463,7 +463,7 @@ export default function StudentPage() {
       <div className="flex p-6 justify-between items-center mb-4 flex-wrap gap-4">
         <h1 className="text-2xl font-bold">Students</h1>
 
-        <div className="flex items-center justify-between w-full md:items-center gap-4">
+        <div className="md:flex items-center justify-between w-full md:items-center gap-4">
           {/* ✅ Class Filter Dropdown */}
           <select
             value={classFilter}
@@ -481,7 +481,7 @@ export default function StudentPage() {
 
           {/* Add Student Button */}
 
-          <div className="flex gap-3">
+          <div className="grid mt-2 grid-cols-2 text-[10px] md:text-[14px] md:flex gap-3">
             {/* Template download (optional but recommended) */}
           
             <Modal isOpen={showModel} title="Import Students (Excel)" onClose={() => setShowModal(false)}>
@@ -748,7 +748,7 @@ export default function StudentPage() {
 
 
             {/* Excel Import */}
-            <label onClick={() => setShowModal(true)} className="px-3 flex gap-1 items-center justify-center py-2 rounded-md bg-[image:var(--gradient-primary)]  cursor-pointer">
+            <label onClick={() => setShowModal(true)} className="px-3 flex gap-1 items-center md:justify-center py-2 rounded-md bg-[image:var(--gradient-primary)]  cursor-pointer">
           <RiImportFill />
 
 
@@ -766,7 +766,7 @@ export default function StudentPage() {
             </button>
               <button
               onClick={downloadStudentTemplate}
-              className="px-3 flex gap-1 items-center justify-center py-2 rounded-md bg-[image:var(--gradient-primary)]   cursor-pointer"
+              className="px-3 flex gap-1 items-center md:justify-center py-2 rounded-md bg-[image:var(--gradient-primary)]   cursor-pointer"
             >
               <FaDownload />
 
@@ -774,7 +774,7 @@ export default function StudentPage() {
             </button>
             <button
               onClick={() => navigate("/admin/students/create")}
-              className="px-4 flex gap-1 items-center cursor-pointer justify-center py-2 bg-[image:var(--gradient-primary)] rounded-lg hover:bg-yellow-500 transition"
+              className="px-4 flex gap-1 items-center cursor-pointer md:justify-center py-2 bg-[image:var(--gradient-primary)] rounded-lg hover:bg-yellow-500 transition"
             >
               <IoAddCircle />
               Add Student

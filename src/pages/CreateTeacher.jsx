@@ -370,14 +370,33 @@ export default function CreateTeacherPage() {
                 ].slice(0, 5);
                 return { ...prev, [field]: updatedPreviews };
             });
-        } else if (section === "documents") {
+        }
+        // else if (section === "documents") {
+        //     const file = inputFiles[0];
+        //     setStudent(prev => ({
+        //         ...prev,
+        //         documents: { ...prev.documents, [field]: file },
+        //     }));
+        //     setPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
+        // } 
+        else if (section === "documents") {
             const file = inputFiles[0];
+
             setStudent(prev => ({
                 ...prev,
                 documents: { ...prev.documents, [field]: file },
             }));
-            setPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
-        } else {
+
+            setPreviews(prev => ({
+                ...prev,
+                [field]: {
+                    url: URL.createObjectURL(file),
+                    type: file.type
+                }
+            }));
+        }
+
+        else {
             const file = inputFiles[0];
             setStudent(prev => ({ ...prev, [field]: file }));
             setPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
@@ -876,7 +895,8 @@ export default function CreateTeacherPage() {
                                 </div>
                                 <input
                                     type="file"
-                                    accept="image/*"
+                                    // accept="image/*"
+                                    accept="image/*,application/pdf"
                                     className="hidden"
                                     onChange={(e) => {
                                         handleFileUpload(e, "profilePic", "documents");
@@ -890,7 +910,7 @@ export default function CreateTeacherPage() {
                             {errors?.documents?.profilePic && (
                                 <p className="text-red-500 text-sm mt-2">{errors.documents.profilePic}</p>
                             )}
-                            {previews.profilePic && (
+                            {/* {previews.profilePic && (
                                 <div className="mt-4 flex justify-center">
                                     <img
                                         src={previews.profilePic}
@@ -898,7 +918,24 @@ export default function CreateTeacherPage() {
                                         className="w-28 h-28 rounded-full object-cover border border-gray-300 shadow-sm"
                                     />
                                 </div>
+                            )} */}
+                            {previews.profilePic && (
+                                <div className="mt-4 flex justify-center">
+                                    {previews.profilePic.type?.includes("pdf") ? (
+                                        <iframe
+                                            src={previews.profilePic.url}
+                                            className="w-28 h-28 rounded border shadow-sm"
+                                        />
+                                    ) : (
+                                        <img
+                                            src={previews.profilePic.url}
+                                            alt="preview"
+                                            className="w-28 h-28 rounded-full object-cover border border-gray-300 shadow-sm"
+                                        />
+                                    )}
+                                </div>
                             )}
+
                         </div>
                     </div>
                 )}
@@ -1593,18 +1630,43 @@ export default function CreateTeacherPage() {
                                                 <input
                                                     id={`${side}-input`}
                                                     type="file"
-                                                    accept="image/*"
+                                                    // accept="image/*"
+                                                    accept="image/*,application/pdf"
                                                     onChange={(e) => handleFileUpload(e, side, "documents")}
                                                     className="hidden"
                                                 />
                                             </div>
                                         ) : (
                                             <div className="relative mt-2">
-                                                <img
+                                                {/* <img
                                                     src={previews[side]}
                                                     alt={side}
                                                     className="w-full h-56 object-cover rounded-xl border border-gray-200 shadow-sm"
-                                                />
+                                                /> */}
+                                                {previews[side] ? (
+                                                    <div className="relative mt-2">
+                                                        {previews[side].type?.includes("pdf") ? (
+                                                            <embed
+                                                                src={previews[side].url}
+                                                                type="application/pdf"
+                                                                className="w-full h-56 rounded-xl border shadow-sm"
+                                                            />
+                                                        ) : (
+                                                            <img
+                                                                src={previews[side].url}
+                                                                alt={side}
+                                                                className="w-full h-56 object-cover rounded-xl border shadow-sm"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div
+                                                        className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl py-10 cursor-pointer hover:border-yellow-500 transition"
+                                                        onClick={() => document.getElementById(`${side}-input`).click()}
+                                                    >
+                                                        ...
+                                                    </div>
+                                                )}
                                                 <button
                                                     type="button"
                                                     onClick={() => {

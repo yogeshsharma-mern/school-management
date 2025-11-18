@@ -479,13 +479,13 @@ const templateRows = [
 
 
 
-      <div className="flex p-6 justify-between items-center mb-4">
+      <div className="md:flex p-6 justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Teachers</h1>
-        <div className="flex gap-2">
+        <div className="md:flex grid grid-cols-2 text-[10px] md:text-[14px] gap-2">
           <button
             // onClick={handleExportCSV}
             onClick={() => setModalOpen(true)}
-            className="px-4 flex gap-1 items-center py-2 px-4 py-2 bg-[image:var(--gradient-primary)]  rounded-lg cursor-pointer hover:bg-blue-700 transition"
+            className="px-4 flex gap-1 items-center text-center py-2 px-4 py-2 bg-[image:var(--gradient-primary)]  rounded-lg cursor-pointer hover:bg-blue-700 transition"
           >
             <FaFileExport />
 
@@ -493,7 +493,7 @@ const templateRows = [
           </button>
           <button
             onClick={downloadStudentTemplate}
-            className="px-3 flex gap-1 items-center justify-center py-2 rounded-md bg-[image:var(--gradient-primary)]   cursor-pointer"
+            className="px-3 flex gap-1 items-center md:justify-center py-2 rounded-md bg-[image:var(--gradient-primary)]   cursor-pointer"
           >
             <FaDownload />
 

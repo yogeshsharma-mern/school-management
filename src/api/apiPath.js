@@ -59,7 +59,8 @@ holidaysUpdate:"/admins/calender/update",
 holidaysDelete:"/admins/calender/delete",
 getAttendanceClockwise:"/admins/teachers/get-all-attendance",
 updateClockwiseAttendance:"/admins/teachers/update-attendance",
-importTeacher:"/admins/teachers/bulk-upload"
+importTeacher:"/admins/teachers/bulk-upload",
+importCalander:"/admins/calender/bulk-upload"
 
   // getTeachers:"/admins/teachers/getAllTeacher",
 //   getTeacherDetails:"/admins/teachers/getTeacherProfile",

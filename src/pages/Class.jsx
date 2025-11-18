@@ -378,7 +378,7 @@ const handleSubmit = (e) => {
 
   return (
     <div>
-      <div className="flex justify-between p-6 items-center mb-4">
+      <div className="flex justify-between p-6 text-[12px] md:text-[14px] items-center mb-4">
         <h1 className="text-2xl font-bold">Classes</h1>
         {/* <button
           onClick={() => {
