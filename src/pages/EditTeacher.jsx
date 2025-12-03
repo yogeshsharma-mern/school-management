@@ -251,20 +251,20 @@ export default function CreateTeacherPage() {
                 aadharFront: t.aadharFront ? `${BASE_URL}${t.aadharFront}` : null,
                 aadharBack: t.aadharBack ? `${BASE_URL}${t.aadharBack}` : null,
                 certificates:
-                    t.certificates?.map(c => (c.fileUrl ? `${BASE_URL}${c.fileUrl}` : `${BASE_URL}${c}`)) || [],
+                    t.certificates?.map(c => (c.fileUrl ? `${c.fileUrl}` : `${BASE_URL}${c}`)) || [],
                 marksheets:
-                    t.marksheets?.map(c => (c.fileUrl ? `${BASE_URL}${c.fileUrl}` : `${BASE_URL}${c}`)) || [],
+                    t.marksheets?.map(c => (c.fileUrl ? `${c.fileUrl}` : `${BASE_URL}${c}`)) || [],
             },
         }));
 
         setPreviews({
-            profilePic: t.profilePic ? `${BASE_URL}${t.profilePic}` : null,
-            aadharFront: t.aadharFront ? `${BASE_URL}${t.aadharFront}` : null,
-            aadharBack: t.aadharBack ? `${BASE_URL}${t.aadharBack}` : null,
+            profilePic: t.profilePic ? `${t.profilePic}` : null,
+            aadharFront: t.aadharFront ? `${t.aadharFront}` : null,
+            aadharBack: t.aadharBack ? `${t.aadharBack}` : null,
             certificates:
-                t.certificates?.map(c => (c.fileUrl ? `${BASE_URL}${c.fileUrl}` : `${BASE_URL}${c}`)) || [],
+                t.certificates?.map(c => (c.fileUrl ? `${c.fileUrl}` : `${BASE_URL}${c}`)) || [],
             marksheets:
-                t.marksheets?.map(c => (c.fileUrl ? `${BASE_URL}${c.fileUrl}` : `${BASE_URL}${c}`)) || [],
+                t.marksheets?.map(c => (c.fileUrl ? `${c.fileUrl}` : `${BASE_URL}${c}`)) || [],
         });
     }, [teacherData]);
 

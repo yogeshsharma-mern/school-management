@@ -36,11 +36,11 @@ const ResetPasswordId = lazy(() => import("./pages/ResetPasswordId.jsx"));
 const TeacherAttendance = lazy(() => import("./pages/TeacherAttendance.jsx"));
 const TeacherSalary = lazy(() => import("./pages/TeacherSalary.jsx"));
 const TeacherMonthlyAttendance = lazy(() => import("./pages/TeacherMonthlyAttendance.jsx"));
-const ClockwiseAttendanceUi=lazy(()=>import("./pages/ClockwiseAttendanceUi.jsx"));
-const IpSetting =lazy(()=>import("./pages/IpSetting.jsx"));
+const ClockwiseAttendanceUi = lazy(() => import("./pages/ClockwiseAttendanceUi.jsx"));
+const IpSetting = lazy(() => import("./pages/IpSetting.jsx"));
 const NoFound = lazy(() => import("./pages/NotFound.jsx"));
 const salaryDetail = lazy(() => import("./pages/SalaryDetail.jsx"));
-const EventCalendar = lazy(()=>import("./pages/EventCalendar.jsx"));
+const EventCalendar = lazy(() => import("./pages/EventCalendar.jsx"));
 // const EditFeesForm=lazy(()=>import('./pages/EditFeesForm.jsx'));
 const Assign = lazy(() => import('./pages/Assign.jsx'));
 
@@ -49,7 +49,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster />
-              <ScrollToTop /> {/* Auto-scroll on route change */}
+      <ScrollToTop /> {/* Auto-scroll on route change */}
 
       <Routes>
         {/* Admin Layout with nested routes */}
@@ -104,7 +104,7 @@ export default function App() {
             {/* <Route path="teachers/:id" element={<TeacherDetails />} /> */}
             <Route path="teachers/edit/:id" element={<EditTeacher />} />
             <Route path="settings" element={<AdminSettings />} />
-            <Route path="school/ip-setting" element={<IpSetting/>}/>
+            <Route path="school/ip-setting" element={<IpSetting />} />
             <Route path="password" element={<ChangePassword />} />
             <Route path="assign" element={<Assign />} />
 

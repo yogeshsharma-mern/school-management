@@ -687,8 +687,8 @@ const uniqueSubjects = teacherSubjects.filter(
           {/* 🔹 Section + Times */}
           <div className="grid grid-cols-3 gap-4">
             {/* <TextField label="Section" value={section} onChange={(e) => setSection(e.target.value)} /> */}
-            <TextField label="Start Time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-            <TextField label="End Time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+            <TextField label="Start Time" disabled value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+            <TextField label="End Time" disabled value={endTime} onChange={(e) => setEndTime(e.target.value)} />
           </div>
 
           {/* 🔹 Info */}

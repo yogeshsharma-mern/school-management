@@ -220,7 +220,7 @@ export default function ClassPage() {
         // }
         if (!formData.name) newErrors.name = "Subject name is required";
         if (!formData.code) newErrors.code = "Code is required";
-        if (!/^[A-Z]{3,4}[0-9]{2,3}$/.test(formData.code)) {
+        if (!/^[A-Z]{2,4}[0-9]{2,3}$/.test(formData.code)) {
             newErrors.code = "Invalid subject code format (example: PHY101)";
         }
 

@@ -468,7 +468,7 @@ export default function Dashboard() {
               value: results.teachersPresentToday ?? 0,
               label: "Teachers ",
               color: "from-yellow-500/10 to-yellow-500/20",
-              path: "/admin/teacher/attendance"
+              path: "/admin/teacher/attendance/clockwise"
             },
           ].map((item, i) => (
             <Link to={item.path}>

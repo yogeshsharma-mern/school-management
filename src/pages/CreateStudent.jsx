@@ -95,23 +95,23 @@ export default function CreateStudentPage() {
   ];
   const formTopRef = useRef(null);
 
-useLayoutEffect(() => {
+  useLayoutEffect(() => {
     const scrollToTop = () => {
       if (formTopRef.current) {
-        formTopRef.current.scrollIntoView({ 
-          behavior: "smooth", 
-          block: "start" 
+        formTopRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
         });
       }
     };
 
     // Small delay to ensure DOM is updated
     const timeoutId = setTimeout(scrollToTop, 100);
-    
+
     return () => clearTimeout(timeoutId);
   }, [activeStep]);
 
-    
+
 
 
   const currentYear = new Date().getFullYear();
@@ -543,7 +543,7 @@ useLayoutEffect(() => {
 
   return (
     <div ref={formTopRef} className="max-w-[100vw  mx-auto md:p-8 p-2 bg-[var(--color-)] rounded-2xl shadow-xl">
-      
+
       <button
         onClick={() => navigate(-1)}
         className="mb-4 cursor-pointer px-4 py-1 bg-gray-100 rounded-lg hover:bg-gray-200"
@@ -859,7 +859,7 @@ useLayoutEffect(() => {
 
         {/* Step 2 */}
         {activeStep === 1 && (
-          <div    className="space-y-8">
+          <div className="space-y-8">
             {/* --- Parent Details --- */}
             <div className="bg-gray-50 p-6 rounded-2xl shadow-sm border border-gray-100">
               <div className="flex justify-between items-center mb-4">
@@ -1038,8 +1038,8 @@ useLayoutEffect(() => {
 
         {/* Step 3 */}
         {activeStep === 2 && (
-          <div  className="space-y-10">
-                                <ScrollToTop /> {/* Auto-scroll on route change */}
+          <div className="space-y-10">
+            <ScrollToTop /> {/* Auto-scroll on route change */}
 
             {/* 🧠 Disability Section */}
             <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
@@ -1321,7 +1321,7 @@ useLayoutEffect(() => {
         {/* step 4 */}
         {
           activeStep === 3 && (
-            <div  className="space-y-8">
+            <div className="space-y-8">
               {/* === Academic Information === */}
               <div className="bg-gray-50 p-6 rounded-2xl shadow-sm border border-gray-100">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">
