@@ -369,6 +369,8 @@ import { saveAs } from "file-saver";
 import toast from "react-hot-toast";
 import { FaEdit } from "react-icons/fa";
 import { useSelector } from "react-redux";
+import Modal from "../components/Modal";
+import { time } from "framer-motion";
 
 
 /* ---------- helpers ---------- */
@@ -415,6 +417,10 @@ export default function AttendanceTable() {
   const [modalStatus, setModalStatus] = useState("");
   const [selectedTeacherIds, setSelectedTeacherIds] = useState([]);
   const [teacherSearch, setTeacherSearch] = useState("");
+  const [timeModal, setTimeModal] = useState(false);
+  const [timeDetail, setTimeDetail] = useState(null);
+  console.log("timedetail", timeDetail);
+
 
   const daysInMonth = getDaysInMonth(selectedMonth, selectedYear);
   const monthName = new Date(selectedYear, selectedMonth).toLocaleString("default", { month: "long" });
@@ -463,10 +469,10 @@ export default function AttendanceTable() {
   const filteredTeacherOptions = !normalizedTeacherSearch
     ? teachers
     : teachers.filter((t) => {
-        const n = (t?.name || "").toLowerCase();
-        const e = (t?.email || "").toLowerCase();
-        return n.includes(normalizedTeacherSearch) || e.includes(normalizedTeacherSearch);
-      });
+      const n = (t?.name || "").toLowerCase();
+      const e = (t?.email || "").toLowerCase();
+      return n.includes(normalizedTeacherSearch) || e.includes(normalizedTeacherSearch);
+    });
 
   // missingForDate (teachers without attendance for chosen modalDate)
   const missingForDate = (() => {
@@ -557,8 +563,8 @@ export default function AttendanceTable() {
       return;
     }
     if (modalMode === "specific" && selectedTeacherIds.length === 0) {
-    //   alert("Please select at least one teacher.");
-    toast.error("Please select at least one teacher. ");
+      //   alert("Please select at least one teacher.");
+      toast.error("Please select at least one teacher. ");
       return;
     }
 
@@ -573,13 +579,107 @@ export default function AttendanceTable() {
   };
 
 
-//         <div className={`
-//   overflow-x-auto transition-all duration-300 w-[98vw]
-//   ${collapsed ? "md:w-[95vw]" : "md:w-[80vw]"}
-// `}></div>
+  //         <div className={`
+  //   overflow-x-auto transition-all duration-300 w-[98vw]
+  //   ${collapsed ? "md:w-[95vw]" : "md:w-[80vw]"}
+  // `}></div>
 
   return (
-    <div className={`min-h-screen w-[99vw] ${collapsed?"md:w-[94vw]":"md:w-[83vw]"} bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 sm:px-8 py-8 text-gray-800 font-['Inter']`}>
+    <div className={`min-h-screen w-[99vw] ${collapsed ? "md:w-[94vw]" : "md:w-[83vw]"} bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 sm:px-8 py-8 text-gray-800 font-['Inter']`}>
+    {timeModal && (
+  <Modal isOpen={timeModal} onClose={() => setTimeModal(false)}>
+    <div className="p-4 max-w-md">
+      <button
+        className="absolute top-3 right-3 text-gray-500"
+        onClick={() => setTimeModal(false)}
+      >
+        ✕
+      </button>
+
+      {!timeDetail ? (
+        <div className="text-center py-6 text-gray-600">No data for selected date</div>
+      ) : (
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold">{timeDetail.teacherName}</h3>
+          <div className="text-sm text-gray-500">{timeDetail.teacherEmail}</div>
+
+          <div className="pt-2">
+            <div className="flex justify-between items-center">
+              <div className="text-sm text-gray-600">Date</div>
+              <div className="font-medium">{timeDetail.date}</div>
+            </div>
+
+            <div className="flex justify-between items-center mt-2">
+              <div className="text-sm text-gray-600">Status</div>
+              <div className="font-medium">{timeDetail.status}</div>
+            </div>
+
+            <div className="flex justify-between items-center mt-2">
+              <div className="text-sm text-gray-600">Clock In</div>
+              <div className="font-medium">{timeDetail.clockIn || "-"}</div>
+            </div>
+
+            <div className="flex justify-between items-center mt-2">
+              <div className="text-sm text-gray-600">Clock Out</div>
+              <div className="font-medium">{timeDetail.clockOut || "-"}</div>
+            </div>
+
+            {timeDetail.ipAddress && (
+              <div className="flex justify-between items-center mt-2">
+                <div className="text-sm text-gray-600">IP</div>
+                <div className="font-medium">{timeDetail.ipAddress}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  </Modal>
+)}
+{/* 2) Replace the onClick that sets timeDetail with this robust version (it normalizes dates and logs what it finds)
+Find the table cell onClick and replace the body with:
+
+jsx
+Copy code */}
+{() => {
+  // helper: normalize date to yyyy-MM-dd
+  const normalize = (date) => {
+    if (!date) return "";
+    // if it's already yyyy-mm-dd, return that
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
+    const dObj = new Date(date);
+    if (isNaN(dObj)) return date; // fallback
+    const y = dObj.getFullYear();
+    const m = String(dObj.getMonth() + 1).padStart(2, "0");
+    const dd = String(dObj.getDate()).padStart(2, "0");
+    return `${y}-${m}-${dd}`;
+  };
+
+  // collect all attendance entries for teacher
+  const allAttendance = (item.attendanceRecords || []).reduce((acc, rec) => {
+    (rec.attendance || []).forEach(a => acc.push(a));
+    return acc;
+  }, []);
+
+  // Try to find a matching record: compare normalized strings
+  const dayAttendance = allAttendance.find(a => normalize(a.date) === d.dateString);
+
+  // debug logs — keep them while testing, remove later
+  // eslint-disable-next-line no-console
+  console.log("CLICK: teacher", item._id, "dateCell", d.dateString, "attendanceRecords", allAttendance, "matched", dayAttendance);
+
+  setTimeDetail({
+    teacherName: item.name,
+    teacherEmail: item.email,
+    date: d.dateString,
+    status: dayAttendance?.status || "Absent",
+    clockIn: dayAttendance?.clockIn || "-",
+    clockOut: dayAttendance?.clockOut || "-",
+    ipAddress: dayAttendance?.ipAddress || "",
+  });
+
+  setTimeModal(true);
+}}
       {/* Header Section */}
       <div className=" md:flex items-center md: flex-row justify-between items-start mb-6 gap-4">
         <h2 className="text-2xl font-semibold text-gray-900">
@@ -590,7 +690,7 @@ export default function AttendanceTable() {
 
         <div className="flex items-center justify-end md:justify-normal gap-3">
           {/* Update Attendance Button */}
-      
+
           <button
             onClick={() => {
               setModalOpen(true);
@@ -601,7 +701,7 @@ export default function AttendanceTable() {
             }}
             className="px-3 py-2 flex gap-1 items-center cursor-pointer rounded-md  bg-[image:var(--gradient-primary)] shadow hover:scale-105 transition"
           >
-                <FaEdit />
+            <FaEdit />
             Update Attendance
           </button>
 
@@ -706,6 +806,29 @@ export default function AttendanceTable() {
                   {daysInMonth.map((d) => (
                     <td
                       key={d.dateString}
+                      onClick={() => {
+                        const formatDate = (date) => {
+                          const dObj = new Date(date);
+                          return `${dObj.getFullYear()}-${String(dObj.getMonth() + 1).padStart(2, "0")}-${String(dObj.getDate()).padStart(2, "0")}`;
+                        };
+
+                        const dayAttendance = item.attendanceRecords
+                          ?.flatMap(r => r.attendance)
+                          ?.find(a => formatDate(a.date) === d.dateString);
+
+                        setTimeDetail({
+                          teacherName: item.name,
+                          teacherEmail: item.email,
+                          date: d.dateString,
+                          status: dayAttendance?.status || "Absent",
+                          clockIn: dayAttendance?.clockIn || "-",
+                          clockOut: dayAttendance?.clockOut || "-",
+                        });
+
+                        setTimeModal(true);
+                      }}
+
+
                       className="text-center px-2 py-2 cursor-pointer hover:scale-105 transition"
                     //   onClick={() => updateMutation.mutate({ teacherId: item._id, date: d.dateString, status: "Present" })}
                     >
@@ -796,7 +919,7 @@ export default function AttendanceTable() {
             <div className="flex justify-end gap-3">
               <button onClick={() => setModalOpen(false)} className="px-4 py-2 rounded cursor-pointer bg-gray-200">Cancel</button>
               <button onClick={handleModalSubmit} disabled={!modalDate || !modalStatus || (modalMode === "specific" && selectedTeacherIds.length === 0)} className="px-4 py-2 rounded bg-yellow-500 cursor-pointer text-white">
-            {updateMutation.isPending?"Applying...":"Apply"}    
+                {updateMutation.isPending ? "Applying..." : "Apply"}
               </button>
             </div>
           </div>
