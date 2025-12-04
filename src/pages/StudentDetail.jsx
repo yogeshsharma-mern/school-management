@@ -126,7 +126,7 @@ export default function StudentDetailPage() {
       </button>
 
       {/* Header */}
-      <div className="flex justify-between items-center  p-6 rounded-2xl shadow  bg-gradient-to-r from-yellow-500 via-yellow-200 to-yellow-500">
+      <div className="flex justify-between items-center  p-6 rounded-2xl shadow text-white bg-[#0b132b]/95">
         <div className="flex items-center gap-6">
           <img
             className="rounded-full w-[100px] h-[100px]"
@@ -160,7 +160,7 @@ export default function StudentDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex w-[98vw] md:[100vw] border-b mb-4 space-x-6">
+      <div className="flex w-[98vw] md:w-[77vw] border-b mb-4 space-x-6">
         {[
           "profile",
           "enrollment",
@@ -441,8 +441,8 @@ export default function StudentDetailPage() {
                         </h4>
                         <span
                           className={`text-xs font-medium px-3 py-1 rounded-full ${structure.status === "active"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-600"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-600"
                             }`}
                         >
                           {structure.status}
@@ -503,8 +503,8 @@ export default function StudentDetailPage() {
                         </h4>
                         <span
                           className={`text-xs font-medium px-3 py-1 rounded-full ${fee.status === "Paid"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-yellow-100 text-yellow-700"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-yellow-100 text-yellow-700"
                             }`}
                         >
                           {fee.status}

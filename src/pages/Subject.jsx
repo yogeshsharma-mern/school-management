@@ -17,6 +17,8 @@ import Papa from "papaparse";
 import { saveAs } from "file-saver";
 import { FaFileExport } from "react-icons/fa";
 import * as XLSX from "xlsx";
+import { useSelector } from "react-redux";
+
 // import toast from "react-hot-toast";
 
 
@@ -32,6 +34,7 @@ export default function ClassPage() {
     const [columnFilters, setColumnFilters] = useState([]);
     const [viewModal, setViewModal] = useState(false);
     const [viewData, setViewData] = useState([]);
+const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
 
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -428,8 +431,13 @@ export default function ClassPage() {
                     </button>
                 </div>
             </div>
-            <div className="overflow-x-auto  realtive w-[98vw] md:w-[80vw]">
+         <div
+className={`
+  overflow-x-auto transition-all duration-300 w-[98vw]
+  ${collapsed ? "md:w-[95vw]" : "md:w-[80vw]"}
+`}
 
+>
 
                 <ReusableTable
                     columns={columns}

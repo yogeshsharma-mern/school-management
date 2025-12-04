@@ -24,6 +24,7 @@ import { FaDownload } from "react-icons/fa6";
 import { IoAddCircle } from "react-icons/io5";
 import { CgImport } from "react-icons/cg";
 import { RiImportFill } from "react-icons/ri";
+import { useSelector } from "react-redux";
 import {
   InputAdornment,
   IconButton,
@@ -61,6 +62,7 @@ export default function StudentPage() {
   const [errors, setErrors] = useState({});
   const debouncedSearch = useDebounce(globalFilter, 500);
   const currentYear = new Date().getFullYear();
+    const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
   const nextYear = currentYear + 1;
   const [formData, setFormData] = useState({
     academicYear: `${currentYear}-${nextYear}`,
@@ -261,7 +263,8 @@ export default function StudentPage() {
           // "Updated At": formatDate(cls?.updatedAt),
           "Name": cls?.name,
           "email": cls?.email,           // e.g., 10th
-          "phone": cls?.phone,         // e.g., A
+          "phone": cls?.phone,    
+          "classname":cls?.className,     // e.g., A
          "dob": formatDate(cls?.dob),
           "gender": cls?.gender,
           "bloodGroup": cls?.bloodGroup,          // Male/Female/Other
@@ -387,7 +390,7 @@ export default function StudentPage() {
     const ws = XLSX.utils.json_to_sheet(templateRows, { skipHeader: false });
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "StudentsTemplate");
-    XLSX.writeFile(wb, "Students_Template.xlsx");
+    XLSX.writeFile(wb, "Students_Template.csv",{bookType:"csv"});
   };
 
 
@@ -417,7 +420,7 @@ export default function StudentPage() {
       {
         accessorKey: "classId.name",
         header: "Class Name",
-        cell: ({ row }) => row.original.classId?.name || "N/A",
+        cell: ({ row }) => row.original?.className || "N/A",
       },
       { accessorKey: "academicYear", header: "Academic Year" },
       {
@@ -837,7 +840,10 @@ export default function StudentPage() {
       </Modal>
 
       {/* Table */}
-      <div className="overflow-x-auto w-[98vw] md:w-[80vw]">
+      <div className={`
+  overflow-x-auto transition-all duration-300 w-[98vw]
+  ${collapsed ? "md:w-[95vw]" : "md:w-[80vw]"}
+`}>
         <ReusableTable
           columns={columns}
           data={tableData}

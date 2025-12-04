@@ -368,6 +368,7 @@ import Papa from "papaparse";
 import { saveAs } from "file-saver";
 import toast from "react-hot-toast";
 import { FaEdit } from "react-icons/fa";
+import { useSelector } from "react-redux";
 
 
 /* ---------- helpers ---------- */
@@ -406,7 +407,7 @@ export default function AttendanceTable() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const debouncedSearch = useDebounce(searchTerm, 500);
-
+  const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
   // modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("all"); // "all" | "specific"
@@ -571,8 +572,14 @@ export default function AttendanceTable() {
     updateMutation.mutate(payload);
   };
 
+
+//         <div className={`
+//   overflow-x-auto transition-all duration-300 w-[98vw]
+//   ${collapsed ? "md:w-[95vw]" : "md:w-[80vw]"}
+// `}></div>
+
   return (
-    <div className="min-h-screen md:w-[82vw] w-[99vw] bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 sm:px-8 py-8 text-gray-800 font-['Inter']">
+    <div className={`min-h-screen w-[99vw] ${collapsed?"md:w-[94vw]":"md:w-[83vw]"} bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 sm:px-8 py-8 text-gray-800 font-['Inter']`}>
       {/* Header Section */}
       <div className=" md:flex items-center md: flex-row justify-between items-start mb-6 gap-4">
         <h2 className="text-2xl font-semibold text-gray-900">
@@ -724,7 +731,7 @@ export default function AttendanceTable() {
       {/* ---------- MODAL ---------- */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-6 relative">
+          <div className="w-full max-w-2xl bg-white  shadow-xl p-6 relative">
             <button onClick={() => setModalOpen(false)} className="absolute cursor-pointer top-3 right-3 text-gray-500 hover:text-gray-800">✕</button>
             <h3 className="text-xl font-semibold mb-4">Update Attendance</h3>
 

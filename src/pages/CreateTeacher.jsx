@@ -174,6 +174,33 @@ export default function CreateTeacherPage() {
     // console.log("classess", classes);
     const steps = ["Personal Details", "Professional Information", "Academic & Documents"];
 
+
+
+const designationDataExample = [
+  "Principal",
+  "Vice Principal",
+  "Headmaster",
+  "Headmistress",
+  "Senior Teacher",
+  "Junior Teacher",
+  "Subject Teacher",
+  "Assistant Teacher",
+  "Pre-Primary Teacher",
+  "Primary Teacher",
+  "Middle School Teacher",
+  "High School Teacher",
+  "Maths Teacher",
+  "Science Teacher",
+  "English Teacher",
+  "Computer Teacher",
+  "Social Studies Teacher",
+  "Physical Education Teacher",
+//   "Art Teacher",
+//   "Music Teacher",
+//   "Dance Teacher",
+//   "Lab Assistant",
+];
+
     // --- Handle Input Changes ---
     // const handleChange = (e, parentIndex = null, section = null) => {
     //     const { name, value, type, checked } = e.target;
@@ -615,7 +642,9 @@ export default function CreateTeacherPage() {
             const res = await apiPost(apiPath.createTeacher, formData);
             //  // console.log("resofteacher",res);
             toast.success(res.message);
+            console.log("hello");
             navigate(-1);
+            console.log("hey");
         } catch (err) {
             console.error(err);
             toast.error(err?.response?.data?.message);
@@ -962,8 +991,9 @@ export default function CreateTeacherPage() {
                                     <label className="block text-gray-700 font-medium mb-2">
                                         Designation
                                     </label>
-                                    <TextField
+                                    {/* <TextField
                                         fullWidth
+                                        list="designationExample"
                                         size="medium"
                                         name="designation"
                                         placeholder="Enter designation"
@@ -975,6 +1005,25 @@ export default function CreateTeacherPage() {
                                             style: { height: "56px", borderRadius: "8px" },
                                         }}
                                     />
+                                       <datalist id="designationExample">
+                                        {designationDataExample.map((holiday, index) => (
+                                            <option key={index} value={holiday} />
+                                        ))}
+                                    </datalist> */}
+                                    <TextField
+                                        fullWidth
+                                        name="designation"
+                                        value={student.designation}
+                                        onChange={handleChange}
+                                        inputProps={{ list: "designationExample" }}
+                                    />
+
+                                    <datalist id="designationExample">
+                                        {designationDataExample.map((item, index) => (
+                                            <option key={index} value={item} />
+                                        ))}
+                                    </datalist>
+
                                 </Grid>
 
                                 {/* Qualifications */}

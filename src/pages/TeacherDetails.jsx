@@ -129,7 +129,7 @@ export default function TeacherDetailPage() {
       </button>
 
       {/* 🧑‍🏫 Header */}
-      <div className="flex justify-between items-center bg-gradient-to-r from-yellow-500 via-yellow-200 to-yellow-500 p-6 rounded-2xl text-white ">
+      <div className="flex justify-between items-center bg-[#0b132b]/95 p-6 rounded-2xl text-white ">
         <div className="flex items-center gap-6">
           <img
             src={`${teacher.profilePic}`}

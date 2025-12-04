@@ -17,7 +17,7 @@ import { saveAs } from "file-saver";
 import { IoIosAddCircle } from "react-icons/io";
 import * as XLSX from "xlsx";
 import { FaDownload } from "react-icons/fa6";
-
+import { useSelector } from "react-redux";
 
 
 export default function StudentPage() {
@@ -34,7 +34,7 @@ export default function StudentPage() {
   const [viewData, setViewData] = useState([]);
   const [classFilter, setClassFilter] = useState("");
   const [academicYearFilter, setAcademicYearFilter] = useState("");
-
+  const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
 
   const debouncedSearch = useDebounce(globalFilter, 500);
 
@@ -59,52 +59,52 @@ export default function StudentPage() {
   });
   const downloadStudentTemplate = () => {
     // Columns you want the admin to fill
-const templateRows = [
-  {
-    employeeId: "EMP-XXXX",
-    name: "John Doe",
-    email: "john.doe@school.com",
-    phone: "9876543210",
-    dob: "1980/03/15",          // Use YYYY/MM/DD format
-    gender: "Male",
+    const templateRows = [
+      {
+        employeeId: "EMP-XXXX",
+        name: "John Doe",
+        email: "john.doe@school.com",
+        phone: "9876543210",
+        dob: "1980/03/15",          // Use YYYY/MM/DD format
+        gender: "Male",
 
-    maritalStatus: "Married",   // Married / Single / Divorced / Widowed
+        maritalStatus: "Married",   // Married / Single / Divorced / Widowed
 
-    street: "45 MG Road",
-    city: "Delhi",
-    state: "Delhi",
-    zip: "110001",
-    country: "India",
+        street: "45 MG Road",
+        city: "Delhi",
+        state: "Delhi",
+        zip: "110001",
+        country: "India",
 
-    bloodGroup: "B+",           // A+, A-, B+, B-, AB+, AB-, O+, O-
+        bloodGroup: "B+",           // A+, A-, B+, B-, AB+, AB-, O+, O-
 
-    physicalDisability: "FALSE",     // TRUE / FALSE
-    disabilityDetails: "",           // Leave empty if FALSE
+        physicalDisability: "FALSE",     // TRUE / FALSE
+        disabilityDetails: "",           // Leave empty if FALSE
 
-    designation: "Mathematics Teacher",
-    qualifications: "M.Sc Mathematics;B.Ed", // separate with semicolon
-    specialization: "Mathematics",
-    experience: "15",                 // in years
+        // designation: "Mathematics Teacher",
+        qualifications: "M.Sc Mathematics;B.Ed", // separate with semicolon
+        specialization: "Mathematics",
+        experience: "15",                 // in years
 
-    dateOfJoining: "2015/06/01",
+        dateOfJoining: "2015/06/01",
 
-    classes: "10th-C,12th-B",         // comma separated  
-    subjects: "science,sanskrit",     // comma separated
+        classes: "10th-C,12th-B",         // comma separated  
+        subjects: "science,sanskrit",     // comma separated
 
-    basicSalary: "75000",
-    allowances: "15000",
-    deductions: "8000",
-    netSalary: "82000",
+        basicSalary: "75000",
+        allowances: "15000",
+        deductions: "8000",
+        netSalary: "82000",
 
-    emergencyContactName: "Seema Sharma",
-    emergencyContactRelation: "Spouse",
-    emergencyContactPhone: "9876543211",
-    emergencyContactAddress: "45 MG Road, Delhi",
+        emergencyContactName: "Seema Sharma",
+        emergencyContactRelation: "Spouse",
+        emergencyContactPhone: "9876543211",
+        emergencyContactAddress: "45 MG Road, Delhi",
 
-    aadharFront: "",     // file upload placeholders
-    aadharBack: ""
-  }
-];
+        aadharFront: "",     // file upload placeholders
+        aadharBack: ""
+      }
+    ];
 
 
     const ws = XLSX.utils.json_to_sheet(templateRows, { skipHeader: false });
@@ -387,14 +387,14 @@ const templateRows = [
       { accessorKey: "email", header: "Email" },
       { accessorKey: "phone", header: "Phone" },
       { accessorKey: "gender", header: "Gender" },
-      { accessorKey: "bloodGroup", header: "Blood Group" },
+      // { accessorKey: "bloodGroup", header: "Blood Group" },
       // { accessorKey: "department", header: "Department" },
-      { accessorKey: "designation", header: "Designation" },
-      {
-        accessorKey: "experience",
-        header: "Experience (Years)",
-        cell: ({ row }) => `${row.original.experience || 0} yrs`,
-      },
+      // { accessorKey: "designation", header: "Designation" },
+      // {
+      //   accessorKey: "experience",
+      //   header: "Experience (Years)",
+      //   cell: ({ row }) => `${row.original.experience || 0} yrs`,
+      // },
       {
         accessorKey: "dateOfJoining",
         header: "Joining Date",
@@ -579,7 +579,10 @@ const templateRows = [
           </button>
         </form>
       </Modal>
-      <div className="overflow-x-auto  w-[98vw] md:w-[80vw]">
+      <div className={`
+  overflow-x-auto transition-all duration-300 w-[98vw]
+  ${collapsed ? "md:w-[95vw]" : "md:w-[80vw]"}
+`}>
         <ReusableTable
           columns={columns}
           data={tableData}

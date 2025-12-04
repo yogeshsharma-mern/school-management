@@ -15,6 +15,7 @@ import Select from "react-select";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
 import { FaFileExport } from "react-icons/fa";
+import { useSelector } from "react-redux";
 
 
 
@@ -29,6 +30,7 @@ export default function ClassPage() {
   const [columnFilters, setColumnFilters] = useState([]);
   const [addclassTeacherModal,setClassTeacherModal] = useState(false);
   const [selectedTeacher,setSelectedTeacher] = useState(null);
+  const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
   // console.log("selectedteacher",selectedTeacher);
 
 
@@ -117,7 +119,7 @@ setSelectedTeacher(item.value);
       }),
   });
     const { data: TeachersData, isLoading:teacherLoading, isFetching:teacherFetching, error :err} = useQuery({
-    queryKey: ["teacherss"],
+    queryKey: ["teachersssss"],
     queryFn: () =>
       apiGet(apiPath.getTeachers),
   });
@@ -415,7 +417,10 @@ const handleSubmit = (e) => {
         
       </div>
 
-      <div className="overflow-x-auto  w-[98vw] md:w-[80vw]">
+      <div className={`
+  overflow-x-auto transition-all duration-300 w-[98vw]
+  ${collapsed ? "md:w-[95vw]" : "md:w-[80vw]"}
+`}>
         <ReusableTable
           columns={columns}
           data={tableData}

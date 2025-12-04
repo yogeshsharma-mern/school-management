@@ -204,7 +204,8 @@ Total Records: ${summary.totalProcessed}
         const ws = XLSX.utils.json_to_sheet(templateRows, { skipHeader: false });
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "CalenderTemplate");
-        XLSX.writeFile(wb, "Calender.xlsx");
+     XLSX.writeFile(wb, "Calender.csv", { bookType: "csv" });
+
     };
     const handleExportCSV = () => {
         try {

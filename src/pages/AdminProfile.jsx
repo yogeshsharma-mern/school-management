@@ -7,6 +7,7 @@ import Modal from "../components/Modal";
 import apiPath from "../api/apiPath";
 import { apiPost, apiGet, apiPut } from "../api/apiFetch";
 import toast from "react-hot-toast";
+import PhoneInput from "react-phone-input-2";
 
 export default function AdminProfile() {
   const baseurl = import.meta.env.VITE_API_BASE_URL;
@@ -54,7 +55,9 @@ export default function AdminProfile() {
   // Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const formattedValue =
+      value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+    setFormData((prev) => ({ ...prev, [name]: formattedValue }));
   };
 
   // Handle image selection
@@ -220,44 +223,44 @@ export default function AdminProfile() {
               </div>
 
               {/* Wallet Balance Highlight Card */}
-          {/* Structured Wallet Balance Card */}
-<div className="mt-8">
-  <div className="
+              {/* Structured Wallet Balance Card */}
+              <div className="mt-8">
+                <div className="
     border border-gray-200 bg-white 
     rounded-xl p-6 shadow-md
   ">
-    
-    <div className="flex items-center justify-between">
-      
-      {/* Title */}
-      <div>
-        <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">
-          Wallet Balance
-        </p>
-        <h2 className="text-2xl font-bold text-gray-800 mt-1">
-          ₹ {profile.walletBalance?.toLocaleString() || 0}
-        </h2>
-      </div>
 
-      {/* Icon */}
-      <div className="
+                  <div className="flex items-center justify-between">
+
+                    {/* Title */}
+                    <div>
+                      <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                        Wallet Balance
+                      </p>
+                      <h2 className="text-2xl font-bold text-gray-800 mt-1">
+                        ₹ {profile.walletBalance?.toLocaleString() || 0}
+                      </h2>
+                    </div>
+
+                    {/* Icon */}
+                    <div className="
         w-14 h-14 flex items-center justify-center rounded-lg 
         bg-yellow-100 border border-yellow-200
       ">
-        <span className="text-3xl text-yellow-600">💰</span>
-      </div>
+                      <span className="text-3xl text-yellow-600">💰</span>
+                    </div>
 
-    </div>
+                  </div>
 
-    {/* Divider Line */}
-    <div className="border-t mt-4 pt-3 border-gray-200">
-      <p className="text-xs text-gray-500">
-        This balance is system-managed and cannot be edited by the admin.
-      </p>
-    </div>
+                  {/* Divider Line */}
+                  <div className="border-t mt-4 pt-3 border-gray-200">
+                    <p className="text-xs text-gray-500">
+                      This balance is system-managed and cannot be edited by the admin.
+                    </p>
+                  </div>
 
-  </div>
-</div>
+                </div>
+              </div>
 
 
 
@@ -373,10 +376,8 @@ export default function AdminProfile() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Contact <span className="text-red-500">*</span>
-            </label>
-            <input
+
+            {/* <input
               type="text"
               name="contact"
               value={formData.contact}
@@ -387,7 +388,17 @@ export default function AdminProfile() {
             />
             {!formData.contact && (
               <p className="text-xs text-red-500 mt-1">Contact number is required</p>
-            )}
+            )} */}
+            <PhoneInput
+              country="in"
+              enableSearch
+              value={formData.contact}
+              onChange={(phone) =>
+                setFormData((prev) => ({ ...prev, contact: phone }))
+              }
+              inputClass="w-full py-1 px-2 rounded-lg border border-gray-300"
+            />
+
           </div>
 
           <div>

@@ -11,15 +11,16 @@ import toast from "react-hot-toast";
 import Loader from "../components/Loading";
 import { FaRegEye } from "react-icons/fa";
 import { Navigate, useNavigate } from "react-router-dom";
-
+import { useSelector } from "react-redux";
 export default function TeacherSalaryPage() {
   const queryClient = useQueryClient();
-const navigate = useNavigate();
+  const navigate = useNavigate();
   // State
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState([]);
+  const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
 
   const [isSalaryModalOpen, setIsSalaryModalOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
@@ -64,7 +65,7 @@ const navigate = useNavigate();
       toast.error(error?.response?.data?.message || "Failed to generate salary ❌");
     },
   });
-// console.log("salarymutiaton loading",salaryMutation.isPending);
+  // console.log("salarymutiaton loading",salaryMutation.isPending);
   // ✅ Handle Salary Change
   const handleSalaryChange = (e) => {
     const { name, value } = e.target;
@@ -95,9 +96,9 @@ const navigate = useNavigate();
   const columns = useMemo(
     () => [
       {
-                header: "S No.",
-                cell: ({ row }) => row.index + 1,
-            },
+        header: "S No.",
+        cell: ({ row }) => row.index + 1,
+      },
       { accessorKey: "name", header: "Teacher Name" },
       { accessorKey: "email", header: "Email" },
       { accessorKey: "designation", header: "Designation" },
@@ -153,7 +154,7 @@ const navigate = useNavigate();
                 className="text-blue-500 cursor-pointer"
                 title="View Details"
                 // onClick={() => toast(`Teacher: ${rowData.TEACHER_NAME}`)}
-                onClick={()=>navigate(`/admin/teacher/salary/salaryinfo/${rowData._id}`)}
+                onClick={() => navigate(`/admin/teacher/salary/salaryinfo/${rowData._id}`)}
               />
               {rowData.salaryStatus !== "Paid" && (
                 <button
@@ -190,7 +191,10 @@ const navigate = useNavigate();
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto w-[98vw] md:w-[80vw]">
+      <div className={`
+  overflow-x-auto transition-all duration-300 w-[98vw]
+  ${collapsed ? "md:w-[92vw]" : "md:w-[80vw]"}
+`}>
         <ReusableTable
           columns={columns}
           data={tableData}
