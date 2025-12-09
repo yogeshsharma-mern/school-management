@@ -5,7 +5,7 @@ export default function Modal({ isOpen, title, onClose, children }) {
       <div className="bg-[var(--color-neutral)]  rounded-lg w-full max-w-lg p-6 relative">
         <h2 className="text-xl font-semibold mb-4">{title}</h2>
         <button
-          className="absolute top-3 cursor-pointer right-3 text-gray-500 hover:text-gray-700"
+          className="absolute cursor-pointer top-3 cursor-pointer right-3 text-gray-500 hover:text-gray-700"
           onClick={onClose}
         >
           ✕

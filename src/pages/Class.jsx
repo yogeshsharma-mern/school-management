@@ -106,7 +106,7 @@ setSelectedTeacher(item.value);
     endTime: "",
   });
   const [errors, setErrors] = useState({});
-  const debouncedSearch = useDebounce(globalFilter, 500);
+  const debouncedSearch = useDebounce(globalFilter, 500);``
 
   // Fetch classes
   const { data: classesData, isLoading, isFetching, error, isError } = useQuery({

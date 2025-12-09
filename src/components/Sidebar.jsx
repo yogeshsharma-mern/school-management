@@ -233,6 +233,8 @@ import { HiMenuAlt3 } from "react-icons/hi";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleSidebarCollapse } from "../redux/features/ui/uislic";
 import { RiLogoutCircleRLine } from "react-icons/ri";
+import { IoMdContacts } from "react-icons/io";
+
 export default function Sidebar({ isOpen, toggleSidebar }) {
   // const dispatch = useDispatch();
 
@@ -247,10 +249,10 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   const [openSchoolSettingMenu, setOpenSchoolSettingMenu] = useState(
     localStorage.getItem("openSchoolSettingMenu") === "true"
   );
-const closeAllSubmenus = () => {
-  setOpenTeacherMenu(false);
-  setOpenSchoolSettingMenu(false);
-};
+  const closeAllSubmenus = () => {
+    setOpenTeacherMenu(false);
+    setOpenSchoolSettingMenu(false);
+  };
 
 
   // Save submenu state on change
@@ -263,25 +265,40 @@ const closeAllSubmenus = () => {
   }, [openSchoolSettingMenu]);
 
   // Close other submenu on opening new one
-const toggleTeacherMenu = () => {
-  closeAllSubmenus();
-  setOpenTeacherMenu((prev) => !prev);
-};
+  const toggleTeacherMenu = () => {
+    closeAllSubmenus();
+    setOpenTeacherMenu((prev) => !prev);
+  };
 
 
 
-const toggleSchoolSettingMenu = () => {
-  closeAllSubmenus();
-  setOpenSchoolSettingMenu((prev) => !prev);
-};
+  const toggleSchoolSettingMenu = () => {
+    closeAllSubmenus();
+    setOpenSchoolSettingMenu((prev) => !prev);
+  };
 
+  // const toggleTeacherMenu = () => {
+  //   setOpenTeacherMenu(prev => {
+  //     if (prev) return false; // ✅ CLOSE if already open
+  //     closeAllSubmenus();    // ✅ Otherwise close others
+  //     return true;
+  //   });
+  // };
+
+  // const toggleSchoolSettingMenu = () => {
+  //   setOpenSchoolSettingMenu(prev => {
+  //     if (prev) return false; // ✅ CLOSE if already open
+  //     closeAllSubmenus();    // ✅ Otherwise close others
+  //     return true;
+  //   });
+  // };
 
 
   // Close sidebar (mobile)
-const handleMainNavClick = () => {
-  closeAllSubmenus();   // CLOSE ALL SUBMENUS
-  toggleSidebar?.();    // FOR MOBILE
-};
+  const handleMainNavClick = () => {
+    closeAllSubmenus();   // CLOSE ALL SUBMENUS
+    toggleSidebar?.();    // FOR MOBILE
+  };
 
   const handleSubmenuClick = () => {
     toggleSidebar?.();
@@ -476,6 +493,10 @@ const handleMainNavClick = () => {
           <IoCalendar size={18} />
           {!collapsed && <span>Event Calendar</span>}
         </NavLink>
+               <NavLink to="/admin/inquiry-management" className={navItemClass} onClick={handleMainNavClick}>
+          <IoMdContacts size={18} />
+          {!collapsed && <span>Inquiry Management</span>}
+        </NavLink>
 
         {/* Password */}
         <NavLink to="/admin/password" className={navItemClass} onClick={handleMainNavClick}>
@@ -487,17 +508,17 @@ const handleMainNavClick = () => {
       {/* ==== Footer ==== */}
       <div className="p-5 mt-auto border-t border-[#1b263b] text-center bg-[#0b132b]/80">
 
-         <button
+        <button
           onClick={() => dispatch(logout())}
           className="w-full flex gap-2 justify-center  items-center py-2 bg-[image:var(--gradient-primary)] text-black rounded-xl font-semibold shadow-lg hover:scale-105 transition-all"
         >
-     <RiLogoutCircleRLine />
-{
-  !collapsed &&
-  (
-         <span>Logout</span>
-  )
-}
+          <RiLogoutCircleRLine />
+          {
+            !collapsed &&
+            (
+              <span>Logout</span>
+            )
+          }
         </button>
 
         {!collapsed && <p className="text-xs text-gray-500 mt-3">© 2025 Learnyos</p>}

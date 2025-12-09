@@ -60,7 +60,9 @@ const apiPath = Object.freeze({
   getAttendanceClockwise: "/admins/teachers/get-all-attendance",
   updateClockwiseAttendance: "/admins/teachers/update-attendance",
   importTeacher: "/admins/teachers/bulk-upload",
-  importCalander: "/admins/calender/bulk-upload"
+  importCalander: "/admins/calender/bulk-upload",
+  getallTeachers:"/admins/teachers/allteachers",
+  inquiryList:"/admins/auth/contacts"
 
   // getTeachers:"/admins/teachers/getAllTeacher",
   //   getTeacherDetails:"/admins/teachers/getTeacherProfile",

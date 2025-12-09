@@ -1,0 +1,413 @@
+import React, { useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import ReusableTable from "../components/Table";
+import Modal from "../components/Modal";
+import InputField from "../components/InputField";
+import { apiGet, apiPost, apiPut, apiDelete } from "../api/apiFetch";
+import apiPath from "../api/apiPath";
+import useDebounce from "../hooks/useDebounce";
+import toast from "react-hot-toast";
+import Loader from "../components/Loading";
+import { RiImageEditLine } from "react-icons/ri";
+import ToggleButton from "../components/ToggleButton";
+import { IoIosAddCircleOutline } from "react-icons/io";
+import Select from "react-select";
+import Papa from "papaparse";
+import { saveAs } from "file-saver";
+import { FaFileExport } from "react-icons/fa";
+import { useSelector } from "react-redux";
+
+
+
+
+export default function InquiryPage() {
+    const queryClient = useQueryClient();
+
+    // Table state
+    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+    const [sorting, setSorting] = useState([]);
+    const [globalFilter, setGlobalFilter] = useState("");
+    const [columnFilters, setColumnFilters] = useState([]);
+    const [addclassTeacherModal, setClassTeacherModal] = useState(false);
+    const [selectedTeacher, setSelectedTeacher] = useState(null);
+    const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
+    // console.log("selectedteacher",selectedTeacher);
+
+
+    const handleteacherChange = (item) => {
+        // // console.log("item",item.value);
+        setSelectedTeacher(item.value);
+    }
+    const handleExportCSV = () => {
+        try {
+            const docs = inquiryDataData?.results?.data || [];
+
+            if (!docs.length) {
+                toast.error("No data to export");
+                return;
+            }
+
+            // 👉 Map your table rows to a flat CSV-friendly shape
+            const rows = docs.map((item, idx) => {
+                // status ko normalize: true/'active' -> Active else Inactive
+                // const statusNorm =
+                //     cls?.status === true || cls?.status === "active" ? "Active" : "Inactive";
+
+                // subjects: string[] ya null
+                // const subjects =
+                //     Array.isArray(cls?.classTeacher?.subjectsHandled) ? cls?.classTeacher?.subjectsHandled?.map((c) => c?.subjectName).join(", ") : "N/A";
+
+                return {
+                    "S No.": idx + 1,
+                    Class: item?.name || "",
+                    Email: item?.email || "",
+                    Phone: item?.phone ?? 0,
+                    Message: item?.message || "",
+                    Subject: item?.subject || "",
+
+                    // "Teacher Name": cls?.classTeacher?.name || "N/A",
+                    // "Teacher Email": cls?.classTeacher?.email || "N/A",
+                    // "Teacher Specialization": cls?.classTeacher?.specialization || "N/A",
+                    // "Class Timing": cls?.startTime && cls?.endTime ? `${cls.startTime} - ${cls.endTime}` : "N/A",
+                    // Subjects: subjects,
+                    // "Class ID": cls?._id || "",
+                };
+            });
+
+            // 👉 Convert JSON → CSV
+            const csv = Papa.unparse(rows, {
+                quotes: false,        // har field ke around quotes nahi
+                delimiter: ",",       // default comma
+                header: true,         // header row include
+                newline: "\r\n",      // windows/mac friendly new lines
+            });
+
+            // 👉 File name with date
+            const stamp = new Date().toISOString().replace(/[:]/g, "-").split(".")[0]; // 2025-11-10T12-34-56
+            const filename = `inquiryData_${stamp}.csv`;
+
+            // 👉 Trigger download
+            const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+            saveAs(blob, filename);
+
+            toast.success("CSV exported successfully ✅");
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to export CSV ❌");
+        }
+    };
+
+    // Modal state
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingClass, setEditingClass] = useState(null);
+    const [formData, setFormData] = useState({
+        name: "",
+        section: "",
+        startTime: "",
+        endTime: "",
+    });
+    const [errors, setErrors] = useState({});
+    const debouncedSearch = useDebounce(globalFilter, 500); ``
+
+    // Fetch inquiryData
+    const { data: inquiryDataData, isLoading, isFetching, error, isError } = useQuery({
+        queryKey: ["inquiryData", pagination.pageIndex, pagination.pageSize, debouncedSearch],
+        queryFn: () =>
+            apiGet(apiPath.inquiryList, {
+                page: pagination.pageIndex + 1,
+                limit: pagination.pageSize,
+                name: debouncedSearch,
+            }),
+    });
+    const { data: TeachersData, isLoading: teacherLoading, isFetching: teacherFetching, error: err } = useQuery({
+        queryKey: ["teachersssss"],
+        queryFn: () =>
+            apiGet(apiPath.getTeachers),
+    });
+    // console.log("teacherdata",TeachersData);
+    // Get all teacher IDs already assigned as class teachers
+    const assignedTeacherIds = inquiryDataData?.results?.docs
+        ?.filter(cls => cls.classTeacher?._id)
+        ?.map(cls => cls.classTeacher._id) || [];
+
+    // Filter teachers who are NOT already assigned
+    const availableTeachers = TeachersData?.results?.docs?.filter(
+        teacher => !assignedTeacherIds.includes(teacher._id)
+    );
+
+    const teacherOptions = availableTeachers?.map((t) => ({
+        value: t._id,
+        label: t.name,
+    }));
+
+
+
+    // Handle input changes
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        let newValue = value;
+
+        if (name === "section") {
+            newValue = value.toUpperCase(); // auto uppercase
+
+            // Real-time validation
+            if (!/^[A-D]$/.test(newValue) && newValue !== "") {
+                setErrors((prev) => ({ ...prev, section: "Section must be A, B, C, or D" }));
+            } else {
+                setErrors((prev) => ({ ...prev, section: "" }));
+            }
+        }
+
+        setFormData((prev) => ({ ...prev, [name]: newValue }));
+
+        // Clear other errors
+        if (name !== "section") {
+            setErrors((prev) => ({ ...prev, [name]: "" }));
+        }
+    };
+
+
+    // Handle submit
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const newErrors = {};
+        const validinquiryData = [
+            "Prep", "1st", "2nd", "3rd", "4th", "5th", "6th",
+            "7th", "8th", "9th", "10th", "11th", "12th",
+        ];
+
+        // Class name validation
+        if (!formData.name) newErrors.name = "Class name is required";
+        else if (!validinquiryData.includes(formData.name.trim()))
+            newErrors.name = "Invalid class name. Must be Prep or 1st to 12th ";
+
+        // Section validation (only A-D)
+        if (!formData.section) newErrors.section = "Section is required";
+        else if (!/^[A-D]$/.test(formData.section))
+            newErrors.section = "Section must be A, B, C, or D";
+
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+
+        // Submit mutation
+        classMutation.mutate({
+            name: formData.name.trim(),
+            section: formData.section.trim(),
+
+        });
+    };
+
+
+
+    // Mutation for create/update class
+    const classMutation = useMutation({
+        mutationFn: (classObj) => {
+            if (editingClass) return apiPut(`${apiPath.updateClass}/${editingClass._id}`, classObj);
+            return apiPost(apiPath.createinquiryDatas, classObj);
+        },
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ["inquiryData"] });
+            toast.success(editingClass ? data.message : data.message);
+            setIsModalOpen(false);
+            setEditingClass(null);
+            setFormData({ name: "", section: "", startTime: "", endTime: "" });
+        },
+        onError: (error) => {
+            const errorMessage =
+                error?.response?.data?.message || "Something went wrong. Please try again.";
+            toast.error(errorMessage);
+        },
+    });
+
+    // Delete class mutation
+    const deleteMutation = useMutation({
+        mutationFn: (id) => apiDelete(`/admins/inquiryData/${id}`),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["inquiryData"] }),
+    });
+
+    // Table columns
+    const columns = useMemo(
+        () => [
+            {
+                header: "S No.",
+                cell: ({ row }) => row.index + 1,
+            },
+            { accessorKey: "name", header: "Name" },
+            { accessorKey: "email", header: "Email" },
+            { accessorKey: "phone", header: "Contact Number" },
+            { accessorKey: "message", header: "Message" },
+            { accessorKey: "subject", header: "Subject" },
+
+
+            // {
+            //     header: "Status",
+            //     accessorKey: "isActive", // backend field
+            //     cell: ({ row }) => {
+            //         const cls = row.original;
+
+            //         // mutation for toggling active/inactive
+            //         const toggleMutation = useMutation({
+            //             mutationFn: (newStatus) =>
+            //                 apiPut(`${apiPath.clssToggle}/${cls._id}`, { status: newStatus }),
+            //             onSuccess: (data) => {
+            //                 queryClient.invalidateQueries({ queryKey: ["inquiryData"] });
+            //                 toast.success(data.message || "Status updated successfully ✅");
+            //             },
+            //             onError: (err) => {
+            //                 toast.error(err?.response?.data?.message || "Failed to update status ❌");
+            //             },
+            //         });
+
+            //         const handleToggle = () => {
+            //             const newStatus = cls.status === "active" ? false : true;
+            //             toggleMutation.mutate(newStatus);
+            //         }
+
+            //         return (
+            //             <ToggleButton
+            //                 isActive={cls.status}
+            //                 onToggle={handleToggle}
+            //                 disabled={toggleMutation.isLoading}
+            //             />
+            //         );
+            //     },
+            // },
+            // { header: "Teacher Name", accessorFn: (row) => row.classTeacher?.name || "N/A" },
+            // { header: "Teacher Email", accessorFn: (row) => row.classTeacher?.email || "N/A" },
+            // { header: "Teacher Department", accessorFn: (row) => row.classTeacher?.department || "N/A" },
+            // { header: "Teacher Specialization", accessorFn: (row) => row.classTeacher?.specialization || "N/A" },
+            // {
+            //   header: "Class Timing",
+            //   accessorFn: (row) =>
+            //     row.startTime && row.endTime
+            //       ? `${row.startTime} - ${row.endTime}`
+            //       : "N/A",
+            // },
+            // {
+            //     accessorKey: "classTeacher.subjectsHandled",
+            //     header: "Subjects",
+            //     cell: ({ getValue }) => {
+            //         const subjects = getValue();
+            //         if (!subjects || subjects.length === 0) return "N/A";
+            //         return subjects.map((s) => s.subjectName).join(", ");
+            //     },
+            // }
+            ,
+            // {
+            //     header: "Actions",
+            //     cell: ({ row }) => (
+            //         <div className="flex gap-2">
+            //             <button
+            //                 onClick={() => {
+            //                     const cls = row.original;
+            //                     setEditingClass(cls);
+            //                     setFormData({
+            //                         name: cls.name,
+            //                         section: cls.section,
+            //                         startTime: formatTo24Hour(cls.startTime || "09:00 AM"),
+            //                         endTime: formatTo24Hour(cls.endTime || "03:30 PM"),
+            //                     });
+            //                     setIsModalOpen(true);
+            //                 }}
+            //                 className="text-[20px] text-yellow-400"
+            //             >
+            //                 <RiImageEditLine />
+            //             </button>
+            //             <button
+            //                 // onClick={() => openDeleteModal(row.original)}
+            //                 onClick={() => {
+            //                     const cls = row.original;
+            //                     setEditingClass(cls);
+            //                     setClassTeacherModal(true);
+            //                 }}
+
+            //                 className="text-blue-600 cursor-pointer text-[20px] hover:text-blue-700"
+            //                 title="Delete"
+            //             >
+            //                 <IoIosAddCircleOutline />
+            //             </button>
+            //         </div>
+            //     ),
+            // },
+        ],
+        [deleteMutation]
+    );
+
+    const tableData = useMemo(() => inquiryDataData?.results?.data || [], [inquiryDataData]);
+    const totalPages = inquiryDataData?.results?.totalPages || 1;
+
+    return (
+        <div>
+            <div className="flex justify-between p-6 text-[12px] md:text-[14px] items-center mb-4">
+                <h1 className="text-2xl font-bold">Inquiry Managment</h1>
+
+
+                <div className="flex gap-3">
+                    <button
+                        onClick={handleExportCSV}
+                        className="px-4 flex gap-1 items-center py-2 px-4 py-2 bg-[image:var(--gradient-primary)]  rounded-lg cursor-pointer hover:bg-blue-700 transition"
+                    >
+                        <FaFileExport />
+
+                        Export CSV
+                    </button>
+
+                    {/* <button
+                        onClick={() => {
+                            setEditingClass(null);
+                            setFormData({ name: "", section: "", startTime: "", endTime: "" });
+                            setIsModalOpen(true);
+                        }}
+                        className="px-4 py-2 bg-[image:var(--gradient-primary)] cursor-pointer rounded-lg hover:opacity-90 transition"
+                    >
+                        Add Class
+                    </button> */}
+                </div>
+
+            </div>
+
+            <div className={`
+  overflow-x-auto transition-all duration-300 w-[98vw]
+  ${collapsed ? "md:w-[95vw]" : "md:w-[80vw]"}
+`}>
+                <ReusableTable
+                    columns={columns}
+                    data={tableData}
+                    paginationState={pagination}
+                    setPaginationState={setPagination}
+                    sortingState={sorting}
+                    setSortingState={setSorting}
+                    globalFilter={globalFilter}
+                    setGlobalFilter={setGlobalFilter}
+                    columnFilters={columnFilters}
+                    setColumnFilters={setColumnFilters}
+                    totalCount={totalPages || 1}
+                    tablePlaceholder="Search here..."
+                    fetching={isFetching}
+                    loading={isLoading}
+                    error={error}
+                    isError={error}
+                />
+                {(isLoading || isFetching) && <Loader />}
+            </div>
+            <Modal isOpen={addclassTeacherModal} title="Add Class Teacher" onClose={() => {
+                setClassTeacherModal(false)
+            }
+            }>
+
+                <button
+                    className="bg-yellow-500 py-2 px-4 rounded-md mt-4 ml-auto block cursor-pointer"
+
+                >
+                    {/* {assignClassTeacherMutation.isLoading ? "Assigning..." : "Submit"} */}
+                </button>
+
+            </Modal>
+            {/* Modal */}
+
+        </div>
+    );
+}

@@ -466,7 +466,7 @@ export default function Dashboard() {
             {
               icon: <FaChalkboardTeacher size={30} className="text-yellow-500" />,
               value: results.teachersPresentToday ?? 0,
-              label: "Teachers ",
+              label: "Teachers Present ",
               color: "from-yellow-500/10 to-yellow-500/20",
               path: "/admin/teacher/attendance/clockwise"
             },

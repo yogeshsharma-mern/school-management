@@ -159,6 +159,8 @@ export default function CreateTeacherPage() {
         marksheets: [],
         certificates: [],
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
 
 
 
@@ -176,30 +178,30 @@ export default function CreateTeacherPage() {
 
 
 
-const designationDataExample = [
-  "Principal",
-  "Vice Principal",
-  "Headmaster",
-  "Headmistress",
-  "Senior Teacher",
-  "Junior Teacher",
-  "Subject Teacher",
-  "Assistant Teacher",
-  "Pre-Primary Teacher",
-  "Primary Teacher",
-  "Middle School Teacher",
-  "High School Teacher",
-  "Maths Teacher",
-  "Science Teacher",
-  "English Teacher",
-  "Computer Teacher",
-  "Social Studies Teacher",
-  "Physical Education Teacher",
-//   "Art Teacher",
-//   "Music Teacher",
-//   "Dance Teacher",
-//   "Lab Assistant",
-];
+    const designationDataExample = [
+        "Principal",
+        "Vice Principal",
+        "Headmaster",
+        "Headmistress",
+        "Senior Teacher",
+        "Junior Teacher",
+        "Subject Teacher",
+        "Assistant Teacher",
+        "Pre-Primary Teacher",
+        "Primary Teacher",
+        "Middle School Teacher",
+        "High School Teacher",
+        "Maths Teacher",
+        "Science Teacher",
+        "English Teacher",
+        "Computer Teacher",
+        "Social Studies Teacher",
+        "Physical Education Teacher",
+        //   "Art Teacher",
+        //   "Music Teacher",
+        //   "Dance Teacher",
+        //   "Lab Assistant",
+    ];
 
     // --- Handle Input Changes ---
     // const handleChange = (e, parentIndex = null, section = null) => {
@@ -563,6 +565,7 @@ const designationDataExample = [
         if (!validateStep()) return;
 
         try {
+            setIsSubmitting(true);
             const formData = new FormData();
 
             // Add JSON fields
@@ -648,6 +651,8 @@ const designationDataExample = [
         } catch (err) {
             console.error(err);
             toast.error(err?.response?.data?.message);
+        } finally {
+            setIsSubmitting(false);
         }
     };
     useLayoutEffect(() => {
@@ -1411,35 +1416,88 @@ const designationDataExample = [
                                             name={field}
                                             label={field.replace(/^\w/, (c) => c.toUpperCase())}
                                             value={student.salaryInfo[field]}
+                                            // onChange={(e) => {
+                                            //     const { name, value } = e.target;
+                                            //     let numericValue = value.replace(/\D/g, ""); // remove non-digit characters
+
+                                            //     // 🔹 Prevent negative values (ignore '-' input)
+                                            //     if (value.includes("-")) return;
+
+                                            //     // 🔹 Restrict to 6 digits
+                                            //     if (numericValue.length > 6) numericValue = numericValue.slice(0, 6);
+
+                                            //     const parsedValue = parseFloat(numericValue) || 0;
+
+                                            //     const updatedSalary = {
+                                            //         ...student.salaryInfo,
+                                            //         [name]: parsedValue,
+                                            //     };
+
+                                            //     // 🔹 Auto-calculate net salary
+                                            //     const { basic = 0, allowances = 0, deductions = 0 } = updatedSalary;
+                                            //     updatedSalary.netSalary = basic + allowances - deductions;
+
+                                            //     setStudent({
+                                            //         ...student,
+                                            //         salaryInfo: updatedSalary,
+                                            //     });
+
+                                            //     // 🔹 Clear error on typing
+                                            //     setErrors((prev) => ({ ...prev, [name]: "" }));
+                                            // }}
                                             onChange={(e) => {
                                                 const { name, value } = e.target;
-                                                let numericValue = value.replace(/\D/g, ""); // remove non-digit characters
 
-                                                // 🔹 Prevent negative values (ignore '-' input)
+                                                // ✅ Allow empty value (for backspace)
+                                                if (value === "") {
+                                                    const updatedSalary = {
+                                                        ...student.salaryInfo,
+                                                        [name]: "",
+                                                        netSalary: "",
+                                                    };
+
+                                                    setStudent({
+                                                        ...student,
+                                                        salaryInfo: updatedSalary,
+                                                    });
+
+                                                    setErrors((prev) => ({ ...prev, [name]: "" }));
+                                                    return;
+                                                }
+
+                                                // ✅ Block negative sign
                                                 if (value.includes("-")) return;
 
-                                                // 🔹 Restrict to 6 digits
+                                                // ✅ Only digits & max 6 digits
+                                                let numericValue = value.replace(/\D/g, "");
                                                 if (numericValue.length > 6) numericValue = numericValue.slice(0, 6);
 
-                                                const parsedValue = parseFloat(numericValue) || 0;
+                                                const parsedValue = Number(numericValue);
 
                                                 const updatedSalary = {
                                                     ...student.salaryInfo,
                                                     [name]: parsedValue,
                                                 };
 
-                                                // 🔹 Auto-calculate net salary
-                                                const { basic = 0, allowances = 0, deductions = 0 } = updatedSalary;
-                                                updatedSalary.netSalary = basic + allowances - deductions;
+                                                const {
+                                                    basic = 0,
+                                                    allowances = 0,
+                                                    deductions = 0,
+                                                } = updatedSalary;
+
+                                                updatedSalary.netSalary =
+                                                    (Number(basic) || 0) +
+                                                    (Number(allowances) || 0) -
+                                                    (Number(deductions) || 0);
 
                                                 setStudent({
                                                     ...student,
                                                     salaryInfo: updatedSalary,
                                                 });
 
-                                                // 🔹 Clear error on typing
                                                 setErrors((prev) => ({ ...prev, [name]: "" }));
                                             }}
+
 
                                             error={!!errors[field]}
                                             helperText={errors[field]}
@@ -1859,14 +1917,53 @@ const designationDataExample = [
                             Next
                         </Button>
                     ) : (
+                        // <button
+                        //     type="submit"
+                        //     className="p-2 rounded bg-[image:var(--gradient-primary)] cursor-pointer"
+                        // // variant="contained"
+                        // // style={{ backgroundColor: "#4caf50", color: "white" }}
+                        // >
+                        //     Submit
+                        // </button>
                         <button
                             type="submit"
-                            className="p-2 rounded bg-[image:var(--gradient-primary)] cursor-pointer"
-                        // variant="contained"
-                        // style={{ backgroundColor: "#4caf50", color: "white" }}
+                            disabled={isSubmitting}
+                            className={`px-6 py-2 rounded-lg cursor-pointer flex items-center justify-center gap-2
+    ${isSubmitting
+                                    ? "bg-gray-400 cursor-not-allowed"
+                                    : "bg-[image:var(--gradient-primary)] hover:bg-green-600"
+                                }
+  `}
                         >
-                            Submit
+                            {isSubmitting ? (
+                                <>
+                                    <svg
+                                        className="animate-spin h-5 w-5 text-white"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle
+                                            className="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                        />
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8v8z"
+                                        />
+                                    </svg>
+                                    Submitting...
+                                </>
+                            ) : (
+                                "Submit"
+                            )}
                         </button>
+
                     )}
                 </div>
             </form>

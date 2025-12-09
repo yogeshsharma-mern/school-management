@@ -41,6 +41,7 @@ const IpSetting = lazy(() => import("./pages/IpSetting.jsx"));
 const NoFound = lazy(() => import("./pages/NotFound.jsx"));
 const salaryDetail = lazy(() => import("./pages/SalaryDetail.jsx"));
 const EventCalendar = lazy(() => import("./pages/EventCalendar.jsx"));
+const InquiryManagement = lazy(() => import("./pages/InquiryManagement.jsx"));
 // const EditFeesForm=lazy(()=>import('./pages/EditFeesForm.jsx'));
 const Assign = lazy(() => import('./pages/Assign.jsx'));
 
@@ -92,6 +93,8 @@ export default function App() {
 
             <Route path="teacher/salary" element={<TeacherSalary />} />
             <Route path="event-calendar" element={<EventCalendar />} />
+            <Route path="event-calendar" element={<EventCalendar />} />
+            <Route path="inquiry-management" element={<InquiryManagement />} />
             {/* <Route path="teacher/salary/salaryinfo" element={<SalaryDetail />} /> */}
             <Route path="teacher/salary/salaryinfo/:id" element={<SalaryDetail />} />
 

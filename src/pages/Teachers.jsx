@@ -61,48 +61,37 @@ export default function StudentPage() {
     // Columns you want the admin to fill
     const templateRows = [
       {
-        employeeId: "EMP-XXXX",
+        employee: "EMP-XXXX",
         name: "John Doe",
         email: "john.doe@school.com",
         phone: "9876543210",
-        dob: "1980/03/15",          // Use YYYY/MM/DD format
+        dob: "YYYY/MM/DD",          // Use YYYY/MM/DD format
         gender: "Male",
-
         maritalStatus: "Married",   // Married / Single / Divorced / Widowed
-
         street: "45 MG Road",
         city: "Delhi",
         state: "Delhi",
         zip: "110001",
         country: "India",
-
         bloodGroup: "B+",           // A+, A-, B+, B-, AB+, AB-, O+, O-
-
         physicalDisability: "FALSE",     // TRUE / FALSE
         disabilityDetails: "",           // Leave empty if FALSE
-
-        // designation: "Mathematics Teacher",
+        designation: "Mathematics Teacher",
         qualifications: "M.Sc Mathematics;B.Ed", // separate with semicolon
         specialization: "Mathematics",
         experience: "15",                 // in years
-
-        dateOfJoining: "2015/06/01",
-
+        dateOfJoining: "YYYY/MM/DD",
         classes: "10th-C,12th-B",         // comma separated  
         subjects: "science,sanskrit",     // comma separated
-
         basicSalary: "75000",
         allowances: "15000",
         deductions: "8000",
         netSalary: "82000",
-
         emergencyContactName: "Seema Sharma",
         emergencyContactRelation: "Spouse",
         emergencyContactPhone: "9876543211",
         emergencyContactAddress: "45 MG Road, Delhi",
 
-        aadharFront: "",     // file upload placeholders
-        aadharBack: ""
       }
     ];
 
@@ -110,7 +99,7 @@ export default function StudentPage() {
     const ws = XLSX.utils.json_to_sheet(templateRows, { skipHeader: false });
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "TeacherTemplate");
-    XLSX.writeFile(wb, "Teacher.xlsx");
+    XLSX.writeFile(wb, "Teachers.csv", { bookType: "csv" });
   };
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];

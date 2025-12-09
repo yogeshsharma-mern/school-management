@@ -96,7 +96,7 @@ export default function TimetableManager() {
   });
   const teachersQuery = useQuery({
     queryKey: ["teachers"],
-    queryFn: () => apiGet(apiPath.getTeachers || "/api/admins/teachers"),
+    queryFn: () => apiGet(apiPath.getallTeachers || "/api/admins/teachers"),
   });
   const subjectsQuery = useQuery({
     queryKey: ["subjects"],

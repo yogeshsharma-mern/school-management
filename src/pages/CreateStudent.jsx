@@ -75,6 +75,8 @@ export default function CreateStudentPage() {
 
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [activeStep, setActiveStep] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [feeStructureFound, setFeeStructureFound] = useState(false);
@@ -471,6 +473,7 @@ export default function CreateStudentPage() {
     if (!validateStep()) return;
 
     try {
+      setIsSubmitting(true);
       const formDataObj = new FormData();
 
       // Add nested JSON fields
@@ -533,6 +536,8 @@ export default function CreateStudentPage() {
     } catch (err) {
       console.error(err);
       toast.error(err?.response?.data?.message || "Failed to add student ❌");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1575,14 +1580,53 @@ export default function CreateStudentPage() {
               Next
             </Button>
           ) : (
+            // <button
+            //   type="submit"
+            //   // variant="contained"
+            //   // style={{ backgroundColor: "#f4f14fff", color: "black" }}
+            //   className="px-6 py-2 bg-[image:var(--gradient-primary)] rounded-lg hover:bg-green-600 cursor-pointer"
+            // >
+            //   Submit
+            // </button>
             <button
               type="submit"
-              // variant="contained"
-              // style={{ backgroundColor: "#f4f14fff", color: "black" }}
-              className="px-6 py-2 bg-[image:var(--gradient-primary)] rounded-lg hover:bg-green-600 cursor-pointer"
+              disabled={isSubmitting}
+              className={`px-6 py-2 rounded-lg cursor-pointer flex items-center justify-center gap-2
+    ${isSubmitting
+                  ? "bg-gray-200 cursor-not-allowed"
+                  : "bg-[image:var(--gradient-primary)] hover:bg-green-600"
+                }
+  `}
             >
-              Submit
+              {isSubmitting ? (
+                <>
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    />
+                  </svg>
+                  Submitting...
+                </>
+              ) : (
+                "Submit"
+              )}
             </button>
+
           )}
         </div>
       </form>

@@ -434,7 +434,7 @@ export default function AttendanceTable() {
       apiGet(apiPath.getAttendanceClockwise, {
         page,
         limit,
-        name: debouncedSearch,
+        keyword: debouncedSearch,
         month: selectedMonth + 1,
         year: selectedYear,
       }),

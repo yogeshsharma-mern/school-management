@@ -379,8 +379,7 @@ export default function StudentPage() {
         "country": "India",
         "aadharFront": "",
         "aadharBack": "",
-        // "discounts": "",
-        // "feeHeads": ""
+ 
 
 
 
