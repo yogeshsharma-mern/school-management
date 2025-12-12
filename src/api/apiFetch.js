@@ -217,8 +217,14 @@ function apiPatch(url, body) {
     });
 }
 //
-function apiDelete(url) {
-  return instance.delete(url).then(res => res.data);
+function apiDelete(url, data) {
+  return instance.delete(url, {
+    data,   // 👈 THIS IS THE BODY
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then(res => res.data);
 }
+
 
 export { getHeaders, apiGet, apiPost, apiPut, apiDelete,apiPatch };

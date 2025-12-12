@@ -20,6 +20,7 @@ import { apiPut, apiGet, apiPatch, apiDelete, apiPost } from "../api/apiFetch";
 import apiPath from "../api/apiPath";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
+// import toast from "react-hot-toast";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://api.example.com";
 
@@ -287,11 +288,11 @@ export default function SchoolSettings() {
       }
     });
 
-    (schoolData.gallery || []).forEach((file) => {
-      if (file instanceof File) {
-        formData.append("gallery", file);
-      }
-    });
+    // (schoolData.gallery || []).forEach((file) => {
+    //   if (file instanceof File) {
+    //     formData.append("gallery", file);
+    //   }
+    // });
 
     if (schoolData.schoolLogo instanceof File) {
       formData.append("schoolLogo", schoolData.schoolLogo);
@@ -965,7 +966,7 @@ export default function SchoolSettings() {
 
         {/* Gallery Images */}
         {/* Gallery Images */}
-        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+        {/* <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               🖼️ Gallery Images
@@ -1039,7 +1040,7 @@ export default function SchoolSettings() {
               })}
             </Box>
           </CardContent>
-        </Card>
+        </Card> */}
 
 
         {/* Social URLs */}

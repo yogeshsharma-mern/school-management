@@ -62,7 +62,14 @@ const apiPath = Object.freeze({
   importTeacher: "/admins/teachers/bulk-upload",
   importCalander: "/admins/calender/bulk-upload",
   getallTeachers:"/admins/teachers/allteachers",
-  inquiryList:"/admins/auth/contacts"
+  inquiryList:"/admins/auth/contacts",
+  galleryCategories:"/admins/setting/get",
+  createCategorySetting:"/admins/setting/add",
+  deleteCategorySettings:"/admins/setting/delete",
+  updateCategorySetting:"/admins/setting/update",
+  uploadImageGallery:"/admins/setting/category/upload-images",
+  gallerySettingGetImages:"/admins/setting/get-images",
+  GallerySettingDeleteImage:"/admins/setting/delete-images",
 
   // getTeachers:"/admins/teachers/getAllTeacher",
   //   getTeacherDetails:"/admins/teachers/getTeacherProfile",

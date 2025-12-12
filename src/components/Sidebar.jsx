@@ -481,7 +481,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                 className={subItemClass}
                 onClick={handleSubmenuClick}
               >
-                <BsPeopleFill size={15} />
+                <TfiGallery size={15} />
                 <span>Gallery Setting</span>
               </NavLink>
               <NavLink
