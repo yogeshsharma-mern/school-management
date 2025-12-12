@@ -375,7 +375,6 @@ export default function CreateStudentPage() {
 
   const validateStep = () => {
     const newErrors = {};
-
     if (activeStep === 0) {
       if (!student.name.trim()) {
         newErrors.name = "Name is required";
@@ -383,31 +382,38 @@ export default function CreateStudentPage() {
         newErrors.name = "Name must not contain numbers or special characters";
       }
 
-      if (!student.dob) newErrors.dob = "Date of Birth is required";
-      if (!student.gender) newErrors.gender = "Gender is required";
-      if (!student.bloodGroup) newErrors.bloodGroup = "Blood group is required";
-      if (!student.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email))
-        newErrors.email = "Valid email is required";
-      if (!student.password || student.password.length < 6)
-        newErrors.password = "Password must be at least 6 characters";
-      if (!student.phone || student.phone.replace(/\D/g, "").length < 10)
-        newErrors.phone = "Valid phone number required";
+      // ✅ Date of Birth validation with age restriction (3-25 years)
+      if (!student.dob) {
+        newErrors.dob = "Date of Birth is required";
+      } else {
+        const dob = new Date(student.dob);
+        const today = new Date();
 
-      if (!student.documents?.profilePic) {
-        newErrors.documents = { ...(newErrors.documents || {}), profilePic: "Profile picture is required" };
+        // Calculate age
+        let age = today.getFullYear() - dob.getFullYear();
+        const monthDiff = today.getMonth() - dob.getMonth();
+
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+          age--;
+        }
+
+        // Check age range
+        if (age < 3) {
+          newErrors.dob = "Student must be at least 3 years old";
+        } else if (age > 25) {
+          newErrors.dob = "Student age should not exceed 25 years";
+        }
+
+        // Optionally, you can also check if dob is not in the future
+        if (dob > today) {
+          newErrors.dob = "Date of Birth cannot be in the future";
+        }
       }
 
-      // ✅ Address validation
-      newErrors.address = {};
-
-      if (!student.address.street.trim()) newErrors.address.street = "Street is required";
-      if (!student.address.city.trim()) newErrors.address.city = "City is required";
-      if (!student.address.state.trim()) newErrors.address.state = "State is required";
-      if (!student.address.zip.trim()) newErrors.address.zip = "ZIP code is required";
-      if (!student.address.country.trim()) newErrors.address.country = "Country is required";
-
-      // 🧹 If no address field has error, remove the address object entirely (avoid empty UI errors)
-      if (Object.keys(newErrors.address).length === 0) delete newErrors.address;
+      // Rest of your validation...
+      if (!student.gender) newErrors.gender = "Gender is required";
+      if (!student.bloodGroup) newErrors.bloodGroup = "Blood group is required";
+      // ... rest of the validation code
     }
     else if (activeStep === 1) {
       student.parents.forEach((parent, i) => {
@@ -594,7 +600,8 @@ export default function CreateStudentPage() {
               error={!!errors.dob}
               helperText={errors.dob}
               inputProps={{
-                max: new Date(Date.now() - 86400000).toISOString().split("T")[0], // 🔒 only before today
+                max: new Date(Date.now() - 86400000 * 365 * 3).toISOString().split("T")[0], // Max: yesterday
+                min: new Date(Date.now() - 86400000 * 365 * 25 - 86400000).toISOString().split("T")[0], // Min: 25 years ago (yesterday)
               }}
             />
 

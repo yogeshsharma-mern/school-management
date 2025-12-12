@@ -44,6 +44,7 @@ const EventCalendar = lazy(() => import("./pages/EventCalendar.jsx"));
 const InquiryManagement = lazy(() => import("./pages/InquiryManagement.jsx"));
 // const EditFeesForm=lazy(()=>import('./pages/EditFeesForm.jsx'));
 const Assign = lazy(() => import('./pages/Assign.jsx'));
+const GallerySetting = lazy(() => import('./pages/GallerySetting.jsx'));
 
 export default function App() {
   const queryClient = new QueryClient();
@@ -107,6 +108,9 @@ export default function App() {
             {/* <Route path="teachers/:id" element={<TeacherDetails />} /> */}
             <Route path="teachers/edit/:id" element={<EditTeacher />} />
             <Route path="settings" element={<AdminSettings />} />
+            {/* /admin/setting/gallery */}
+            <Route path="/admin/setting/gallery" element={<GallerySetting />} />
+
             <Route path="school/ip-setting" element={<IpSetting />} />
             <Route path="password" element={<ChangePassword />} />
             <Route path="assign" element={<Assign />} />

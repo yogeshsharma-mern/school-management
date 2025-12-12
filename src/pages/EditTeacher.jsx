@@ -221,7 +221,7 @@ export default function CreateTeacherPage() {
     useEffect(() => {
         if (!teacherData?.results) return;
         const t = teacherData.results;
-        console.log("gt",t)
+        console.log("gt", t)
 
         setteacher(prev => ({
             ...prev,
@@ -239,8 +239,8 @@ export default function CreateTeacherPage() {
 
             qualifications: t.qualifications || prev.qualifications,
             specialization: t.specialization || prev.specialization,
-          classes: t.subjectsHandled?.map(cls => cls.classId) || prev.classes,
-    subjectsHandled: t.subjectsHandled?.length ? t.subjectsHandled : prev.subjectsHandled,
+            classes: t.subjectsHandled?.map(cls => cls.classId) || prev.classes,
+            subjectsHandled: t.subjectsHandled?.length ? t.subjectsHandled : prev.subjectsHandled,
 
             salaryInfo: t.salaryInfo || prev.salaryInfo,
             physicalDisability: t.physicalDisability || false,
@@ -499,10 +499,27 @@ export default function CreateTeacherPage() {
 
             if (!teacher.name) newErrors.name = "Name is required";
 
-            if (!teacher.dob) newErrors.dob = "Date of Birth is required";
-            else if (dobDate >= today)
+            if (!teacher.dob) {
+                newErrors.dob = "Date of Birth is required";
+            } else if (dobDate >= today) {
                 newErrors.dob = "Date of Birth cannot be today or in the future";
+            } else {
+                // ✅ Teacher age validation (18-65 years)
+                const birthDate = new Date(teacher.dob);
+                const age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
 
+                // Adjust age if birthday hasn't occurred this year
+                const adjustedAge = (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()))
+                    ? age - 1
+                    : age;
+
+                if (adjustedAge < 18) {
+                    newErrors.dob = "Teacher must be at least 18 years old";
+                } else if (adjustedAge > 65) {
+                    newErrors.dob = "Teacher age should not exceed 65 years";
+                }
+            }
             if (!teacher.gender) newErrors.gender = "Gender is required";
             if (!teacher.bloodGroup) newErrors.bloodGroup = "Blood group is required";
 
@@ -747,7 +764,7 @@ export default function CreateTeacherPage() {
                         />
 
                         {/* Date of Birth */}
-                        <TextField
+                        {/* <TextField
                             fullWidth
                             type="date"
                             name="dob"
@@ -759,6 +776,25 @@ export default function CreateTeacherPage() {
                                 max: new Date(new Date().setDate(new Date().getDate() - 1))
                                     .toISOString()
                                     .split("T")[0], // yesterday or earlier
+                            }}
+                            error={!!errors.dob}
+                            helperText={errors.dob}
+                        /> */}
+                        <TextField
+                            fullWidth
+                            type="date"
+                            name="dob"
+                            value={teacher.dob}
+                            onChange={handleChange}
+                            label="Date of Birth"
+                            InputLabelProps={{ shrink: true }}
+                            inputProps={{
+                                max: new Date(
+                                    new Date().setFullYear(new Date().getFullYear() - 18)
+                                ).toISOString().split("T")[0], // 🎯 at least 18 years old (yesterday)
+                                min: new Date(
+                                    new Date().setFullYear(new Date().getFullYear() - 65)
+                                ).toISOString().split("T")[0], // 🎯 at most 65 years old
                             }}
                             error={!!errors.dob}
                             helperText={errors.dob}

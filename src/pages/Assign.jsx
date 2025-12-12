@@ -17,7 +17,7 @@ export function generateTimeSlotsFromSettings(settings) {
   const { schoolTiming, periods } = settings;
   const totalPeriods = Number(periods.totalPeriods || 6);
   const periodDuration = Number(periods.periodDuration || 60);
-  const breakDuration = Number(periods.breakDuration );
+  const breakDuration = Number(periods.breakDuration);
   const lunch = periods.lunchBreak || { isEnabled: false };
 
   const parseHM = (hm) => {
@@ -39,13 +39,13 @@ export function generateTimeSlotsFromSettings(settings) {
   let lunchDone = false;
 
   while (count < totalPeriods && current < end) {
-  if (
-  lunch.isEnabled &&
-  !lunchDone &&
-  lunchStart &&
-  lunchStart >= current &&
-  lunchStart < new Date(current.getTime() + periodDuration * 60000)
-) {
+    if (
+      lunch.isEnabled &&
+      !lunchDone &&
+      lunchStart &&
+      lunchStart >= current &&
+      lunchStart < new Date(current.getTime() + periodDuration * 60000)
+    ) {
       const ls = new Date(lunchStart);
       const le = new Date(lunchStart.getTime() + lunchDuration * 60000);
       slots.push({
@@ -111,24 +111,24 @@ export default function TimetableManager() {
     enabled: !!selectedClassId,
   });
 
-  
-const resetMutation = useMutation({
-  mutationFn: async (classId) => {
-    return apiDelete(
-      `${apiPath.resetAssign || "/api/admins/teachers/assign-teacher"}/${classId}`
-    );
-  },
-  onSuccess: (res) => {
-    toast.success(res?.message || "Assignments reset successfully!");
-    // Invalidate assignment data to refresh UI
-    queryClient.invalidateQueries(["assignments", selectedClassId]);
-    setLocalAssignments({});
-  },
-  onError: (err) => {
-    console.error(err);
-    toast.error(err.response?.data?.message || "Failed to reset assignments");
-  },
-});
+
+  const resetMutation = useMutation({
+    mutationFn: async (classId) => {
+      return apiDelete(
+        `${apiPath.resetAssign || "/api/admins/teachers/assign-teacher"}/${classId}`
+      );
+    },
+    onSuccess: (res) => {
+      toast.success(res?.message || "Assignments reset successfully!");
+      // Invalidate assignment data to refresh UI
+      queryClient.invalidateQueries(["assignments", selectedClassId]);
+      setLocalAssignments({});
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to reset assignments");
+    },
+  });
   // 🔹 Data extraction
   const classes = classesQuery.data?.results?.docs || classesQuery.data || [];
   const teachers = teachersQuery.data?.results?.docs || teachersQuery.data || [];
@@ -137,25 +137,25 @@ const resetMutation = useMutation({
   const allAssignments =
     assignmentsQuery.data?.timetable?.timetable || assignmentsQuery.data || [];
 
-    // const filterdTeachers = teachers.filter((teacher)=> teacher?.classes?.includes(selectedClassId));
-const filteredTeachers = Array.isArray(teachers)
-  ? teachers.filter((teacher) =>
+  // const filterdTeachers = teachers.filter((teacher)=> teacher?.classes?.includes(selectedClassId));
+  const filteredTeachers = Array.isArray(teachers)
+    ? teachers.filter((teacher) =>
       Array.isArray(teacher.classes) &&
       teacher.classes.includes(String(selectedClassId))
     )
-  : [];
+    : [];
 
 
-    // console.log("teachers",teachers);
-    // console.log("filterdteachers",filteredTeachers);
+  // console.log("teachers",teachers);
+  // console.log("filterdteachers",filteredTeachers);
   // 🔹 Default class
   useEffect(() => {
     if (!selectedClassId && classes.length) {
       setSelectedClassId(classes[0]._id || classes[0].id);
     }
   }, [classes, selectedClassId]);
-  function handleReset(){
-   resetMutation.mutate(selectedClassId);
+  function handleReset() {
+    resetMutation.mutate(selectedClassId);
   }
 
   // 🔹 Reset when class changes
@@ -214,41 +214,41 @@ const filteredTeachers = Array.isArray(teachers)
   // }, [filteredAssignments, timeSlots]);
 
   // 🔹 Load existing assignments correctly
-// 🔹 Load backend timetable and map to time slots
-useEffect(() => {
-  if (!assignmentsQuery.data?.timetable || !timeSlots?.length) return;
+  // 🔹 Load backend timetable and map to time slots
+  useEffect(() => {
+    if (!assignmentsQuery.data?.timetable || !timeSlots?.length) return;
 
-  const map = {};
-  const timetable = assignmentsQuery.data.timetable; // backend timetable object
-  // console.log("timetable",timetable);
+    const map = {};
+    const timetable = assignmentsQuery.data.timetable; // backend timetable object
+    // console.log("timetable",timetable);
 
-  for (const [day, dayAssignments] of Object.entries(timetable)) {
-    // // console.log("dayassigent",dayAssignments);
-    if (!Array.isArray(dayAssignments)) continue; // safety
-    dayAssignments.forEach((a) => {
-      // console.log("aaa",a);
-      // Find matching time slot by period
-      const slot = timeSlots.find((s) => Number(s.period) === Number(a.period));
-      if (!slot) return;
+    for (const [day, dayAssignments] of Object.entries(timetable)) {
+      // // console.log("dayassigent",dayAssignments);
+      if (!Array.isArray(dayAssignments)) continue; // safety
+      dayAssignments.forEach((a) => {
+        // console.log("aaa",a);
+        // Find matching time slot by period
+        const slot = timeSlots.find((s) => Number(s.period) === Number(a.period));
+        if (!slot) return;
 
-      const key = `${day}_${slot.startTime}_${slot.endTime}`;
-      map[key] = {
-        classId: selectedClassId,
-        day,
-        period: a.period,
-        teacherId: a.teacherId || null,
-        subjectId: a.subjectId || null,
-        teacherName: a.teacher || "", // from backend
-        subjectName: a.subject || "", // from backend
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-        saved: true, // mark as already saved
-      };
-    });
-  }
+        const key = `${day}_${slot.startTime}_${slot.endTime}`;
+        map[key] = {
+          classId: selectedClassId,
+          day,
+          period: a.period,
+          teacherId: a.teacherId || null,
+          subjectId: a.subjectId || null,
+          teacherName: a.teacher || "", // from backend
+          subjectName: a.subject || "", // from backend
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          saved: true, // mark as already saved
+        };
+      });
+    }
 
-  setLocalAssignments(map); // update frontend state
-}, [assignmentsQuery.data, timeSlots, selectedClassId]);
+    setLocalAssignments(map); // update frontend state
+  }, [assignmentsQuery.data, timeSlots, selectedClassId]);
 
 
 
@@ -263,20 +263,20 @@ useEffect(() => {
     // console.log("subjecgid",subjectId)
     const teacher =
       teachers.find((t) => t._id === teacherId || t.id === teacherId) || {};
-      // console.log("subjectsssss",subjects);
-      
+    // console.log("subjectsssss",subjects);
+
     const subject =
       subjects.find((s) => s._id === subjectId || s.id === subjectId) || {};
-      // console.log("subjectttttt",subject);
-      // console.log("teacher",teacher)
-      
+    // console.log("subjectttttt",subject);
+    // console.log("teacher",teacher)
+
 
     const key = `${day}_${slot.startTime}_${slot.endTime}`;
     const newItem = {
       classId: selectedClassId,
       teacherId,
       teacherName: teacher.name || teacher.fullName || "",
-      subjectId:subject._id,
+      subjectId: subject._id,
       subjectName: subject.name || subject.title || "",
       period: slot.period,
       day,
@@ -312,7 +312,7 @@ useEffect(() => {
       toast.error(error.message);
     },
   });
-// console.log("loaclassilgnment",localAssignments);
+  // console.log("loaclassilgnment",localAssignments);
   const collectUnsavedPayloads = () =>
     Object.values(localAssignments).filter(
       (v) => !v.saved && v.period !== "Lunch Break"
@@ -321,48 +321,48 @@ useEffect(() => {
   const handleSaveAll = () => {
     const payloads = collectUnsavedPayloads();
     // console.log("payloads",payloads);
-  
+
     if (!payloads.length) return;
     bulkSaveMutation.mutate(payloads);
   };
 
   // ✅ Loader condition: wait for all essential queries
-const isLoading =
-  settingsQuery.isLoading ||
-  classesQuery.isLoading ||
-  teachersQuery.isLoading ||
-  subjectsQuery.isLoading ||
-  (selectedClassId && assignmentsQuery.isLoading);
+  const isLoading =
+    settingsQuery.isLoading ||
+    classesQuery.isLoading ||
+    teachersQuery.isLoading ||
+    subjectsQuery.isLoading ||
+    (selectedClassId && assignmentsQuery.isLoading);
 
-// ✅ Show loader while data is loading
-if (isLoading) {
-  return (
-    <div className="flex justify-center items-center min-h-[80vh] bg-opacity-70 z-50">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
-    </div>
-  );
-}
+  // ✅ Show loader while data is loading
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[80vh] bg-opacity-70 z-[99999]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+      </div>
+    );
+  }
 
-// ✅ Error handling
-if (
-  settingsQuery.isError ||
-  classesQuery.isError ||
-  teachersQuery.isError ||
-  subjectsQuery.isError
-) {
-  return (
-    <Box className="flex flex-col items-center justify-center h-screen text-red-500">
-      <Typography variant="h6">⚠️ Failed to load data. Please try again.</Typography>
-    </Box>
-  );
-}
-  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+  // ✅ Error handling
+  if (
+    settingsQuery.isError ||
+    classesQuery.isError ||
+    teachersQuery.isError ||
+    subjectsQuery.isError
+  ) {
+    return (
+      <Box className="flex flex-col items-center justify-center h-screen text-red-500">
+        <Typography variant="h6">⚠️ Failed to load data. Please try again.</Typography>
+      </Box>
+    );
+  }
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   // 🔹 Render
   return (
-    
+
     <Box className="p-8 bg-gradient-to-b from-indigo-50 to-white min-h-screen">
-      
+
       <Typography variant="h5" className="font-extrabold mb-6 text-black">
         Timetable Management
       </Typography>
@@ -393,7 +393,7 @@ if (
               className="border-indigo-400 text-indigo-600"
               onClick={() => {
                 setLocalAssignments({});
-        handleReset()
+                handleReset()
               }}
             >
               Reset
@@ -414,7 +414,7 @@ if (
 
       {/* Timetable Grid */}
       <Paper className="p-4 rounded-3xl shadow-xl bg-white overflow-x-auto">
-        <Box className="grid grid-cols-[150px_repeat(5,1fr)] gap-2">
+        <Box className="grid grid-cols-[150px_repeat(6,1fr)] gap-2">
           <Box></Box>
           {days.map((day) => (
             <Typography
@@ -454,17 +454,16 @@ if (
                 return (
                   <Box
                     key={`${day}_${slot.id}`}
-                 onClick={() => {
-  setModalSlot({ day, slot, existing: a || null });
-  setModalOpen(true);
-}}
-                    className={`p-2 rounded-lg cursor-pointer h-24 flex flex-col justify-center items-center border ${
-                      a
+                    onClick={() => {
+                      setModalSlot({ day, slot, existing: a || null });
+                      setModalOpen(true);
+                    }}
+                    className={`p-2 rounded-lg cursor-pointer h-24 flex flex-col justify-center items-center border ${a
                         ? a.saved
                           ? "bg-green-50 border-green-300"
                           : "bg-yellow-50 border-yellow-400"
                         : "bg-white border-dashed border-gray-300 hover:bg-blue-50"
-                    }`}
+                      }`}
                   >
                     {a ? (
                       <>
@@ -489,12 +488,12 @@ if (
       </Paper>
 
       {/* Add Assignment Modal */}
-      
+
       {modalOpen && modalSlot && (
         <AddAssignmentModal
           open={modalOpen}
           onClose={() => setModalOpen(false)}
-slotData={modalSlot}
+          slotData={modalSlot}
 
           day={modalSlot.day}
           teachers={filteredTeachers}
@@ -515,7 +514,7 @@ slotData={modalSlot}
           classId={selectedClassId}
         />
       )}
-      
+
     </Box>
   );
 }

@@ -101,7 +101,7 @@ export default function CreateTeacherPage() {
         { value: "Delhi", label: "Delhi" },
         { value: "Gujarat", label: "Gujarat" },
     ];
-    const [student, setStudent] = useState({
+    const [teacher, setteacher] = useState({
         name: "",
         dob: "",
         gender: "",
@@ -165,7 +165,7 @@ export default function CreateTeacherPage() {
 
 
     const { data: classes = [], isLoading, isError } = useQuery({
-        queryKey: ["classesForStudent"],
+        queryKey: ["classesForteacher"],
         queryFn: () => apiGet(apiPath.classes),
     });
     const { data: subjects = [], isLoading: isload, isError: iserr } = useQuery({
@@ -207,26 +207,26 @@ export default function CreateTeacherPage() {
     // const handleChange = (e, parentIndex = null, section = null) => {
     //     const { name, value, type, checked } = e.target;
     //     if (parentIndex !== null) {
-    //         const updatedParents = [...student.parents];
+    //         const updatedParents = [...teacher.parents];
     //         updatedParents[parentIndex][name] = value;
-    //         setStudent({ ...student, parents: updatedParents });
+    //         setteacher({ ...teacher, parents: updatedParents });
     //         setErrors((prev) => ({
     //             ...prev,
     //             [`parent_${parentIndex}_${name}`]: "",
     //         }));
     //     } else if (section) {
-    //         setStudent({
-    //             ...student,
-    //             [section]: { ...student[section], [name]: value },
+    //         setteacher({
+    //             ...teacher,
+    //             [section]: { ...teacher[section], [name]: value },
     //         });
     //         setErrors((prev) => ({
     //             ...prev,
     //             [`${section}_${name}`]: "",
     //         }));
     //     } else if (type === "checkbox") {
-    //         setStudent({ ...student, [name]: checked });
+    //         setteacher({ ...teacher, [name]: checked });
     //     } else {
-    //         setStudent({ ...student, [name]: value });
+    //         setteacher({ ...teacher, [name]: value });
     //         setErrors((prev) => ({ ...prev, [name]: "" }));
     //     }
     // };
@@ -242,24 +242,24 @@ export default function CreateTeacherPage() {
     //     sanitizedValue = value.replace(/\D/g, ""); // only digits allowed
     //   }
     //         if (parentIndex !== null) {
-    //             const updatedParents = [...student.parents];
+    //             const updatedParents = [...teacher.parents];
     //             updatedParents[parentIndex][name] = value;
-    //             setStudent({ ...student, parents: updatedParents });
+    //             setteacher({ ...teacher, parents: updatedParents });
     //             setErrors((prev) => ({
     //                 ...prev,
     //                 [`parent_${parentIndex}_${name}`]: "",
     //             }));
     //         } else if (section) {
-    //             setStudent({
-    //                 ...student,
-    //                 [section]: { ...student[section], [name]: value },
+    //             setteacher({
+    //                 ...teacher,
+    //                 [section]: { ...teacher[section], [name]: value },
     //             });
     //             setErrors((prev) => ({
     //                 ...prev,
     //                 [`${section}_${name}`]: "",
     //             }));
     //         } else if (type === "checkbox") {
-    //             setStudent({ ...student, [name]: checked });
+    //             setteacher({ ...teacher, [name]: checked });
     //             setErrors((prev) => ({ ...prev, [name]: "" }));
     //         } else {
     //             // ✅ Special handling for "experience"
@@ -272,12 +272,12 @@ export default function CreateTeacherPage() {
     //                 // Restrict value between 1 and 40
     //                 if (numericValue && Number(numericValue) > 40) numericValue = "40";
 
-    //                 setStudent({ ...student, experience: numericValue });
+    //                 setteacher({ ...teacher, experience: numericValue });
     //                 setErrors((prev) => ({ ...prev, experience: "" }));
     //                 return;
     //             }
 
-    //             setStudent({ ...student, [name]: value });
+    //             setteacher({ ...teacher, [name]: value });
     //             setErrors((prev) => ({ ...prev, [name]: "" }));
     //         }
     //     };
@@ -316,7 +316,7 @@ export default function CreateTeacherPage() {
                     ...prev,
                     dob: "Teacher must be at least 18 years old",
                 }));
-                return; // 🚫 Stop here — don’t update student.dob
+                return; // 🚫 Stop here — don’t update teacher.dob
             } else {
                 setErrors((prev) => ({
                     ...prev,
@@ -327,9 +327,9 @@ export default function CreateTeacherPage() {
 
         if (parentIndex !== null) {
             // 👪 For parents array
-            const updatedParents = [...student.parents];
+            const updatedParents = [...teacher.parents];
             updatedParents[parentIndex][name] = sanitizedValue;
-            setStudent({ ...student, parents: updatedParents });
+            setteacher({ ...teacher, parents: updatedParents });
 
             setErrors((prev) => ({
                 ...prev,
@@ -338,9 +338,9 @@ export default function CreateTeacherPage() {
         }
         else if (section) {
             // 🏠 For nested objects (address, guardian, emergencyContact, etc.)
-            setStudent({
-                ...student,
-                [section]: { ...student[section], [name]: sanitizedValue },
+            setteacher({
+                ...teacher,
+                [section]: { ...teacher[section], [name]: sanitizedValue },
             });
 
             setErrors((prev) => ({
@@ -350,7 +350,7 @@ export default function CreateTeacherPage() {
         }
         else if (type === "checkbox") {
             // ☑️ For checkboxes
-            setStudent({ ...student, [name]: checked });
+            setteacher({ ...teacher, [name]: checked });
             setErrors((prev) => ({ ...prev, [name]: "" }));
         }
         else {
@@ -362,13 +362,13 @@ export default function CreateTeacherPage() {
                 if (numericValue.length > 2) numericValue = numericValue.slice(0, 2);
                 if (numericValue && Number(numericValue) > 40) numericValue = "40";
 
-                setStudent({ ...student, experience: numericValue });
+                setteacher({ ...teacher, experience: numericValue });
                 setErrors((prev) => ({ ...prev, experience: "" }));
                 return;
             }
 
             // 🧩 Default field update
-            setStudent({ ...student, [name]: sanitizedValue });
+            setteacher({ ...teacher, [name]: sanitizedValue });
             setErrors((prev) => ({ ...prev, [name]: "" }));
         }
     };
@@ -382,7 +382,7 @@ export default function CreateTeacherPage() {
 
         if (["marksheets", "certificates"].includes(field)) {
             const newFiles = Array.from(inputFiles);
-            setStudent(prev => {
+            setteacher(prev => {
                 const updatedFiles = [...(prev.documents[field] || []), ...newFiles].slice(0, 5);
                 return {
                     ...prev,
@@ -402,7 +402,7 @@ export default function CreateTeacherPage() {
         }
         // else if (section === "documents") {
         //     const file = inputFiles[0];
-        //     setStudent(prev => ({
+        //     setteacher(prev => ({
         //         ...prev,
         //         documents: { ...prev.documents, [field]: file },
         //     }));
@@ -411,7 +411,7 @@ export default function CreateTeacherPage() {
         else if (section === "documents") {
             const file = inputFiles[0];
 
-            setStudent(prev => ({
+            setteacher(prev => ({
                 ...prev,
                 documents: { ...prev.documents, [field]: file },
             }));
@@ -427,7 +427,7 @@ export default function CreateTeacherPage() {
 
         else {
             const file = inputFiles[0];
-            setStudent(prev => ({ ...prev, [field]: file }));
+            setteacher(prev => ({ ...prev, [field]: file }));
             setPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
         }
         setErrors(prev => ({ ...prev, [field]: "" }));
@@ -441,33 +441,51 @@ export default function CreateTeacherPage() {
 
         if (activeStep === 0) {
             const today = new Date();
-            const dobDate = student.dob ? new Date(student.dob) : null;
+            const dobDate = teacher.dob ? new Date(teacher.dob) : null;
 
-            if (!student.name) newErrors.name = "Name is required";
+            if (!teacher.name) newErrors.name = "Name is required";
 
-            if (!student.dob) newErrors.dob = "Date of Birth is required";
-            else if (dobDate >= today)
+            if (!teacher.dob) {
+                newErrors.dob = "Date of Birth is required";
+            } else if (dobDate >= today) {
                 newErrors.dob = "Date of Birth cannot be today or in the future";
+            } else {
+                // ✅ Teacher age validation (18-65 years)
+                const birthDate = new Date(teacher.dob);
+                const age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
 
-            if (!student.gender) newErrors.gender = "Gender is required";
-            if (!student.bloodGroup) newErrors.bloodGroup = "Blood group is required";
+                // Adjust age if birthday hasn't occurred this year
+                const adjustedAge = (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()))
+                    ? age - 1
+                    : age;
 
-            if (!student.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email))
+                if (adjustedAge < 18) {
+                    newErrors.dob = "Teacher must be at least 18 years old";
+                } else if (adjustedAge > 65) {
+                    newErrors.dob = "Teacher age should not exceed 65 years";
+                }
+            }
+
+            if (!teacher.gender) newErrors.gender = "Gender is required";
+            if (!teacher.bloodGroup) newErrors.bloodGroup = "Blood group is required";
+
+            if (!teacher.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(teacher.email))
                 newErrors.email = "Valid email is required";
 
-            if (!student.password || student.password.length < 6)
+            if (!teacher.password || teacher.password.length < 6)
                 newErrors.password = "Password must be at least 6 characters";
 
-            if (!student.phone || student.phone.replace(/\D/g, "").length < 10)
+            if (!teacher.phone || teacher.phone.replace(/\D/g, "").length < 10)
                 newErrors.phone = "Valid phone number required";
 
-            if (!student.address.street) newErrors.address_street = "Street is required";
-            if (!student.address.city) newErrors.address_city = "City is required";
-            if (!student.address.state) newErrors.address_state = "State is required";
-            if (!student.address.zip) newErrors.address_zip = "ZIP is required";
-            if (!student.address.country) newErrors.address_country = "Country is required";
+            if (!teacher.address.street) newErrors.address_street = "Street is required";
+            if (!teacher.address.city) newErrors.address_city = "City is required";
+            if (!teacher.address.state) newErrors.address_state = "State is required";
+            if (!teacher.address.zip) newErrors.address_zip = "ZIP is required";
+            if (!teacher.address.country) newErrors.address_country = "Country is required";
 
-            if (!student.documents.profilePic) {
+            if (!teacher.documents.profilePic) {
                 if (!newErrors.documents) newErrors.documents = {};
                 newErrors.documents.profilePic = "Profile picture is required";
             }
@@ -475,21 +493,21 @@ export default function CreateTeacherPage() {
 
 
         else if (activeStep === 1) {
-            if (!student.designation) newErrors.designation = "Designation is required";
-            if (student.qualifications.length === 0)
+            if (!teacher.designation) newErrors.designation = "Designation is required";
+            if (teacher.qualifications.length === 0)
                 newErrors.qualifications = "At least one qualification is required";
-            if (student.specialization.length === 0)
+            if (teacher.specialization.length === 0)
                 newErrors.specialization = "At least one specialization is required";
-            if (!student.experience || isNaN(student.experience) || student.experience < 0)
+            if (!teacher.experience || isNaN(teacher.experience) || teacher.experience < 0)
                 newErrors.experience = "Valid experience is required";
-            if (!student.dateOfJoining) newErrors.dateOfJoining = "Date of joining is required";
-            if (student.classes.length === 0)
+            if (!teacher.dateOfJoining) newErrors.dateOfJoining = "Date of joining is required";
+            if (teacher.classes.length === 0)
                 newErrors.classes = "At least one class must be assigned";
-            if (student.subjectsHandled.length === 0)
+            if (teacher.subjectsHandled.length === 0)
                 newErrors.subjectsHandled = "At least one subject must be assigned";
             else {
 
-                student.subjectsHandled.forEach((subj, i) => {
+                teacher.subjectsHandled.forEach((subj, i) => {
                     if (!subj.subjectName) newErrors[`subjectName_${i}`] = "Subject name is required";
                     // if (!subj.subjectCode) newErrors[`subjectCode_${i}`] = "Subject code is required";
                     if (!subj.classId) newErrors[`classId_${i}`] = "Class is required"
@@ -497,24 +515,24 @@ export default function CreateTeacherPage() {
 
             }
             if (
-                !student.salaryInfo.basic ||
-                isNaN(student.salaryInfo.basic) ||
-                student.salaryInfo.basic < 0
+                !teacher.salaryInfo.basic ||
+                isNaN(teacher.salaryInfo.basic) ||
+                teacher.salaryInfo.basic < 0
             ) {
                 newErrors.basic = "Basic salary must be 0 or more";
-            } else if (student.salaryInfo.basic > 999999) {
+            } else if (teacher.salaryInfo.basic > 999999) {
                 newErrors.basic = "Basic salary cannot exceed 6 digits";
             }
-            if (student.salaryInfo.allowances === "" || isNaN(student.salaryInfo.allowances) || student.salaryInfo.allowances < 0)
+            if (teacher.salaryInfo.allowances === "" || isNaN(teacher.salaryInfo.allowances) || teacher.salaryInfo.allowances < 0)
                 newErrors.allowances = "Allowances must be 0 or more";
-            if (student.salaryInfo.deductions === "" || isNaN(student.salaryInfo.deductions) || student.salaryInfo.deductions < 0)
+            if (teacher.salaryInfo.deductions === "" || isNaN(teacher.salaryInfo.deductions) || teacher.salaryInfo.deductions < 0)
                 newErrors.deductions = "Deductions must be 0 or more";
-            if (student.salaryInfo.deductions > (Number(student.salaryInfo.basic) + Number(student.salaryInfo.allowances)))
+            if (teacher.salaryInfo.deductions > (Number(teacher.salaryInfo.basic) + Number(teacher.salaryInfo.allowances)))
                 newErrors.deductions = "Deductions cannot exceed Basic + Allowances";
-            if (student.salaryInfo.netSalary !== (Number(student.salaryInfo.basic) + Number(student.salaryInfo.allowances) - Number(student.salaryInfo.deductions)))
+            if (teacher.salaryInfo.netSalary !== (Number(teacher.salaryInfo.basic) + Number(teacher.salaryInfo.allowances) - Number(teacher.salaryInfo.deductions)))
 
 
-                // student.parents.forEach((parent, i) => {
+                // teacher.parents.forEach((parent, i) => {
                 //     if (!parent.name)
                 //         newErrors[`parent_${i}_name`] = "Parent name is required";
                 //     if (!parent.occupation)
@@ -525,25 +543,25 @@ export default function CreateTeacherPage() {
                 //         newErrors[`parent_${i}_email`] = "Enter valid email";
                 // });
 
-                if (!student.emergencyContact.name)
+                if (!teacher.emergencyContact.name)
                     newErrors.emergencyContact_name = "Contact name required";
-            if (!student.emergencyContact.relation)
+            if (!teacher.emergencyContact.relation)
                 newErrors.emergencyContact_relation = "Relation required";
-            if (!student.emergencyContact.phone)
+            if (!teacher.emergencyContact.phone)
                 newErrors.emergencyContact_phone = "Phone required";
-            if (!student.emergencyContact.address)
+            if (!teacher.emergencyContact.address)
                 newErrors.emergencyContact_address = "Address required";
 
         }
 
         else if (activeStep === 2) {
-            // if (!student.classId) newErrors.classId = "Class is required";
-            // if (!student.academicYear) newErrors.academicYear = "Academic year is required";
+            // if (!teacher.classId) newErrors.classId = "Class is required";
+            // if (!teacher.academicYear) newErrors.academicYear = "Academic year is required";
 
             // Document validation
-            if (!student.documents.aadharFront)
+            if (!teacher.documents.aadharFront)
                 newErrors.aadharFront = "Aadhaar front is required";
-            if (!student.documents.aadharBack)
+            if (!teacher.documents.aadharBack)
                 newErrors.aadharBack = "Aadhaar back is required";
         }
 
@@ -570,11 +588,11 @@ export default function CreateTeacherPage() {
 
             // Add JSON fields
             ["address", "emergencyContact"].forEach((key) => {
-                formData.append(key, JSON.stringify(student[key]));
+                formData.append(key, JSON.stringify(teacher[key]));
             });
 
             // ✅ Corrected document handling
-            Object.entries(student.documents).forEach(([key, value]) => {
+            Object.entries(teacher.documents).forEach(([key, value]) => {
                 if (!value) return;
 
                 if (Array.isArray(value)) {
@@ -626,7 +644,7 @@ export default function CreateTeacherPage() {
                 "salaryInfo",
                 "subjectsHandled",
             ].forEach((key) => {
-                const value = student[key];
+                const value = teacher[key];
 
                 // Arrays/objects should be JSON.stringified
                 if (Array.isArray(value) || typeof value === "object") {
@@ -702,7 +720,7 @@ export default function CreateTeacherPage() {
                             fullWidth
                             label="Full Name"
                             name="name"
-                            value={student.name}
+                            value={teacher.name}
                             onChange={handleChange}
                             error={!!errors.name}
                             helperText={errors.name}
@@ -713,14 +731,17 @@ export default function CreateTeacherPage() {
                             fullWidth
                             type="date"
                             name="dob"
-                            value={student.dob}
+                            value={teacher.dob}
                             onChange={handleChange}
                             label="Date of Birth"
                             InputLabelProps={{ shrink: true }}
                             inputProps={{
                                 max: new Date(
                                     new Date().setFullYear(new Date().getFullYear() - 18)
-                                ).toISOString().split("T")[0], // 🎯 at least 18 years old
+                                ).toISOString().split("T")[0], // 🎯 at least 18 years old (yesterday)
+                                min: new Date(
+                                    new Date().setFullYear(new Date().getFullYear() - 65)
+                                ).toISOString().split("T")[0], // 🎯 at most 65 years old
                             }}
                             error={!!errors.dob}
                             helperText={errors.dob}
@@ -733,9 +754,9 @@ export default function CreateTeacherPage() {
                             fullWidth
                             name="gender"
                             label="Gender"
-                            value={student.gender}
+                            value={teacher.gender}
                             onChange={(e) => {
-                                setStudent({ ...student, gender: e.target.value });
+                                setteacher({ ...teacher, gender: e.target.value });
                                 setErrors((prev) => ({ ...prev, gender: "" }));
                             }}
                             error={!!errors.gender}
@@ -753,9 +774,9 @@ export default function CreateTeacherPage() {
                             fullWidth
                             name="bloodGroup"
                             label="Blood Group"
-                            value={student.bloodGroup}
+                            value={teacher.bloodGroup}
                             onChange={(e) => {
-                                setStudent({ ...student, bloodGroup: e.target.value });
+                                setteacher({ ...teacher, bloodGroup: e.target.value });
                                 setErrors((prev) => ({ ...prev, bloodGroup: "" }));
                             }}
                             error={!!errors.bloodGroup}
@@ -774,7 +795,7 @@ export default function CreateTeacherPage() {
                             type="email"
                             name="email"
                             label="Email"
-                            value={student.email}
+                            value={teacher.email}
                             onChange={handleChange}
                             error={!!errors.email}
                             helperText={errors.email}
@@ -786,7 +807,7 @@ export default function CreateTeacherPage() {
                             type={showPassword ? "text" : "password"}
                             name="password"
                             label="Password"
-                            value={student.password}
+                            value={teacher.password}
                             onChange={handleChange}
                             error={!!errors.password}
                             helperText={errors.password}
@@ -807,9 +828,9 @@ export default function CreateTeacherPage() {
                             <PhoneInput
                                 country="in"
                                 enableSearch
-                                value={student.phone}
+                                value={teacher.phone}
                                 onChange={(phone) =>
-                                    setStudent({ ...student, phone }) ||
+                                    setteacher({ ...teacher, phone }) ||
                                     setErrors((p) => ({ ...p, phone: "" }))
                                 }
                                 inputClass="w-full p-3 rounded-lg border border-gray-300"
@@ -822,7 +843,7 @@ export default function CreateTeacherPage() {
                             fullWidth
                             name="street"
                             label="Street"
-                            value={student.address.street}
+                            value={teacher.address.street}
                             onChange={(e) => handleChange(e, null, "address")}
                             error={!!errors.address_street}
                             helperText={errors.address_street}
@@ -833,7 +854,7 @@ export default function CreateTeacherPage() {
                             fullWidth
                             name="city"
                             label="City"
-                            value={student.address.city}
+                            value={teacher.address.city}
                             onChange={(e) => handleChange(e, null, "address")}
                             error={!!errors.address_city}
                             helperText={errors.address_city}
@@ -843,9 +864,9 @@ export default function CreateTeacherPage() {
                         <Select
                             name="state"
                             options={states}
-                            value={states.find((s) => s.value === student.address.state)}
+                            value={states.find((s) => s.value === teacher.address.state)}
                             onChange={(selected) => {
-                                setStudent((prev) => ({
+                                setteacher((prev) => ({
                                     ...prev,
                                     address: { ...prev.address, state: selected.value },
                                 }));
@@ -862,7 +883,7 @@ export default function CreateTeacherPage() {
                             fullWidth
                             name="zip"
                             label="ZIP Code"
-                            value={student.address.zip}
+                            value={teacher.address.zip}
                             onChange={(e) => handleChange(e, null, "address")}
                             error={!!errors.address_zip}
                             helperText={errors.address_zip}
@@ -872,9 +893,9 @@ export default function CreateTeacherPage() {
                         <Select
                             name="country"
                             options={countries}
-                            value={countries.find((c) => c.label === student.address.country)}
+                            value={countries.find((c) => c.label === teacher.address.country)}
                             onChange={(selected) => {
-                                setStudent((prev) => ({
+                                setteacher((prev) => ({
                                     ...prev,
                                     address: { ...prev.address, country: selected.label },
                                 }));
@@ -891,10 +912,10 @@ export default function CreateTeacherPage() {
                             <FormControlLabel
                                 control={
                                     <Checkbox
-                                        checked={student.physicalDisability}
+                                        checked={teacher.physicalDisability}
                                         onChange={(e) =>
-                                            setStudent({
-                                                ...student,
+                                            setteacher({
+                                                ...teacher,
                                                 physicalDisability: e.target.checked,
                                             })
                                         }
@@ -903,14 +924,14 @@ export default function CreateTeacherPage() {
                                 }
                                 label="Physical Disability"
                             />
-                            {student.physicalDisability && (
+                            {teacher.physicalDisability && (
                                 <TextField
                                     fullWidth
                                     multiline
                                     rows={3}
                                     name="disabilityDetails"
                                     label="Disability Details"
-                                    value={student.disabilityDetails}
+                                    value={teacher.disabilityDetails}
                                     onChange={handleChange}
                                     className="mt-3"
                                 />
@@ -1002,7 +1023,7 @@ export default function CreateTeacherPage() {
                                         size="medium"
                                         name="designation"
                                         placeholder="Enter designation"
-                                        value={student.designation}
+                                        value={teacher.designation}
                                         onChange={handleChange}
                                         error={!!errors.designation}
                                         helperText={errors.designation}
@@ -1018,7 +1039,7 @@ export default function CreateTeacherPage() {
                                     <TextField
                                         fullWidth
                                         name="designation"
-                                        value={student.designation}
+                                        value={teacher.designation}
                                         onChange={handleChange}
                                         inputProps={{ list: "designationExample" }}
                                     />
@@ -1042,10 +1063,10 @@ export default function CreateTeacherPage() {
                                         styles={customSelectStyles}
                                         classNamePrefix="select"
                                         placeholder="Select qualifications..."
-                                        value={student.qualifications.map((q) => ({ value: q, label: q }))}
+                                        value={teacher.qualifications.map((q) => ({ value: q, label: q }))}
                                         onChange={(selected) => {
-                                            setStudent({
-                                                ...student,
+                                            setteacher({
+                                                ...teacher,
                                                 qualifications: selected.map((s) => s.value),
                                             });
                                             setErrors((prev) => ({ ...prev, qualifications: "" }));
@@ -1070,12 +1091,12 @@ export default function CreateTeacherPage() {
                                         styles={customSelectStyles}
                                         classNamePrefix="select"
                                         placeholder="Select specialization..."
-                                        value={student.specialization.map((s) => ({ value: s, label: s }))}
+                                        value={teacher.specialization.map((s) => ({ value: s, label: s }))}
                                         onChange={(selected) => {
 
 
-                                            setStudent({
-                                                ...student,
+                                            setteacher({
+                                                ...teacher,
                                                 specialization: selected.map((s) => s.value),
                                             });
                                             setErrors((prev) => ({ ...prev, specialization: "" }));
@@ -1097,7 +1118,7 @@ export default function CreateTeacherPage() {
                                         fullWidth
                                         type="number"
                                         name="experience"
-                                        value={student.experience}
+                                        value={teacher.experience}
                                         onChange={handleChange}
                                         error={!!errors.experience}
                                         helperText={errors.experience}
@@ -1117,7 +1138,7 @@ export default function CreateTeacherPage() {
                                         type="date"
                                         name="dateOfJoining"
                                         InputLabelProps={{ shrink: true }}
-                                        value={student.dateOfJoining}
+                                        value={teacher.dateOfJoining}
                                         onChange={handleChange}
                                         error={!!errors.dateOfJoining}
                                         helperText={errors.dateOfJoining}
@@ -1150,13 +1171,13 @@ export default function CreateTeacherPage() {
                                             value: cls._id,
                                             label: `${cls.name} ${cls.section}`,
                                         }))}
-                                        value={student.classes.map((clsId) => {
+                                        value={teacher.classes.map((clsId) => {
                                             const found = classes?.results?.docs.find((cls) => cls._id === clsId);
                                             return found ? { value: found._id, label: `${found.name} ${found.section}` } : null;
                                         })}
                                         onChange={(selected) => {
-                                            setStudent({
-                                                ...student,
+                                            setteacher({
+                                                ...teacher,
                                                 classes: selected ? selected.map((s) => s.value) : [],
                                             });
                                             setErrors((prev) => ({ ...prev, classes: "" }));
@@ -1190,10 +1211,10 @@ export default function CreateTeacherPage() {
                                     <IconButton
                                         color="primary"
                                         onClick={() =>
-                                            setStudent({
-                                                ...student,
+                                            setteacher({
+                                                ...teacher,
                                                 subjectsHandled: [
-                                                    ...student.subjectsHandled,
+                                                    ...teacher.subjectsHandled,
                                                     { subjectName: "", subjectCode: "", classId: "" },
                                                 ],
                                             })
@@ -1205,7 +1226,7 @@ export default function CreateTeacherPage() {
                             </div>
 
                             {/* Subjects List */}
-                            {student.subjectsHandled.map((subject, index) => (
+                            {teacher.subjectsHandled.map((subject, index) => (
                                 <Paper
                                     key={index}
                                     elevation={1}
@@ -1215,14 +1236,14 @@ export default function CreateTeacherPage() {
                                         <h3 className="text-lg font-semibold text-gray-700">
                                             Subject {index + 1}
                                         </h3>
-                                        {student.subjectsHandled.length > 1 && (
+                                        {teacher.subjectsHandled.length > 1 && (
                                             <Tooltip title="Remove subject">
                                                 <IconButton
                                                     color="error"
                                                     onClick={() => {
-                                                        const updated = [...student.subjectsHandled];
+                                                        const updated = [...teacher.subjectsHandled];
                                                         updated.splice(index, 1);
-                                                        setStudent({ ...student, subjectsHandled: updated });
+                                                        setteacher({ ...teacher, subjectsHandled: updated });
                                                     }}
                                                 >
                                                     <DeleteOutline />
@@ -1279,7 +1300,7 @@ export default function CreateTeacherPage() {
                                                         (subj) => subj._id === selected?.value
                                                     );
 
-                                                    const updatedSubjects = [...student.subjectsHandled];
+                                                    const updatedSubjects = [...teacher.subjectsHandled];
                                                     updatedSubjects[index] = {
                                                         ...updatedSubjects[index],
                                                         // ✅ Send subject name (label) to backend, not the ID
@@ -1287,7 +1308,7 @@ export default function CreateTeacherPage() {
                                                         subjectCode: foundSubject?.code || "",
                                                     };
 
-                                                    setStudent({ ...student, subjectsHandled: updatedSubjects });
+                                                    setteacher({ ...teacher, subjectsHandled: updatedSubjects });
 
                                                     // 🔹 Clear error on change
                                                     setErrors((prev) => ({
@@ -1311,9 +1332,9 @@ export default function CreateTeacherPage() {
                                                 value={subject.subjectCode}
                                                 disabled
                                                 onChange={(e) => {
-                                                    const updated = [...student.subjectsHandled];
+                                                    const updated = [...teacher.subjectsHandled];
                                                     updated[index].subjectCode = e.target.value;
-                                                    setStudent({ ...student, subjectsHandled: updated });
+                                                    setteacher({ ...teacher, subjectsHandled: updated });
                                                 }}
                                                 InputProps={{
                                                     style: { height: "56px", borderRadius: "8px" },
@@ -1350,11 +1371,12 @@ export default function CreateTeacherPage() {
                                                     classes?.results?.docs
                                                         ?.filter((cls) =>
                                                             // ✅ 1️⃣ show only assigned classes
-                                                            student.classes.includes(cls._id) &&
+                                                            teacher.classes.includes(cls._id)
+                                                            // &&
                                                             // ✅ 2️⃣ exclude classes already selected in other subjects
-                                                            !student.subjectsHandled.some(
-                                                                (sub, i) => sub.classId === cls._id && i !== index
-                                                            )
+                                                            // !teacher.subjectsHandled.some(
+                                                            //     (sub, i) => sub.classId === cls._id && i !== index
+                                                            // )
                                                         )
                                                         ?.map((cls) => ({
                                                             value: cls._id,
@@ -1374,12 +1396,12 @@ export default function CreateTeacherPage() {
                                                         : null
                                                 }
                                                 onChange={(selected) => {
-                                                    const updatedSubjects = [...student.subjectsHandled];
+                                                    const updatedSubjects = [...teacher.subjectsHandled];
                                                     updatedSubjects[index] = {
                                                         ...updatedSubjects[index],
                                                         classId: selected?.value || "",
                                                     };
-                                                    setStudent({ ...student, subjectsHandled: updatedSubjects });
+                                                    setteacher({ ...teacher, subjectsHandled: updatedSubjects });
 
                                                     // clear error
                                                     setErrors((prev) => ({ ...prev, [`classId_${index}`]: "" }));
@@ -1393,7 +1415,7 @@ export default function CreateTeacherPage() {
 
                                     </Grid>
 
-                                    {index !== student.subjectsHandled.length - 1 && (
+                                    {index !== teacher.subjectsHandled.length - 1 && (
                                         <Divider className="mt-6" />
                                     )}
                                 </Paper>
@@ -1415,7 +1437,7 @@ export default function CreateTeacherPage() {
                                             type="number"
                                             name={field}
                                             label={field.replace(/^\w/, (c) => c.toUpperCase())}
-                                            value={student.salaryInfo[field]}
+                                            value={teacher.salaryInfo[field]}
                                             // onChange={(e) => {
                                             //     const { name, value } = e.target;
                                             //     let numericValue = value.replace(/\D/g, ""); // remove non-digit characters
@@ -1429,7 +1451,7 @@ export default function CreateTeacherPage() {
                                             //     const parsedValue = parseFloat(numericValue) || 0;
 
                                             //     const updatedSalary = {
-                                            //         ...student.salaryInfo,
+                                            //         ...teacher.salaryInfo,
                                             //         [name]: parsedValue,
                                             //     };
 
@@ -1437,8 +1459,8 @@ export default function CreateTeacherPage() {
                                             //     const { basic = 0, allowances = 0, deductions = 0 } = updatedSalary;
                                             //     updatedSalary.netSalary = basic + allowances - deductions;
 
-                                            //     setStudent({
-                                            //         ...student,
+                                            //     setteacher({
+                                            //         ...teacher,
                                             //         salaryInfo: updatedSalary,
                                             //     });
 
@@ -1451,13 +1473,13 @@ export default function CreateTeacherPage() {
                                                 // ✅ Allow empty value (for backspace)
                                                 if (value === "") {
                                                     const updatedSalary = {
-                                                        ...student.salaryInfo,
+                                                        ...teacher.salaryInfo,
                                                         [name]: "",
                                                         netSalary: "",
                                                     };
 
-                                                    setStudent({
-                                                        ...student,
+                                                    setteacher({
+                                                        ...teacher,
                                                         salaryInfo: updatedSalary,
                                                     });
 
@@ -1475,7 +1497,7 @@ export default function CreateTeacherPage() {
                                                 const parsedValue = Number(numericValue);
 
                                                 const updatedSalary = {
-                                                    ...student.salaryInfo,
+                                                    ...teacher.salaryInfo,
                                                     [name]: parsedValue,
                                                 };
 
@@ -1490,8 +1512,8 @@ export default function CreateTeacherPage() {
                                                     (Number(allowances) || 0) -
                                                     (Number(deductions) || 0);
 
-                                                setStudent({
-                                                    ...student,
+                                                setteacher({
+                                                    ...teacher,
                                                     salaryInfo: updatedSalary,
                                                 });
 
@@ -1515,7 +1537,7 @@ export default function CreateTeacherPage() {
                                         type="number"
                                         name="netSalary"
                                         label="Net Salary (Auto)"
-                                        value={student.salaryInfo.netSalary || 0}
+                                        value={teacher.salaryInfo.netSalary || 0}
                                         InputProps={{
                                             readOnly: true,
                                             style: { height: "56px", borderRadius: "8px", backgroundColor: "#f9fafb" },
@@ -1544,7 +1566,7 @@ export default function CreateTeacherPage() {
                                             fullWidth
                                             name={field}
                                             label={`Emergency ${field.charAt(0).toUpperCase() + field.slice(1)}`}
-                                            value={student.emergencyContact[field]}
+                                            value={teacher.emergencyContact[field]}
                                             onChange={(e) => handleChange(e, null, "emergencyContact")}
                                             error={!!errors[`emergencyContact_${field}`]}
                                             helperText={errors[`emergencyContact_${field}`]}
@@ -1556,11 +1578,11 @@ export default function CreateTeacherPage() {
                                     <PhoneInput
                                         country="in"
                                         enableSearch
-                                        value={student.emergencyContact.phone}
+                                        value={teacher.emergencyContact.phone}
                                         onChange={(phone) => {
-                                            setStudent({
-                                                ...student,
-                                                emergencyContact: { ...student.emergencyContact, phone },
+                                            setteacher({
+                                                ...teacher,
+                                                emergencyContact: { ...teacher.emergencyContact, phone },
                                             });
                                             setErrors((prev) => ({ ...prev, emergencyContact_phone: "" }));
                                         }}
@@ -1601,10 +1623,10 @@ export default function CreateTeacherPage() {
                                     fullWidth
                                     name="classId"
                                     label="Select Class"
-                                    value={student.classId}
+                                    value={teacher.classId}
                                     // onChange={handleChange}
                                     onChange={(e) => {
-                                        setStudent({ ...student, classId: e.target.value });
+                                        setteacher({ ...teacher, classId: e.target.value });
 
                                     }
                                     }
@@ -1624,9 +1646,9 @@ export default function CreateTeacherPage() {
                                     fullWidth
                                     name="academicYear"
                                     label="Academic Year"
-                                    value={student.academicYear}
+                                    value={teacher.academicYear}
                                     onChange={(e) => {
-                                        setStudent({ ...student, academicYear: e.target.value });
+                                        setteacher({ ...teacher, academicYear: e.target.value });
                                         setErrors((prev) => ({ ...prev, academicYear: "" }));
                                     }}
                                     error={!!errors.academicYear}
@@ -1676,7 +1698,7 @@ export default function CreateTeacherPage() {
                                                     type="button"
                                                     onClick={() => {
                                                         setPreviews((p) => ({ ...p, [side]: null }));
-                                                        setStudent((s) => ({
+                                                        setteacher((s) => ({
                                                             ...s,
                                                             documents: { ...s.documents, [side]: null },
                                                         }));
@@ -1778,7 +1800,7 @@ export default function CreateTeacherPage() {
                                                     type="button"
                                                     onClick={() => {
                                                         setPreviews((p) => ({ ...p, [side]: null }));
-                                                        setStudent((s) => ({
+                                                        setteacher((s) => ({
                                                             ...s,
                                                             documents: { ...s.documents, [side]: null },
                                                         }));
@@ -1827,9 +1849,9 @@ export default function CreateTeacherPage() {
                                                 type="button"
                                                 className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                                                 onClick={() => {
-                                                    const updatedFiles = student.documents.marksheets.filter((_, i) => i !== idx);
+                                                    const updatedFiles = teacher.documents.marksheets.filter((_, i) => i !== idx);
                                                     const updatedPreviews = previews.marksheets.filter((_, i) => i !== idx);
-                                                    setStudent((prev) => ({
+                                                    setteacher((prev) => ({
                                                         ...prev,
                                                         documents: { ...prev.documents, marksheets: updatedFiles },
                                                     }));
@@ -1871,9 +1893,9 @@ export default function CreateTeacherPage() {
                                                 type="button"
                                                 className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                                                 onClick={() => {
-                                                    const updatedFiles = student.documents.certificates.filter((_, i) => i !== idx);
+                                                    const updatedFiles = teacher.documents.certificates.filter((_, i) => i !== idx);
                                                     const updatedPreviews = previews.certificates.filter((_, i) => i !== idx);
-                                                    setStudent((prev) => ({
+                                                    setteacher((prev) => ({
                                                         ...prev,
                                                         documents: { ...prev.documents, certificates: updatedFiles },
                                                     }));

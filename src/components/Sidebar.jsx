@@ -234,6 +234,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { toggleSidebarCollapse } from "../redux/features/ui/uislic";
 import { RiLogoutCircleRLine } from "react-icons/ri";
 import { IoMdContacts } from "react-icons/io";
+import { TfiGallery } from "react-icons/tfi";
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
   // const dispatch = useDispatch();
@@ -475,7 +476,14 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                 <BsPeopleFill size={15} />
                 <span>School Setting</span>
               </NavLink>
-
+   <NavLink
+                to="/admin/setting/gallery"
+                className={subItemClass}
+                onClick={handleSubmenuClick}
+              >
+                <BsPeopleFill size={15} />
+                <span>Gallery Setting</span>
+              </NavLink>
               <NavLink
                 to="/admin/school/ip-setting"
                 className={subItemClass}
