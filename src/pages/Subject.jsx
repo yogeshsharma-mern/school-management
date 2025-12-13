@@ -38,9 +38,9 @@ export default function ClassPage() {
     const [columnFilters, setColumnFilters] = useState([]);
     const [viewModal, setViewModal] = useState(false);
     const [viewData, setViewData] = useState([]);
-      const [selectedClassId, setSelectedClassId] = useState(null);
-      console.log("classid",selectedClassId);
-const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
+    const [selectedClassId, setSelectedClassId] = useState(null);
+    console.log("classid", selectedClassId);
+    const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
 
 
     // Modal state
@@ -56,38 +56,42 @@ const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
     const [deleteId, setDeleteId] = useState(null);
 
 
-      const classesQuery = useQuery({
-    queryKey: ["classes"],
-    queryFn: () => apiGet(apiPath.classes || "/api/admins/classes"),
-  });
-      const classes = classesQuery.data?.results?.docs || classesQuery.data || [];
+    const classesQuery = useQuery({
+        queryKey: ["classes"],
+        queryFn: () => apiGet(`${apiPath.classesByNames}` || "/api/admins/classes"),
+    });
+    const classes = classesQuery?.data?.results || classesQuery.data || [];
+    console.log(
+        "classquery",classes
+    )
     useEffect(() => {
-    if (!selectedClassId && classes.length) {
-      setSelectedClassId(classes[0]._id || classes[0].id);
-    }
-  }, [classes, selectedClassId]);
+        if (!selectedClassId && Object.keys(classes).length > 0) {
+            setSelectedClassId(Object.values(classes)[0]);
+        }
+    }, [classes, selectedClassId]);
 
     // Fetch classes
     const { data: classesData, isLoading, isFetching, error, isError } = useQuery({
-        queryKey: ["subjects", pagination.pageIndex, pagination.pageSize, debouncedSearch],
-        queryFn: () => apiGet(apiPath.getSubjects, {
+        queryKey: ["subjects",selectedClassId, pagination.pageIndex, pagination.pageSize, debouncedSearch],
+        queryFn: () => apiGet(`${apiPath.getSubjectsByClassname}/${selectedClassId}`, {
             page: pagination.pageIndex + 1,  // backend usually 1-indexed
             limit: pagination.pageSize,
             name: debouncedSearch,
         }),
     });
-   const toggleMutation = useMutation({
-                        mutationFn: (newStatus) =>
-                            apiPut(`${apiPath.ToggleSubject}/${subject._id}`, { status: newStatus }),
-                        onSuccess: (data) => {
-                            toast.success(data.message || "Status updated successfully 🎉");
-                            queryClient.invalidateQueries({ queryKey: ["subjects"] });
+    console.log("subjectdata", classesData);
+    const toggleMutation = useMutation({
+        mutationFn: (newStatus) =>
+            apiPut(`${apiPath.ToggleSubject}/${subject._id}`, { status: newStatus }),
+        onSuccess: (data) => {
+            toast.success(data.message || "Status updated successfully 🎉");
+            queryClient.invalidateQueries({ queryKey: ["subjects"] });
 
-                        },
-                        onError: (err) => {
-                            toast.error(err?.response?.data?.message || "Failed to update status ❌");
-                        },
-                    });
+        },
+        onError: (err) => {
+            toast.error(err?.response?.data?.message || "Failed to update status ❌");
+        },
+    });
 
     // Mutation for create/update class
     const classMutation = useMutation({
@@ -118,7 +122,7 @@ const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
             toast.error(errorMessage);
         },
     });
-    
+
 
 
     // Delete class mutation
@@ -162,7 +166,7 @@ const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
 
     const handleExportCSV = () => {
         try {
-            const docs = classesData?.results?.docs || [];
+            const docs = classesData?.results || [];
 
             if (!docs.length) {
                 toast.error("No data to export");
@@ -269,7 +273,7 @@ const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
             name: formData.name.trim(),
             code: formData.code.trim(),
             description: formData.description.trim(),
-            classId: selectedClassId,
+            className: selectedClassId,
             // subjects: formData.subjects.split(",").map((s) => s.trim()),
         });
     };
@@ -314,7 +318,7 @@ const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
                     const subject = row.original;
                     // console.log("subject", subject);
                     // Mutation for toggling active/inactive
-                 
+
                     // const handleToggle = () => toggleMutation.mutate(!subject.isActive);
                     const handleToggle = () => {
 
@@ -404,7 +408,7 @@ const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
 
 
 
-    const tableData = useMemo(() => classesData?.results?.docs || [], [classesData]);
+    const tableData = useMemo(() => classesData?.results || [], [classesData]);
     // console.log("classdata", classesData)
 
     const totalPages = classesData?.results?.totalPages || 1;
@@ -432,10 +436,10 @@ const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
             </Modal>
             <div className="flex p-6 justify-between items-center cursor-pointer mb-4">
                 <h1 className="text-2xl font-bold">Subjects</h1>
-                 
+
                 <div className="flex gap-2 text-[12px] md:text-[14px] items-center">
                     <button
-                          onClick={handleExportCSV}
+                        onClick={handleExportCSV}
                         className="px-4 flex gap-1 items-center py-2 px-4 py-2 bg-[image:var(--gradient-primary)]  rounded-lg cursor-pointer hover:bg-blue-700 transition"
                     >
                         <FaFileExport />
@@ -453,33 +457,33 @@ const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
                         Add Subject
                     </button>
                 </div>
-                
+
             </div>
-          <div className="ml-4">
-               <Box>
-            <Typography variant="subtitle2" className="text-gray-500">
-              Select Class
-            </Typography>
-            <select
-              className=" border border-indigo-300 rounded-xl px-4 py-2"
-              value={selectedClassId || ""}
-              onChange={(e) => setSelectedClassId(e.target.value)}
-            >
-              {classes.map((c) => (
-                <option key={c._id || c.id} value={c._id || c.id}>
-                  {c.name} Section {c.section}
-                </option>
-              ))}
-            </select>
-          </Box>
-          </div>
-         <div
-className={`
+            <div className="ml-4">
+                <Box>
+                    <Typography variant="subtitle2" className="text-gray-500">
+                        Select Class
+                    </Typography>
+                    <select
+                        className=" border border-indigo-300 rounded-xl px-4 py-2"
+                        value={selectedClassId || ""}
+                        onChange={(e) => setSelectedClassId(e.target.value)}
+                    >
+                        {Object.entries(classes).map(([key,value]) => (
+                            <option key={key} value={value}>
+                                {value}
+                            </option>
+                        ))}
+                    </select>
+                </Box>
+            </div>
+            <div
+                className={`
   overflow-x-auto transition-all duration-300 w-[98vw]
   ${collapsed ? "md:w-[95vw]" : "md:w-[80vw]"}
 `}
 
->
+            >
 
                 <ReusableTable
                     columns={columns}
@@ -570,7 +574,7 @@ className={`
                         disabled={classMutation.isLoading}
                         className="w-full cursor-pointer bg-[image:var(--gradient-primary)] text-white py-2 rounded-lg transition"
                     >
-         {classMutation.isLoading && <Loader size={20} />}
+                        {classMutation.isLoading && <Loader size={20} />}
 
                         {editingClass
                             ? classMutation.isLoading

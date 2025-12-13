@@ -135,6 +135,8 @@ export default function CreateTeacherPage() {
     const [errors, setErrors] = useState({});
     // console.log("errors", errors);
     const [showPassword, setShowPassword] = useState(false);
+    const [selectedClassSlug, setSelectedClassSlug] = useState(null);
+
     const [activeStep, setActiveStep] = useState(0);
     const [previews, setPreviews] = useState({
         profilePic: null,
@@ -151,10 +153,22 @@ export default function CreateTeacherPage() {
         queryKey: ["classesForteacher"],
         queryFn: () => apiGet(apiPath.classes),
     });
-    const { data: subjects = [], isLoading: isload, isError: iserr } = useQuery({
-        queryKey: ["subjectForTeacher"],
-        queryFn: () => apiGet(apiPath.getSubjects),
+    const {
+        data,
+        isLoading: loading,
+        isError: error,
+    } = useQuery({
+        queryKey: ["subjectForTeacher", selectedClassSlug],
+        queryFn: () =>
+            apiGet(
+                `${apiPath.getSubjectByClassnameSectionWise}/${selectedClassSlug}`
+            ),
+        enabled: !!selectedClassSlug,
     });
+
+    const subjects = data?.results?.subjects || [];
+
+    console.log("subjectssss", subjects);
     const { data: teacherData, isFetching, isError: err } = useQuery({
         queryKey: ["teacher", id],
         queryFn: () => apiGet(`${apiPath.getParticularTeacher}/${id}`),
@@ -1269,77 +1283,6 @@ export default function CreateTeacherPage() {
                                     <Grid container spacing={3} alignItems="center">
                                         {/* Subject Name */}
                                         {/* Subject Name */}
-                                        <Grid item xs={12} sm={4}>
-                                            <Select
-                                                key={index}
-                                                placeholder="Select subject..."
-                                                classNamePrefix="select"
-                                                styles={{
-                                                    control: (base, state) => ({
-                                                        ...base,
-                                                        minHeight: "56px",
-                                                        borderRadius: "8px",
-                                                        borderColor: errors[`subjectName_${index}`] ? "red" : (state.isFocused ? "#1976d2" : "#d1d5db"),
-                                                        boxShadow: state.isFocused ? "0 0 0 2px rgba(25,118,210,0.1)" : "none",
-                                                        "&:hover": { borderColor: state.isFocused ? "#1976d2" : "#d1d5db" },
-                                                    }),
-                                                }}
-                                                options={subjects?.results?.docs.map((subj) => ({
-                                                    value: subj._id,
-                                                    label: subj.name,
-                                                }))}
-                                                value={
-                                                    subject.subjectName
-                                                        ? {
-                                                            value: subject.subjectName,
-                                                            label: subjects?.results?.docs.find(
-                                                                (subj) => subj.name === subject.subjectName
-                                                            )?.name,
-                                                        }
-                                                        : null
-                                                }
-                                                onChange={(selected) => {
-                                                    // console.log("sltected",selected)
-                                                    const foundSubject = subjects?.results?.docs.find(
-                                                        (subj) => subj._id === selected?.value
-                                                    );
-                                                    const updatedSubjects = [...teacher.subjectsHandled];
-                                                    updatedSubjects[index] = {
-                                                        ...updatedSubjects[index],
-                                                        subjectName: selected?.label || "",
-                                                        subjectCode: foundSubject?.code || "",
-                                                    };
-                                                    setteacher({ ...teacher, subjectsHandled: updatedSubjects });
-
-                                                    // 🔹 Clear error on change
-                                                    setErrors(prev => ({ ...prev, [`subjectName_${index}`]: "" }));
-                                                }}
-                                            />
-                                            {errors[`subjectName_${index}`] && (
-                                                <p className="text-red-500 text-sm mt-1">{errors[`subjectName_${index}`]}</p>
-                                            )}
-                                        </Grid>
-
-
-                                        {/* Subject Code */}
-                                        <Grid item xs={12} sm={4}>
-                                            <TextField
-                                                fullWidth
-                                                label="Subject Code"
-                                                value={subject.subjectCode}
-                                                disabled
-                                                onChange={(e) => {
-                                                    const updated = [...teacher.subjectsHandled];
-                                                    updated[index].subjectCode = e.target.value;
-                                                    setteacher({ ...teacher, subjectsHandled: updated });
-                                                }}
-                                                InputProps={{
-                                                    style: { height: "56px", borderRadius: "8px" },
-                                                }}
-                                            />
-                                        </Grid>
-
-
                                         {/* Class */}
                                         <Grid item xs={12} sm={4}>
                                             <Select
@@ -1395,21 +1338,114 @@ export default function CreateTeacherPage() {
 
                                                 onChange={(selected) => {
                                                     const updatedSubjects = [...teacher.subjectsHandled];
+
                                                     updatedSubjects[index] = {
                                                         ...updatedSubjects[index],
                                                         classId: selected?.value || "",
+                                                        subjectName: "",   // clear
+                                                        subjectCode: "",   // clear
                                                     };
+
                                                     setteacher({ ...teacher, subjectsHandled: updatedSubjects });
 
-                                                    // clear error
-                                                    setErrors((prev) => ({ ...prev, [`classId_${index}`]: "" }));
+                                                    const foundClass = classes?.results?.docs.find(
+                                                        cls => cls._id === selected?.value
+                                                    );
+
+                                                    if (foundClass) {
+                                                        const slug = `${foundClass.name}-${foundClass.section}`.toLowerCase();
+                                                        setSelectedClassSlug(slug);
+                                                    }
                                                 }}
+
+
                                             />
 
                                             {errors[`classId_${index}`] && (
                                                 <p className="text-red-500 text-sm mt-1">{errors[`classId_${index}`]}</p>
                                             )}
                                         </Grid>
+                                        <Grid item xs={12} sm={4}>
+                                            <Select
+                                                key={index}
+                                                placeholder="Select subject..."
+                                                classNamePrefix="select"
+                                                isLoading={loading}
+                                                styles={{
+                                                    control: (base, state) => ({
+                                                        ...base,
+                                                        minHeight: "56px",
+                                                        borderRadius: "8px",
+                                                        borderColor: errors[`subjectName_${index}`]
+                                                            ? "red"
+                                                            : state.isFocused
+                                                                ? "#1976d2"
+                                                                : "#d1d5db",
+                                                        boxShadow: state.isFocused
+                                                            ? "0 0 0 2px rgba(25,118,210,0.1)"
+                                                            : "none",
+                                                    }),
+                                                }}
+
+                                                /* ✅ FIXED OPTIONS */
+                                                options={subjects.map((subj) => ({
+                                                    value: subj._id,
+                                                    label: subj.name,
+                                                }))}
+
+                                                /* ✅ FIXED VALUE */
+                                                value={
+                                                    subject.subjectName
+                                                        ? {
+                                                            value: subjects.find(s => s.name === subject.subjectName)?._id,
+                                                            label: subject.subjectName,
+                                                        }
+                                                        : null
+                                                }
+
+                                                onChange={(selected) => {
+                                                    const foundSubject = subjects.find(
+                                                        (subj) => subj._id === selected?.value
+                                                    );
+
+                                                    const updatedSubjects = [...teacher.subjectsHandled];
+                                                    updatedSubjects[index] = {
+                                                        ...updatedSubjects[index],
+                                                        subjectName: selected?.label || "",
+                                                        subjectCode: foundSubject?.code || "",
+                                                    };
+
+                                                    setteacher({ ...teacher, subjectsHandled: updatedSubjects });
+
+                                                    setErrors(prev => ({
+                                                        ...prev,
+                                                        [`subjectName_${index}`]: "",
+                                                    }));
+                                                }}
+                                            />
+
+                                            {errors[`subjectName_${index}`] && (
+                                                <p className="text-red-500 text-sm mt-1">{errors[`subjectName_${index}`]}</p>
+                                            )}
+                                        </Grid>
+
+
+                                        {/* Subject Code */}
+                                        <Grid item xs={12} sm={4}>
+                                            <TextField
+                                                fullWidth
+                                                label="Subject Code"
+                                                value={subject.subjectCode || ""}
+                                                disabled
+                                                InputProps={{
+                                                    style: { height: "56px", borderRadius: "8px" },
+                                                }}
+                                            />
+                                        </Grid>
+
+
+
+
 
                                     </Grid>
 
