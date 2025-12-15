@@ -11,6 +11,7 @@ const apiPath = Object.freeze({
   getSubjects: "/admins/classes/get/subjects",
   getSubjectsByClassname:"/admins/classes/subjects",
   getSubjectByClassnameSectionWise:"/admins/classes/subjectSection",
+deleteBannerImage:"/admins/setting/Delete",
   ToggleSubject: "/admins/classes/subject/status",
   createSubject: "/admins/classes/subjects/reg",
   updateSubject: "/admins/classes/update/subject",
@@ -72,7 +73,7 @@ const apiPath = Object.freeze({
   updateCategorySetting:"/admins/setting/update",
   uploadImageGallery:"/admins/setting/category/upload-images",
   gallerySettingGetImages:"/admins/setting/get-images",
-  GallerySettingDeleteImage:"/admins/setting/delete-images",
+  GallerySettingDeleteImage:"/admins/setting/Delete-images",
 
   // getTeachers:"/admins/teachers/getAllTeacher",
   //   getTeacherDetails:"/admins/teachers/getTeacherProfile",

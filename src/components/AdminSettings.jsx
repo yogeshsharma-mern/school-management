@@ -29,6 +29,7 @@ const stateOptions = [
   { value: "Delhi", label: "Delhi" },
   { value: "Karnataka", label: "Karnataka" },
 ];
+// Fetch classes
 
 const countryOptions = [
   { value: "India", label: "India" },
@@ -82,6 +83,7 @@ export default function SchoolSettings() {
     gallery: [], // array of URLs
     socialUrl: [], // array of URLs
     schoolLogo: null,
+    marks: []
   });
   const [urlErrors, setUrlErrors] = useState([]);
   // console.log("urlerrors", urlErrors);
@@ -90,7 +92,23 @@ export default function SchoolSettings() {
     if (!isoDate) return "";
     return isoDate.split("T")[0]; // "2025-10-13"
   };
+  const classesQuery = useQuery({
+    queryKey: ["classes"],
+    queryFn: () => apiGet(`${apiPath.classesByNames}` || "/api/admins/classes"),
+  });
+  const classOptions = Object.values(classesQuery?.data?.results || []).map((cls) => ({
+    label: cls,
+    value: cls,
+  }));
+  console.log("classoptions", classOptions);
+  const selected = schoolData.marks.map(m => m.className);
+console.log("selected",selected)
+console.log("classoptions",classOptions);
+  const availableOptions = classOptions.filter(
+    opt => !selected.includes(opt.value)
+  );
 
+console.log("available ooptions",availableOptions);
 
   const { data: studentData, isLoading } = useQuery({
     queryKey: ["school-settings"],
@@ -149,6 +167,7 @@ export default function SchoolSettings() {
       gallery: s.gallery || [],
       socialUrl: s.socialUrl || [],
       schoolLogo: null,
+      marks: s.marks || [],
     });
 
     if (s.schoolLogo) setLogoPreview(s.schoolLogo);
@@ -188,6 +207,45 @@ export default function SchoolSettings() {
       toast.success(data.message || "Settings saved successfully");
     },
   });
+
+  const deleteBannerMutation = useMutation({
+    mutationFn: (bannerId) =>
+      apiDelete(`${apiPath.deleteBannerImage}/${bannerId}`),
+
+    onSuccess: (data, bannerId) => {
+      toast.success(data.message || "Banner deleted");
+
+      // UI se bhi remove
+      setSchoolData((prev) => ({
+        ...prev,
+        banner: prev.banner.filter((b) => b._id !== bannerId),
+      }));
+
+      // fresh data chahiye ho to
+      queryClient.invalidateQueries(["school-settings"]);
+    },
+
+    onError: () => {
+      toast.error("Failed to delete banner");
+    },
+  });
+
+
+  const handleDeleteBanner = (img, index) => {
+    // 🟢 Agar new uploaded file hai (File object) → sirf local remove
+    if (img instanceof File) {
+      handleChange(
+        "banner",
+        schoolData.banner.filter((_, i) => i !== index)
+      );
+      return;
+    }
+
+    // 🔴 Existing banner (server wala) → API call
+    if (img?._id) {
+      deleteBannerMutation.mutate(img._id);
+    }
+  };
 
 
   // PATCH Reset Defaults
@@ -233,9 +291,12 @@ export default function SchoolSettings() {
 
   // Nested state updater
   const handleChange = (path, value) => {
-    // console.log("path",path);
+    console.log("path", path);
+    console.log("value", value);
     setSchoolData((prev) => {
+      console.log("prev", prev);
       const newData = { ...prev };
+      // console.log("prev",...prev);
       // console.log("newData",newData);
       const keys = path.split(".");
       //schoolname
@@ -280,6 +341,8 @@ export default function SchoolSettings() {
     formData.append("about", JSON.stringify(schoolData.about));
     formData.append("faqs", JSON.stringify(schoolData.faqs));
     formData.append("socialUrl", JSON.stringify(schoolData.socialUrl));
+    formData.append("marks", JSON.stringify(schoolData.marks));
+
 
     // ✅ Files
     (schoolData.banner || []).forEach((file) => {
@@ -626,6 +689,124 @@ export default function SchoolSettings() {
             </Grid>
           </CardContent>
         </Card>
+        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              📊 Class-wise Marks
+            </Typography>
+
+            {(schoolData.marks || []).map((item, index) => (
+              <Box
+                key={index}
+                display="flex"
+                gap={2}
+                alignItems="center"
+                mb={2}
+                // pr={3}
+              >
+                {/* Class Name */}
+         <Select
+  options={availableOptions}
+  value={classOptions.find(
+    (opt) => opt.value === item.className
+  )}
+  onChange={(option) =>
+    handleChange(`marks.${index}.className`, option.value)
+  }
+  placeholder="Select Class"
+  menuPortalTarget={document.body}
+  styles={{
+    control: (base) => ({
+      ...base,
+      width: 150,          // 👈 yahan width badhao
+      minWidth: 150,
+    }),
+    menuPortal: (base) => ({
+      ...base,
+      zIndex: 9999,
+    }),
+  }}
+/>
+
+
+                {/* Per Subject Marks */}
+                {/* <TextField
+                  type="number"
+                  label="Per Subject Marks"
+                  value={item.perSubjectMarks}
+                  onChange={(e) =>
+                    handleChange(`marks.${index}.perSubjectMarks`, e.target.value)
+                  }
+                  inputProps={{ min: 0, max: 100 }}
+                  fullWidth
+                /> */}
+                <TextField
+  type="number"
+  label="Per Subject Marks"
+  value={item.perSubjectMarks}
+  onChange={(e) => {
+    let value = e.target.value;
+
+    // ❌ empty allow
+    if (value === "") {
+      handleChange(`marks.${index}.perSubjectMarks`, "");
+      return;
+    }
+
+    // ❌ only digits
+    value = value.replace(/\D/g, "");
+
+    // ❌ max 3 digits
+    if (value.length > 3) return;
+
+    const num = Number(value);
+
+    // ❌ max 100
+    if (num > 100) {
+      toast.error("Marks cannot be more than 100");
+      return;
+    }
+
+    handleChange(`marks.${index}.perSubjectMarks`, value);
+  }}
+  inputProps={{
+    min: 0,
+    max: 100,
+  }}
+  fullWidth
+/>
+
+
+                {/* Delete */}
+                <Button
+                  color="error"
+                  variant="outlined"
+                  onClick={() =>
+                    handleChange(
+                      "marks",
+                      schoolData.marks.filter((_, i) => i !== index)
+                    )
+                  }
+                >
+                  ✕
+                </Button>
+              </Box>
+            ))}
+
+            {/* Add New Class */}
+            <Button
+              variant="outlined"
+              onClick={() =>
+                handleChange("marks", [
+                  ...(schoolData.marks || []),
+                  { className: "", perSubjectMarks: "" },
+                ])
+              }
+            >
+              ➕ Add Class Marks
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* // Add this snippet inside your <form> before the buttons section */}
         {/* Academic Session */}
@@ -936,12 +1117,9 @@ export default function SchoolSettings() {
                     <Button
                       size="small"
                       color="error"
-                      onClick={() =>
-                        handleChange(
-                          "banner",
-                          schoolData.banner.filter((_, i) => i !== idx)
-                        )
-                      }
+                      onClick={() => handleDeleteBanner(img, idx)}
+
+
                       sx={{
                         position: "absolute",
                         top: -8,
@@ -1108,3 +1286,8 @@ export default function SchoolSettings() {
     </Box>
   );
 }
+
+
+
+
+

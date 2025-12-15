@@ -421,7 +421,7 @@ export default function AdminGalleryUpload() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white p-4 md:p-8">
+    <div className="min-h-screen w-[100vw] md:w-auto bg-gradient-to-br from-gray-50 to-white p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* HEADER */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
@@ -704,7 +704,7 @@ export default function AdminGalleryUpload() {
               <p className="text-gray-600 max-w-md mx-auto mb-6">
                 This category is empty. Upload some images using the drag & drop area above.
               </p>
-              <label className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 text-white font-medium shadow-lg hover:shadow-xl inline-flex items-center gap-2 cursor-pointer">
+              <label className="px-5 py-2.5 rounded-xl bg-[image:var(--gradient-primary)] text-white font-medium shadow-lg hover:shadow-xl inline-flex items-center gap-2 cursor-pointer">
                 <FiUploadCloud />
                 Upload First Image
                 <input

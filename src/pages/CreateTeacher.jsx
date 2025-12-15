@@ -101,6 +101,7 @@ export default function CreateTeacherPage() {
         { value: "Delhi", label: "Delhi" },
         { value: "Gujarat", label: "Gujarat" },
     ];
+ 
     const [teacher, setteacher] = useState({
         name: "",
         dob: "",
@@ -148,7 +149,7 @@ export default function CreateTeacherPage() {
             certificates: [],
         },
     });
-
+       const [selectedClassSlug, setSelectedClassSlug] = useState(null);
     const [errors, setErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
     const [activeStep, setActiveStep] = useState(0);
@@ -168,10 +169,20 @@ export default function CreateTeacherPage() {
         queryKey: ["classesForteacher"],
         queryFn: () => apiGet(apiPath.classes),
     });
-    const { data: subjects = [], isLoading: isload, isError: iserr } = useQuery({
-        queryKey: ["subjectForTeacher"],
-        queryFn: () => apiGet(apiPath.getSubjects),
+    const {
+        data,
+        isLoading: loading,
+        isError: error,
+    } = useQuery({
+        queryKey: ["subjectForTeacher", selectedClassSlug],
+        queryFn: () =>
+            apiGet(
+                `${apiPath.getSubjectByClassnameSectionWise}/${selectedClassSlug}`
+            ),
+        enabled: !!selectedClassSlug,
     });
+
+    const subjects = data?.results?.subjects || [];
     // console.log("subjects", subjects);
     // console.log("classess", classes);
     const steps = ["Personal Details", "Professional Information", "Academic & Documents"];
@@ -1255,94 +1266,6 @@ export default function CreateTeacherPage() {
                                     <Grid container spacing={3} alignItems="center">
                                         {/* Subject Name */}
                                         {/* Subject Name */}
-                                        <Grid item xs={12} sm={4}>
-                                            <Select
-                                                key={index}
-                                                placeholder="Select subject..."
-                                                classNamePrefix="select"
-                                                styles={{
-                                                    control: (base, state) => ({
-                                                        ...base,
-                                                        minHeight: "56px",
-                                                        borderRadius: "8px",
-                                                        borderColor: errors[`subjectName_${index}`]
-                                                            ? "red"
-                                                            : state.isFocused
-                                                                ? "#1976d2"
-                                                                : "#d1d5db",
-                                                        boxShadow: state.isFocused
-                                                            ? "0 0 0 2px rgba(25,118,210,0.1)"
-                                                            : "none",
-                                                        "&:hover": {
-                                                            borderColor: state.isFocused ? "#1976d2" : "#d1d5db",
-                                                        },
-                                                    }),
-                                                }}
-                                                options={subjects?.results?.docs.map((subj) => ({
-                                                    value: subj._id, // still keep ID as value
-                                                    label: subj.name, // label shown in UI
-                                                }))}
-                                                value={
-                                                    subject.subjectName
-                                                        ? {
-                                                            value: subjects?.results?.docs.find(
-                                                                (subj) => subj.name === subject.subjectName
-                                                            )?._id,
-                                                            label: subject.subjectName,
-                                                        }
-                                                        : null
-                                                }
-                                                onChange={(selected) => {
-                                                    // console.log("selected:", selected);
-
-                                                    // Find subject data by selected id
-                                                    const foundSubject = subjects?.results?.docs.find(
-                                                        (subj) => subj._id === selected?.value
-                                                    );
-
-                                                    const updatedSubjects = [...teacher.subjectsHandled];
-                                                    updatedSubjects[index] = {
-                                                        ...updatedSubjects[index],
-                                                        // ✅ Send subject name (label) to backend, not the ID
-                                                        subjectName: selected?.label || "",
-                                                        subjectCode: foundSubject?.code || "",
-                                                    };
-
-                                                    setteacher({ ...teacher, subjectsHandled: updatedSubjects });
-
-                                                    // 🔹 Clear error on change
-                                                    setErrors((prev) => ({
-                                                        ...prev,
-                                                        [`subjectName_${index}`]: "",
-                                                    }));
-                                                }}
-                                            />
-
-                                            {errors[`subjectName_${index}`] && (
-                                                <p className="text-red-500 text-sm mt-1">{errors[`subjectName_${index}`]}</p>
-                                            )}
-                                        </Grid>
-
-
-                                        {/* Subject Code */}
-                                        <Grid item xs={12} sm={4}>
-                                            <TextField
-                                                fullWidth
-                                                label="Subject Code"
-                                                value={subject.subjectCode}
-                                                disabled
-                                                onChange={(e) => {
-                                                    const updated = [...teacher.subjectsHandled];
-                                                    updated[index].subjectCode = e.target.value;
-                                                    setteacher({ ...teacher, subjectsHandled: updated });
-                                                }}
-                                                InputProps={{
-                                                    style: { height: "56px", borderRadius: "8px" },
-                                                }}
-                                            />
-                                        </Grid>
-
-
                                         {/* Class */}
                                         <Grid item xs={12} sm={4}>
                                             <Select
@@ -1371,12 +1294,11 @@ export default function CreateTeacherPage() {
                                                     classes?.results?.docs
                                                         ?.filter((cls) =>
                                                             // ✅ 1️⃣ show only assigned classes
-                                                            teacher.classes.includes(cls._id)
-                                                            // &&
+                                                            teacher.classes.includes(cls._id) &&
                                                             // ✅ 2️⃣ exclude classes already selected in other subjects
-                                                            // !teacher.subjectsHandled.some(
-                                                            //     (sub, i) => sub.classId === cls._id && i !== index
-                                                            // )
+                                                            !teacher.subjectsHandled.some(
+                                                                (sub, i) => sub.classId === cls._id && i !== index
+                                                            )
                                                         )
                                                         ?.map((cls) => ({
                                                             value: cls._id,
@@ -1387,31 +1309,126 @@ export default function CreateTeacherPage() {
                                                     subject.classId
                                                         ? {
                                                             value: subject.classId,
-                                                            label:
-                                                                (() => {
-                                                                    const foundClass = classes?.results?.docs.find((cls) => cls._id === subject.classId);
-                                                                    return foundClass ? `${foundClass.name} ${foundClass.section}` : "";
-                                                                })(),
+                                                            label: (() => {
+                                                                const foundClass = classes?.results?.docs.find(
+                                                                    cls => cls._id === subject.classId
+                                                                );
+                                                                return foundClass ? `${foundClass.name} ${foundClass.section}` : "";
+                                                            })(),
                                                         }
                                                         : null
                                                 }
+
                                                 onChange={(selected) => {
                                                     const updatedSubjects = [...teacher.subjectsHandled];
+
                                                     updatedSubjects[index] = {
                                                         ...updatedSubjects[index],
                                                         classId: selected?.value || "",
+                                                        subjectName: "",   // clear
+                                                        subjectCode: "",   // clear
                                                     };
+
                                                     setteacher({ ...teacher, subjectsHandled: updatedSubjects });
 
-                                                    // clear error
-                                                    setErrors((prev) => ({ ...prev, [`classId_${index}`]: "" }));
+                                                    const foundClass = classes?.results?.docs.find(
+                                                        cls => cls._id === selected?.value
+                                                    );
+
+                                                    if (foundClass) {
+                                                        const slug = `${foundClass.name}-${foundClass.section}`.toLowerCase();
+                                                        setSelectedClassSlug(slug);
+                                                    }
                                                 }}
+
+
                                             />
 
                                             {errors[`classId_${index}`] && (
                                                 <p className="text-red-500 text-sm mt-1">{errors[`classId_${index}`]}</p>
                                             )}
                                         </Grid>
+                                        <Grid item xs={12} sm={4}>
+                                            <Select
+                                                key={index}
+                                                placeholder="Select subject..."
+                                                classNamePrefix="select"
+                                                isLoading={loading}
+                                                styles={{
+                                                    control: (base, state) => ({
+                                                        ...base,
+                                                        minHeight: "56px",
+                                                        borderRadius: "8px",
+                                                        borderColor: errors[`subjectName_${index}`]
+                                                            ? "red"
+                                                            : state.isFocused
+                                                                ? "#1976d2"
+                                                                : "#d1d5db",
+                                                        boxShadow: state.isFocused
+                                                            ? "0 0 0 2px rgba(25,118,210,0.1)"
+                                                            : "none",
+                                                    }),
+                                                }}
+
+                                                /* ✅ FIXED OPTIONS */
+                                                options={subjects.map((subj) => ({
+                                                    value: subj._id,
+                                                    label: subj.name,
+                                                }))}
+
+                                                /* ✅ FIXED VALUE */
+                                                value={
+                                                    subject.subjectName
+                                                        ? {
+                                                            value: subjects.find(s => s.name === subject.subjectName)?._id,
+                                                            label: subject.subjectName,
+                                                        }
+                                                        : null
+                                                }
+
+                                                onChange={(selected) => {
+                                                    const foundSubject = subjects.find(
+                                                        (subj) => subj._id === selected?.value
+                                                    );
+
+                                                    const updatedSubjects = [...teacher.subjectsHandled];
+                                                    updatedSubjects[index] = {
+                                                        ...updatedSubjects[index],
+                                                        subjectName: selected?.label || "",
+                                                        subjectCode: foundSubject?.code || "",
+                                                    };
+
+                                                    setteacher({ ...teacher, subjectsHandled: updatedSubjects });
+
+                                                    setErrors(prev => ({
+                                                        ...prev,
+                                                        [`subjectName_${index}`]: "",
+                                                    }));
+                                                }}
+                                            />
+
+                                            {errors[`subjectName_${index}`] && (
+                                                <p className="text-red-500 text-sm mt-1">{errors[`subjectName_${index}`]}</p>
+                                            )}
+                                        </Grid>
+
+
+                                        {/* Subject Code */}
+                                        <Grid item xs={12} sm={4}>
+                                            <TextField
+                                                fullWidth
+                                                label="Subject Code"
+                                                value={subject.subjectCode || ""}
+                                                disabled
+                                                InputProps={{
+                                                    style: { height: "56px", borderRadius: "8px" },
+                                                }}
+                                            />
+                                        </Grid>
+
+
+
+
 
                                     </Grid>
 

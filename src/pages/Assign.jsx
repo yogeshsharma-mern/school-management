@@ -99,7 +99,7 @@ export default function TimetableManager() {
     queryFn: () => apiGet(apiPath.getallTeachers || "/api/admins/teachers"),
   });
   const subjectsQuery = useQuery({
-    queryKey: ["subjects"],
+    queryKey: ["subjectsss"],
     queryFn: () => apiGet(apiPath.getSubjects || "/api/admins/subjects"),
   });
   const assignmentsQuery = useQuery({
