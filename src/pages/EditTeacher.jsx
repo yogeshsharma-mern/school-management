@@ -131,7 +131,7 @@ export default function CreateTeacherPage() {
             certificates: [],
         },
     });
-    // console.log("teacher", teacher);
+    console.log("teacher", teacher);
     const [errors, setErrors] = useState({});
     // console.log("errors", errors);
     const [showPassword, setShowPassword] = useState(false);
@@ -1311,11 +1311,12 @@ export default function CreateTeacherPage() {
                                                     classes?.results?.docs
                                                         ?.filter((cls) =>
                                                             // ✅ 1️⃣ show only assigned classes
-                                                            teacher.classes.includes(cls._id) &&
-                                                            // ✅ 2️⃣ exclude classes already selected in other subjects
-                                                            !teacher.subjectsHandled.some(
-                                                                (sub, i) => sub.classId === cls._id && i !== index
-                                                            )
+                                                            teacher.classes.includes(cls._id)
+                                                            //  &&
+                                                            // // ✅ 2️⃣ exclude classes already selected in other subjects
+                                                            // !teacher.subjectsHandled.some(
+                                                            //     (sub, i) => sub.classId === cls._id && i !== index
+                                                            // )
                                                         )
                                                         ?.map((cls) => ({
                                                             value: cls._id,
@@ -1388,10 +1389,26 @@ export default function CreateTeacherPage() {
                                                 }}
 
                                                 /* ✅ FIXED OPTIONS */
-                                                options={subjects.map((subj) => ({
-                                                    value: subj._id,
-                                                    label: subj.name,
-                                                }))}
+                                                // options={subjects.map((subj) => ({
+                                                //     value: subj._id,
+                                                //     label: subj.name,
+                                                // }))}
+                                                options={
+                                                    subjects
+                                                        ?.filter((apiSubject) => {
+                                                            return !teacher.subjectsHandled.some(
+                                                                (handled, i) =>
+                                                                    handled.classId === subject.classId &&   // ✅ same class
+                                                                    handled.subjectName === apiSubject.name && // ✅ same subject
+                                                                    i !== index                               // ✅ ignore current row
+                                                            );
+                                                        })
+                                                        ?.map((apiSubject) => ({
+                                                            value: apiSubject._id,
+                                                            label: apiSubject.name,
+                                                        }))
+                                                }
+
 
                                                 /* ✅ FIXED VALUE */
                                                 value={

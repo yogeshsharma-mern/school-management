@@ -33,7 +33,7 @@ export default function AdminGalleryUpload() {
     isLoading: categoriesLoading,
     error: categoriesError
   } = useQuery({
-    queryKey: ["categories"],
+    queryKey: ["categoriessss"],
     queryFn: mockApi.getCategories,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -53,7 +53,7 @@ export default function AdminGalleryUpload() {
     isLoading: imagesLoading,
     refetch: refetchImages
   } = useQuery({
-    queryKey: ["images", activeCategory?._id],
+    queryKey: ["imagesssss", activeCategory?._id],
     queryFn: () => activeCategory ? mockApi.getImages(activeCategory._id) : [],
     enabled: !!activeCategory,
   });
@@ -143,7 +143,7 @@ export default function AdminGalleryUpload() {
       }));
 
       // Get current cache
-      const currentCache = queryClient.getQueryData(["images", categoryId]) || {};
+      const currentCache = queryClient.getQueryData(["imagesssss", categoryId]) || {};
       const currentImages = currentCache.results?.images || [];
 
       // Check for duplicates before adding
@@ -156,7 +156,7 @@ export default function AdminGalleryUpload() {
       }
 
       // Update cache
-      queryClient.setQueryData(["images", categoryId], {
+      queryClient.setQueryData(["imagesssss", categoryId], {
         ...currentCache,
         results: {
           ...currentCache.results,

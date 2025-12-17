@@ -91,7 +91,7 @@ export default function TimetableManager() {
     queryFn: () => apiGet(apiPath.getSettings || "/api/admins/settings"),
   });
   const classesQuery = useQuery({
-    queryKey: ["classes"],
+    queryKey: ["classessss"],
     queryFn: () => apiGet(apiPath.classes || "/api/admins/classes"),
   });
   const teachersQuery = useQuery({
@@ -459,10 +459,10 @@ export default function TimetableManager() {
                       setModalOpen(true);
                     }}
                     className={`p-2 rounded-lg cursor-pointer h-24 flex flex-col justify-center items-center border ${a
-                        ? a.saved
-                          ? "bg-green-50 border-green-300"
-                          : "bg-yellow-50 border-yellow-400"
-                        : "bg-white border-dashed border-gray-300 hover:bg-blue-50"
+                      ? a.saved
+                        ? "bg-green-50 border-green-300"
+                        : "bg-yellow-50 border-yellow-400"
+                      : "bg-white border-dashed border-gray-300 hover:bg-blue-50"
                       }`}
                   >
                     {a ? (

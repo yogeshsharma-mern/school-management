@@ -29,8 +29,11 @@
   --gradient-violet: linear-gradient(135deg, #7B61FF 0%, #FF6B9F 100%);
     --gradient-orange: linear-gradient(135deg, #FFA26B 0%, #FFCA7B 100%);
     --gradient-green: linear-gradient(135deg, #8BE78B 0%, #B2F59A 100%);
-
+  /* --color-primary: #4f46e5; Indigo */
+  /* --color-secondary: #7c3aed; Purple */
+  --color-primary-rgb: 79, 70, 229; /* RGB values for opacity */
 }
+
 .dark {
   --background: #0a0a0a;
   --color-hover:#1a1e29;

@@ -235,6 +235,9 @@ import { toggleSidebarCollapse } from "../redux/features/ui/uislic";
 import { RiLogoutCircleRLine } from "react-icons/ri";
 import { IoMdContacts } from "react-icons/io";
 import { TfiGallery } from "react-icons/tfi";
+import { FaUserTie } from "react-icons/fa";
+import { AiOutlineInsertRowAbove } from "react-icons/ai";
+
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
   // const dispatch = useDispatch();
@@ -491,6 +494,22 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
               >
                 <BsClockHistory size={15} />
                 <span>IP Setting</span>
+              </NavLink>
+                     <NavLink
+                to="/admin/school/setting/about-us"
+                className={subItemClass}
+                onClick={handleSubmenuClick}
+              >
+                <AiOutlineInsertRowAbove size={15} />
+                <span>About Us</span>
+              </NavLink>
+                 <NavLink
+                to="/admin/school/leadership"
+                className={subItemClass}
+                onClick={handleSubmenuClick}
+              >
+                <FaUserTie size={15} />
+                <span>LeaderShip</span>
               </NavLink>
             </motion.div>
           )}

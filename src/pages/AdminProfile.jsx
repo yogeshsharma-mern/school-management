@@ -86,6 +86,11 @@ export default function AdminProfile() {
       queryClient.invalidateQueries(["adminDetails"]);
       setIsModalOpen(false);
     },
+    onError:(error)=>
+    {
+      console.log(error)
+      toast.error(error?.message);
+    }
   });
 
   // Handle submit

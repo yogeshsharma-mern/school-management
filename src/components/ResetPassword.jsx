@@ -20,15 +20,15 @@ export default function ForgotPassword() {
       return res;
     },
     onSuccess: (data) => {
-      // setMessage(data.message || "Password reset link sent successfully!");
-      // console.log(
+      setMessage(data.message || "Password reset link sent successfully!");
+      console.log(
         "data",data
       );
       toast.success(data.message);
       setError("");
     },
     onError: (err) => {
-      // setError(err.response?.data?.message || "Something went wrong!");
+      setError(err.response?.data?.message || "Something went wrong!");
       toast.error(err.response?.data?.message);
       setMessage("");
     },

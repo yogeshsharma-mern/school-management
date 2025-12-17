@@ -77,6 +77,7 @@ export default function SchoolSettings() {
     about: {
       title: "",
       keyStats: [],
+      image: null, // 👈 File ONLY
     },
     faqs: [], // array of { question, answer }
     banner: [], // array of URLs
@@ -86,6 +87,8 @@ export default function SchoolSettings() {
     marks: []
   });
   const [urlErrors, setUrlErrors] = useState([]);
+  const [aboutImagePreview, setAboutImagePreview] = useState(null);
+
   // console.log("urlerrors", urlErrors);
   const [logoPreview, setLogoPreview] = useState(null);
   const formatDateForInput = (isoDate) => {
@@ -102,13 +105,13 @@ export default function SchoolSettings() {
   }));
   console.log("classoptions", classOptions);
   const selected = schoolData.marks.map(m => m.className);
-console.log("selected",selected)
-console.log("classoptions",classOptions);
+  console.log("selected", selected)
+  console.log("classoptions", classOptions);
   const availableOptions = classOptions.filter(
     opt => !selected.includes(opt.value)
   );
 
-console.log("available ooptions",availableOptions);
+  console.log("available ooptions", availableOptions);
 
   const { data: studentData, isLoading } = useQuery({
     queryKey: ["school-settings"],
@@ -119,6 +122,7 @@ console.log("available ooptions",availableOptions);
   useEffect(() => {
     if (!studentData?.results) return;
     const s = studentData.results;
+    console.log("s", s);
 
     const formatDateForInput = (isoDate) =>
       isoDate ? isoDate.split("T")[0] : "";
@@ -158,10 +162,17 @@ console.log("available ooptions",availableOptions);
         endDate: formatDateForInput(s.academicSession?.endDate),
         currentSession: s.academicSession?.currentSession || "",
       },
-      about: {
-        title: s.about?.title || "",
-        keyStats: s.about?.keyStats || [],
-      },
+      // about: {
+      //   title: s.aboutUs?.title || "",
+      //   keyStats: Array.isArray(s.aboutUs?.keyStats)
+      //     ? s.aboutUs.keyStats
+      //     : s.aboutUs?.keyStats
+      //       ? s.aboutUs.keyStats.split("|").map(v => v.trim())
+      //       : [],
+      //   image: null, // 👈 only set when user uploads
+      // },
+
+
       faqs: s.faqs || [],
       banner: s.banner || [],
       gallery: s.gallery || [],
@@ -172,6 +183,13 @@ console.log("available ooptions",availableOptions);
 
     if (s.schoolLogo) setLogoPreview(s.schoolLogo);
   }, [studentData]);
+  // if (s.aboutUs?.image) {
+  //   setAboutImagePreview(
+  //     s.aboutUs.image.startsWith("http")
+  //       ? s.aboutUs.image
+  //       : `${import.meta.env.VITE_API_BASE_URL}${s.aboutUs.image}`
+  //   );
+  // }
 
   const handleUrlChange = (e, index) => {
     const value = e.target.value.trim();
@@ -206,6 +224,10 @@ console.log("available ooptions",availableOptions);
       queryClient.invalidateQueries(["school-settings"]);
       toast.success(data.message || "Settings saved successfully");
     },
+    onError:(error)=>
+    {
+      toast.error(error?.response?.data?.message);
+    }
   });
 
   const deleteBannerMutation = useMutation({
@@ -225,8 +247,8 @@ console.log("available ooptions",availableOptions);
       queryClient.invalidateQueries(["school-settings"]);
     },
 
-    onError: () => {
-      toast.error("Failed to delete banner");
+    onError: (error) => {
+      toast.error(error?.response?.data?.message);
     },
   });
 
@@ -338,7 +360,20 @@ console.log("available ooptions",availableOptions);
     formData.append("schoolTiming", JSON.stringify(schoolData.schoolTiming));
     formData.append("periods", JSON.stringify(schoolData.periods));
     formData.append("academicSession", JSON.stringify(schoolData.academicSession));
-    formData.append("about", JSON.stringify(schoolData.about));
+    // Text fields only
+    // formData.append(
+    //   "aboutUs",
+    //   JSON.stringify({
+    //     title: schoolData.about.title,
+    //     keyStats: schoolData.about.keyStats,
+    //   })
+    // );
+
+    // Image file separately
+    // if (schoolData.about.image instanceof File) {
+    //   formData.append("aboutImage", schoolData.about.image);
+    // }
+
     formData.append("faqs", JSON.stringify(schoolData.faqs));
     formData.append("socialUrl", JSON.stringify(schoolData.socialUrl));
     formData.append("marks", JSON.stringify(schoolData.marks));
@@ -702,31 +737,31 @@ console.log("available ooptions",availableOptions);
                 gap={2}
                 alignItems="center"
                 mb={2}
-                // pr={3}
+              // pr={3}
               >
                 {/* Class Name */}
-         <Select
-  options={availableOptions}
-  value={classOptions.find(
-    (opt) => opt.value === item.className
-  )}
-  onChange={(option) =>
-    handleChange(`marks.${index}.className`, option.value)
-  }
-  placeholder="Select Class"
-  menuPortalTarget={document.body}
-  styles={{
-    control: (base) => ({
-      ...base,
-      width: 150,          // 👈 yahan width badhao
-      minWidth: 150,
-    }),
-    menuPortal: (base) => ({
-      ...base,
-      zIndex: 9999,
-    }),
-  }}
-/>
+                <Select
+                  options={availableOptions}
+                  value={classOptions.find(
+                    (opt) => opt.value === item.className
+                  )}
+                  onChange={(option) =>
+                    handleChange(`marks.${index}.className`, option.value)
+                  }
+                  placeholder="Select Class"
+                  menuPortalTarget={document.body}
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      width: 150,          // 👈 yahan width badhao
+                      minWidth: 150,
+                    }),
+                    menuPortal: (base) => ({
+                      ...base,
+                      zIndex: 9999,
+                    }),
+                  }}
+                />
 
 
                 {/* Per Subject Marks */}
@@ -741,40 +776,40 @@ console.log("available ooptions",availableOptions);
                   fullWidth
                 /> */}
                 <TextField
-  type="number"
-  label="Per Subject Marks"
-  value={item.perSubjectMarks}
-  onChange={(e) => {
-    let value = e.target.value;
+                  type="number"
+                  label="Per Subject Marks"
+                  value={item.perSubjectMarks}
+                  onChange={(e) => {
+                    let value = e.target.value;
 
-    // ❌ empty allow
-    if (value === "") {
-      handleChange(`marks.${index}.perSubjectMarks`, "");
-      return;
-    }
+                    // ❌ empty allow
+                    if (value === "") {
+                      handleChange(`marks.${index}.perSubjectMarks`, "");
+                      return;
+                    }
 
-    // ❌ only digits
-    value = value.replace(/\D/g, "");
+                    // ❌ only digits
+                    value = value.replace(/\D/g, "");
 
-    // ❌ max 3 digits
-    if (value.length > 3) return;
+                    // ❌ max 3 digits
+                    if (value.length > 3) return;
 
-    const num = Number(value);
+                    const num = Number(value);
 
-    // ❌ max 100
-    if (num > 100) {
-      toast.error("Marks cannot be more than 100");
-      return;
-    }
+                    // ❌ max 100
+                    if (num > 100) {
+                      toast.error("Marks cannot be more than 100");
+                      return;
+                    }
 
-    handleChange(`marks.${index}.perSubjectMarks`, value);
-  }}
-  inputProps={{
-    min: 0,
-    max: 100,
-  }}
-  fullWidth
-/>
+                    handleChange(`marks.${index}.perSubjectMarks`, value);
+                  }}
+                  inputProps={{
+                    min: 0,
+                    max: 100,
+                  }}
+                  fullWidth
+                />
 
 
                 {/* Delete */}
@@ -950,10 +985,10 @@ console.log("available ooptions",availableOptions);
         {/* About Section */}
         <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            {/* <Typography variant="h6" gutterBottom>
               🏫 About School
-            </Typography>
-            <TextField
+            </Typography> */}
+            {/* <TextField
               fullWidth
               label="Title"
               value={schoolData.about?.title || ""}
@@ -962,9 +997,9 @@ console.log("available ooptions",availableOptions);
                 handleChange("about.title", onlyLetters);
               }}
               sx={{ mb: 2 }}
-            />
+            /> */}
 
-            <TextField
+            {/* <TextField
               fullWidth
               multiline
               minRows={3}
@@ -974,7 +1009,33 @@ console.log("available ooptions",availableOptions);
                 handleChange("about.keyStats", e.target.value.split("\n"))
               }
               helperText="Each line will be treated as a separate key point."
-            />
+            /> */}
+          <Box>
+  {/* <Typography variant="subtitle1" fontWeight={600} mb={1}>
+    🖼️ About Section Image
+  </Typography> */}
+
+  {/* Upload / Preview Card */}
+
+</Box>
+
+
+            {aboutImagePreview && (
+              <Box mt={2}>
+                <img
+                  src={aboutImagePreview}
+                  alt="About Preview"
+                  style={{
+                    width: 220,
+                    height: 130,
+                    objectFit: "cover",
+                    borderRadius: 10,
+                    border: "1px solid #ddd",
+                  }}
+                />
+              </Box>
+            )}
+
           </CardContent>
         </Card>
 

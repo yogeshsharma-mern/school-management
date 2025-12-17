@@ -74,6 +74,15 @@ deleteBannerImage:"/admins/setting/Delete",
   uploadImageGallery:"/admins/setting/category/upload-images",
   gallerySettingGetImages:"/admins/setting/get-images",
   GallerySettingDeleteImage:"/admins/setting/Delete-images",
+  createLeader:"/leadership/addleader",
+  createAboutUsSection:"/admins/about",
+  GetAboutSection:"/admins/about",
+  updateAboutSection:"/admins/about",
+  getAllLeaders:"/leadership/allleader",
+  updateLeaderInfo:"/leadership/updateleader",
+  deleteLeaderInfo:"/leadership/deleteleader",
+  aboutinfoDelete:"/admins/about"
+
 
   // getTeachers:"/admins/teachers/getAllTeacher",
   //   getTeacherDetails:"/admins/teachers/getTeacherProfile",
