@@ -9,13 +9,21 @@ import { MdPhotoLibrary, MdCategory } from "react-icons/md";
 import { TbEdit } from "react-icons/tb";
 import { mockApi } from "../services/api";
 import ToggleButton from "../components/ToggleButton";
+import ConfirBox from "../components/ConfirmBox";
+import toast from "react-hot-toast";
+
 
 export default function AdminGalleryUpload() {
   const queryClient = useQueryClient();
   const [activeCategory, setActiveCategory] = useState(null);
+  const [delteImageModal,setDeleteImagemodal] = useState(false);
+  const [deleteCategoryModal,setCategoryModal]= useState(false);
   console.log("activecategory", activeCategory);
   console.log("activecategory", activeCategory);
   const [showAddCategory, setShowAddCategory] = useState(false);
+  const [catId,setCatId]= useState(null);
+  const [deleteImageId,setDeleteImageId]= useState(null);
+  const [catImageId,setCatImageId] = useState(null);
   const [description, setDescription] = useState("");
   const [editingCategory, setEditingCategory] = useState(null);
   console.log("editingcategory", editingCategory);
@@ -112,15 +120,40 @@ export default function AdminGalleryUpload() {
   });
 
   // Delete Category Mutation
-  const deleteCategory = useMutation({
-    mutationFn: (id) => mockApi.deleteCategory(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      if (activeCategory && activeCategory.id === id) {
-        setActiveCategory(categories[0] || null);
-      }
-    },
-  });
+  // const deleteCategory = useMutation({
+  //   mutationFn: (id) => mockApi.deleteCategory(id),
+  //   onSuccess: (res) => {
+  //     queryClient.invalidateQueries({ queryKey: ["categories"] });
+  //     if (activeCategory && activeCategory.id === id) {
+  //       setActiveCategory(categories[0] || null);
+  //              toast.success(res.message);
+  //     setCategoryModal(false);
+ 
+  //     }
+  //   },
+  // });
+const deleteCategory = useMutation({
+  mutationFn: (id) => mockApi.deleteCategory(id),
+
+  onSuccess: (res, id) => {
+    queryClient.invalidateQueries({ queryKey: ["categoriessss"] });
+
+    // Reset active category if deleted
+    if (activeCategory?._id === id) {
+      setActiveCategory(null);
+    }
+
+    toast.success(res?.message || "Category deleted successfully");
+    setCategoryModal(false); // ✅ CLOSE MODAL
+  },
+
+  onError: (error) => {
+    toast.error(
+      error?.response?.data?.message || "Failed to delete category"
+    );
+    setCategoryModal(false); // optional: still close modal
+  },
+});
 
   // Upload Images Mutation
   // Upload Images Mutation - FIXED VERSION
@@ -318,6 +351,7 @@ export default function AdminGalleryUpload() {
 
     onSuccess: () => {
       queryClient.invalidateQueries(["images", activeCategory._id]);
+      setDeleteImagemodal(false);
       queryClient.invalidateQueries(["categories"]);
     },
   });
@@ -422,6 +456,25 @@ export default function AdminGalleryUpload() {
 
   return (
     <div className="min-h-screen w-[100vw] md:w-auto bg-gradient-to-br from-gray-50 to-white p-4 md:p-8">
+      {
+        deleteCategoryModal && 
+        (
+          <ConfirBox isOpen={deleteCategoryModal} message="If you delete this category, all your images in this category will be remove." onConfirm={()=>deleteCategory.mutate(catId)} onCancel={()=>setCategoryModal(false)}/>
+        )
+      }
+      {
+        delteImageModal && 
+        (
+          <ConfirBox isOpen={delteImageModal} message="you want to delete this image" onConfirm={() =>
+  deleteImage.mutate({
+    categoryId: catImageId,
+    imageId: deleteImageId
+  })
+}
+ onCancel={()=>setDeleteImagemodal(false)}/>
+        )
+      }
+    
       <div className="max-w-7xl mx-auto">
         {/* HEADER */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
@@ -490,7 +543,7 @@ export default function AdminGalleryUpload() {
                   <div key={cat.id} className="relative group">
                     <button
                       onClick={() => handleCategoryClick(cat)}
-                      className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 whitespace-nowrap flex items-center gap-3 
+                      className={`px-6 py-4 rounded-xl font-medium transition-all duration-300 whitespace-nowrap flex items-center gap-3 
                         ${activeCategory?._id === cat._id
                           ? 'bg-[image:var(--gradient-primary)]  text-white scale-105'
                           : 'bg-white text-gray-700 border-2 border-amber-100 hover:border-amber-300 '
@@ -522,9 +575,12 @@ export default function AdminGalleryUpload() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (window.confirm(`Delete category "${cat.name}"? This will also delete all images in this category.`)) {
-                              deleteCategory.mutate(cat._id);
-                            }
+                            setCategoryModal(true);
+                            setCatId(cat._id);
+                            // e.stopPropagation();
+                            // if (window.confirm(`Delete category "${cat.name}"? This will also delete all images in this category.`)) {
+                            //   deleteCategory.mutate(cat._id);
+                            // }
                           }}
                           className="p-1.5  text-red-600 cursor-pointer  rounded-lg "
                         >
@@ -782,12 +838,15 @@ export default function AdminGalleryUpload() {
                               </button> */}
                               <button
                                 onClick={() => {
-                                  if (window.confirm('Delete this image?')) {
-                                    deleteImage.mutate({
-                                      categoryId: activeCategory._id,
-                                      imageId: img._id
-                                    });
-                                  }
+                                  setDeleteImagemodal(true);
+                                  setDeleteImageId(img._id);
+                                  setCatImageId(activeCategory._id);
+                                  // if (window.confirm('Delete this image?')) {
+                                  //   deleteImage.mutate({
+                                  //     categoryId: activeCategory._id,
+                                  //     imageId: img._id
+                                  //   });
+                                  // }
                                 }}
                                 className="p-2 bg-white/90 cursor-pointer rounded-lg hover:bg-white hover:scale-110 transition-transform"
                                 title="Delete"
@@ -897,7 +956,7 @@ export default function AdminGalleryUpload() {
                   className={`px-5 py-2.5 cursor-pointer rounded-xl font-medium transition-all duration-200 flex items-center gap-2
                     ${!newCategory.trim() || createCategory.isLoading
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-amber-500 to-amber-400 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                      : 'bg-[image:var(--gradient-primary)] text-white shadow-lg hover:shadow-xl hover:scale-105'
                     }`}
                 >
                   {createCategory.isLoading ? (

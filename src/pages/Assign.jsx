@@ -437,7 +437,7 @@ export default function TimetableManager() {
               {days.map((day) => {
                 const a = getAssignmentFor(day, slot);
 
-                // console.log("aaaaa",a);
+                console.log("aaaaa",a);
                 const isLunch = slot.isBreak && slot.period === "Lunch Break";
 
                 if (isLunch) {

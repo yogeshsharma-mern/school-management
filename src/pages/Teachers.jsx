@@ -470,7 +470,7 @@ export default function StudentPage() {
 
       <div className="md:flex p-6 justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Teachers</h1>
-        <div className="md:flex grid grid-cols-2 text-[10px] md:text-[14px] gap-2">
+        <div className="md:flex grid grid-cols-2 text-[11px] md:text-[14px] gap-2">
           <button
             // onClick={handleExportCSV}
             onClick={() => setModalOpen(true)}
