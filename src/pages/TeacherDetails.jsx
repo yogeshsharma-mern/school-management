@@ -190,7 +190,7 @@ export default function TeacherDetailPage() {
 
       {/* 🧾 Profile Tab */}
    {activeTab === "profile" && (
-  <div className=" border border-gray-100  rounded-2xl p-8 space-y-6 transition">
+  <div className=" border border-gray-100  rounded-2xl p-2 md:p-8 space-y-6 transition">
     {/* Header */}
     <div className="flex items-center gap-3 mb-4">
       <User className="w-6 h-6 text-yellow-500" />
@@ -198,8 +198,8 @@ export default function TeacherDetailPage() {
     </div>
 
     {/* Profile Info Grid */}
-    <div className="grid md:grid-cols-2 gap-6 text-gray-700">
-      <p className="flex items-center gap-2">
+    <div className="md:grid md:grid-cols-2  space-y-3 md:space-y-0 gap-6 text-gray-700">
+      <p className="flex items-center  gap-2">
         <Mail className="w-5 h-5 text-yellow-500" />
         <strong>Email:</strong> {teacher.email}
       </p>

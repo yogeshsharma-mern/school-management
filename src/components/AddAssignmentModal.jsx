@@ -660,6 +660,12 @@ const uniqueSubjects = teacherSubjects.filter(
                   return <MenuItem key={id} value={id}>{name}</MenuItem>;
                 })}
               </Select>
+              {
+                teachers.length===0 &&
+        (
+          <div className="text-red-500 text-[10px] mt-1">No teachers found for this class, please add the teacher and assign to this class</div>
+        )
+              }
             </FormControl>
 
             <FormControl fullWidth disabled={!selectedTeacher}>

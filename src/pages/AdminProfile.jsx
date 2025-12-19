@@ -80,12 +80,21 @@ export default function AdminProfile() {
 
       return apiPost(apiPath.updateAdminProfile, formDataToSend);
     },
-    onSuccess: (data) => {
-      // console.log(data,"data");
-      toast.success(data.message || "Profile updated successfully!");
-      queryClient.invalidateQueries(["adminDetails"]);
-      setIsModalOpen(false);
-    },
+onSuccess: (data) => {
+  toast.success("Profile updated");
+
+  // Update React Query cache
+  queryClient.setQueryData(["adminDetails"], {
+    results: data.results,
+  });
+  
+  console.log("data.resutls",data.results);
+  // Persist for refresh / new tab
+  localStorage.setItem("user", JSON.stringify(data.results));
+
+  setIsModalOpen(false);
+},
+
     onError:(error)=>
     {
       console.log(error)
@@ -276,7 +285,7 @@ export default function AdminProfile() {
                 </h2>
                 <ul className="space-y-2 text-sm text-gray-600">
                   <li>
-                    Logged in last at <b>{new Date(profile.lastLogin).toLocaleString()}</b>
+                    {/* Logged in last at <b>{new Date(profile.lastLogin).toLocaleString()}</b> */}
                   </li>
                   <li>
                     Account created on{" "}

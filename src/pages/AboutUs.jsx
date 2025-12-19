@@ -47,7 +47,7 @@ const AdminAboutUs = () => {
 
   /* ================= FETCH ================= */
 
-const { data, isLoading } = useQuery({
+const { data, isPending } = useQuery({
   queryKey: ["about-us"],
   queryFn: () => apiGet(apiPath.GetAboutSection),
 });
@@ -388,7 +388,7 @@ const resetMutation = useMutation({
           resetMutation.mutate();
         }
       }}
-      disabled={resetMutation.isLoading}
+      disabled={resetMutation.isPending}
     >
       Reset
     </Button>
@@ -406,7 +406,7 @@ const resetMutation = useMutation({
       fontWeight: 700,
     }}
     onClick={() => saveMutation.mutate()}
-    disabled={saveMutation.isLoading || isLoading}
+    disabled={saveMutation.isPending || isPending}
   >
     Save About Us
   </Button>

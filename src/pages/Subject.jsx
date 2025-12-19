@@ -657,7 +657,7 @@ import apiPath from "../api/apiPath";
 import useDebounce from "../hooks/useDebounce";
 import toast from "react-hot-toast";
 import Loader from "../components/Loading";
-import { RiImageEditLine } from "react-icons/ri";
+import { RiAddBoxFill, RiImageEditLine } from "react-icons/ri";
 import { FaRegEye } from "react-icons/fa";
 import { AiFillDelete } from "react-icons/ai";
 import ToggleButton from "../components/ToggleButton";
@@ -1067,8 +1067,9 @@ const classes = useMemo(() => {
                             setIsModalOpen(true);
                         }}
                         disabled={!selectedClassId}
-                        className="px-4 py-2 bg-[image:var(--gradient-primary)] cursor-pointer rounded-lg hover:bg-yellow-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 flex items-center gap-1 py-2 bg-[image:var(--gradient-primary)] cursor-pointer rounded-lg hover:bg-yellow-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
+                        <RiAddBoxFill />
                         Add Subject
                     </button>
                 </div>

@@ -8,9 +8,9 @@ import apiPath from "../api/apiPath";
 import useDebounce from "../hooks/useDebounce";
 import toast from "react-hot-toast";
 import Loader from "../components/Loading";
-import { RiImageEditLine } from "react-icons/ri";
+import { RiAddBoxFill, RiImageEditLine } from "react-icons/ri";
 import ToggleButton from "../components/ToggleButton";
-import { IoIosAddCircleOutline } from "react-icons/io";
+import { IoIosAdd, IoIosAddCircleOutline } from "react-icons/io";
 import Select from "react-select";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
@@ -410,8 +410,9 @@ const handleSubmit = (e) => {
         setFormData({ name: "", section: "", startTime: "", endTime: "" });
         setIsModalOpen(true);
       }}
-      className="px-4 py-2 bg-[image:var(--gradient-primary)] cursor-pointer rounded-lg hover:opacity-90 transition"
+      className="px-4 flex items-center gap-1  py-2 bg-[image:var(--gradient-primary)] cursor-pointer rounded-lg hover:opacity-90 transition"
     >
+<RiAddBoxFill />
       Add Class
     </button>
   </div>
