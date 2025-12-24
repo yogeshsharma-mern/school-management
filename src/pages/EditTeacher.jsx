@@ -151,7 +151,7 @@ export default function CreateTeacherPage() {
 
     const { data: classes = [], isLoading, isError } = useQuery({
         queryKey: ["classesForteacher"],
-        queryFn: () => apiGet(apiPath.classes),
+        queryFn: () => apiGet(apiPath.activeClasses),
     });
     const {
         data,

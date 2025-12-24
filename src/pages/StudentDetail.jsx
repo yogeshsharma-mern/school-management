@@ -138,7 +138,7 @@ export default function StudentDetailPage() {
           <div>
             <h1 className="text-2xl font-bold">{student.name}</h1>
             <p className="text-sm opacity-90">
-              Admission No: {student.admissionNo}
+              {/* Admission No: {student.admissionNo} */}
             </p>
           </div>
         </div>
@@ -200,7 +200,7 @@ export default function StudentDetailPage() {
             {/* Personal Info Section */}
             <div className="grid  md:grid-cols-2 lg:gap-6 gap-3">
               {[
-                { label: "Admission Date", value: new Date(student.admissionDate).toLocaleDateString(), icon: <Calendar className="w-4 h-4 text-blue-500" /> },
+                // { label: "Admission Date", value: new Date(student.admissionDate).toLocaleDateString(), icon: <Calendar className="w-4 h-4 text-blue-500" /> },
                 { label: "Email", value: student.email, icon: <Mail className="w-4 h-4 text-blue-500" /> },
                 { label: "Phone", value: student.phone, icon: <Phone className="w-4 h-4 text-blue-500" /> },
                 { label: "Date of Birth", value: new Date(student.dob).toLocaleDateString(), icon: <Calendar className="w-4 h-4 text-blue-500" /> },

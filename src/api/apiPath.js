@@ -81,7 +81,9 @@ deleteBannerImage:"/admins/setting/Delete",
   getAllLeaders:"/leadership/allleader",
   updateLeaderInfo:"/leadership/updateleader",
   deleteLeaderInfo:"/leadership/deleteleader",
-  aboutinfoDelete:"/admins/about"
+  aboutinfoDelete:"/admins/about",
+  activeClasses:"/admins/classes/active-classes"
+
 
 
   // getTeachers:"/admins/teachers/getAllTeacher",

@@ -143,7 +143,7 @@ export default function CreateStudentPage() {
 
   const { data: classes = [], isLoading, isError } = useQuery({
     queryKey: ["classesForStudent"],
-    queryFn: () => apiGet(apiPath.classes),
+    queryFn: () => apiGet(apiPath.activeClasses),
   });
   const classOptions = (() => {
     if (!classes?.results?.docs) return [];

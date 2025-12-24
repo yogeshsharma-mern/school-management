@@ -173,7 +173,7 @@ export default function StudentPage() {
   // ✅ Fetch classes (for filter)
   const { data: classData, isLoading: classLoading } = useQuery({
     queryKey: ["classes"],
-    queryFn: () => apiGet(apiPath.classes), // make sure apiPath.getClasses is your class endpoint
+    queryFn: () => apiGet(apiPath.activeClasses), // make sure apiPath.getClasses is your class endpoint
   });
   const classOptions = classData?.results?.docs?.map((cls) => ({
     value: cls._id,
@@ -207,23 +207,52 @@ export default function StudentPage() {
     }
   }, [feesData]);
   // ✅ Fetch students
-  const { data: studentsData, isLoading, isFetching, error } = useQuery({
-    queryKey: [
-      "students",
-      pagination.pageIndex,
-      pagination.pageSize,
-      debouncedSearch,
-      classFilter,
-      academicYearFilter,
-    ],
-    queryFn: () =>
-      apiGet(apiPath.getStudents, {
-        page: pagination.pageIndex + 1,
-        limit: pagination.pageSize,
-        search: debouncedSearch,
-        classId: classFilter || undefined, // pass classId if selected
-      }),
-  });
+  // const { data: studentsData, isLoading, isFetching, error } = useQuery({
+  //   queryKey: [
+  //     "students",
+  //     pagination.pageIndex,
+  //     pagination.pageSize,
+  //     debouncedSearch,
+  //     classFilter,
+  //     academicYearFilter,
+  //   ],
+  //   queryFn: () =>
+  //     apiGet(apiPath.getStudents, {
+  //       page: pagination.pageIndex + 1,
+  //       limit: pagination.pageSize,
+  //       search: debouncedSearch,
+  //       classId: classFilter || undefined, // pass classId if selected
+  //     }),
+  // });
+  const {
+  data: studentsData,
+  isLoading,
+  isFetching,
+  error,
+} = useQuery({
+  queryKey: [
+    "students",
+    classFilter || "all",   // 👈 important for caching
+    pagination.pageIndex,
+    pagination.pageSize,
+    debouncedSearch,
+    academicYearFilter,
+  ],
+  queryFn: () => {
+    // 🔹 URL decide karo
+    const url = classFilter
+      ? `${apiPath.getStudents}/${classFilter}` // /students/:id
+      : apiPath.getStudents;                   // /students (all)
+
+    return apiGet(url, {
+      page: pagination.pageIndex + 1,
+      limit: pagination.pageSize,
+      search: debouncedSearch || undefined,
+      academicYear: academicYearFilter || undefined,
+    });
+  },
+});
+
   const handleExportCSV = () => {
     try {
       const docs = studentsData?.results?.docs || [];
@@ -803,36 +832,18 @@ export default function StudentPage() {
             }
           />
           <div className="flex justify-end gap-2">
-            <button
-              type="submit"
-              disabled={importMutation.isLoading}
-              className={`w-full flex items-center justify-center gap-2 bg-[image:var(--gradient-primary)] py-2 rounded-lg  transition ${importMutation.isLoading ? "opacity-75 cursor-not-allowed" : ""
-                }`}
-            >
-              {importMutation.isLoading && (
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8z"
-                  ></path>
-                </svg>
-              )}
-              {importMutation.isLoading ? "Importing..." : "Start Import"}
-            </button>
+         <button
+  type="button"
+  onClick={confirmDelete}
+  disabled={deleteMutation.isLoading}
+  className={`w-full flex items-center cursor-pointer justify-center gap-2 
+    bg-[image:var(--gradient-primary)] py-2 rounded-lg transition
+    ${deleteMutation.isLoading ? "opacity-75 cursor-not-allowed" : ""}
+  `}
+>
+  {deleteMutation.isLoading ? "Deleting..." : "Delete"}
+</button>
+
 
           </div>
         </div>

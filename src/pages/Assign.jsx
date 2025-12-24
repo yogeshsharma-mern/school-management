@@ -92,7 +92,7 @@ export default function TimetableManager() {
   });
   const classesQuery = useQuery({
     queryKey: ["classessss"],
-    queryFn: () => apiGet(apiPath.classes || "/api/admins/classes"),
+    queryFn: () => apiGet(apiPath.activeClasses || "/api/admins/classes"),
   });
   const teachersQuery = useQuery({
     queryKey: ["teachers"],

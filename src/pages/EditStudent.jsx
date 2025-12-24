@@ -87,7 +87,7 @@ export default function CreateStudentPage() {
 
   const { data: classes = [], isLoading, isError: err } = useQuery({
     queryKey: ["classesForStudent"],
-    queryFn: () => apiGet(apiPath.classes),
+    queryFn: () => apiGet(apiPath.activeClasses),
   });
   const { data: studentData, isFetching, isError } = useQuery({
     queryKey: ["student", id],
@@ -660,14 +660,14 @@ export default function CreateStudentPage() {
       const res = student._id
         ? await apiPut(`${apiPath.updateStudent}/${student._id}`, formDataToSend)
         : await apiPost(apiPath.studentReg, formDataToSend);
-
+console.log("res",res);
       if (res.success) {
         toast.success(res.message || "Student saved successfully ✅");
         navigate(-1);
       }
     } catch (err) {
       console.error(err);
-      toast.error("Something went wrong ❌");
+      toast.error(err?.response?.data?.message);
     }
   };
 
