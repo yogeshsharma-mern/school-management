@@ -510,7 +510,7 @@ export default function Dashboard() {
           {/* 👩‍🏫 Gender Ratio */}
           <Card className="p-6 bg-white shadow-sm border border-gray-100 rounded-2xl hover:shadow-md transition-all">
             <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-              ⚧ Gender Ratio
+              ⚧ Teachers Gender Ratio
             </h2>
             <ReactApexChart
               options={genderOptions}
