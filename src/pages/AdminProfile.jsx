@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Avatar, { genConfig } from "react-nice-avatar";
 import { useNavigate } from "react-router-dom";
-import { FaEnvelope, FaPhoneAlt, FaUserShield, FaMapMarkerAlt } from "react-icons/fa";
+import { FaEnvelope, FaPhoneAlt, FaUserShield, FaMapMarkerAlt, FaRegEye } from "react-icons/fa";
 import Modal from "../components/Modal";
 import apiPath from "../api/apiPath";
 import { apiPost, apiGet, apiPut } from "../api/apiFetch";
@@ -257,14 +257,26 @@ onSuccess: (data) => {
                     </div>
 
                     {/* Icon */}
-                    <div className="
+                    
+          <div className="flex items-center gap-3">
+                      <div className="
         w-14 h-14 flex items-center justify-center rounded-lg 
         bg-yellow-100 border border-yellow-200
       ">
                       <span className="text-3xl text-yellow-600">💰</span>
                     </div>
-
+       
+<div onClick={()=>
+  {
+    navigate("/admin/wallet/transaction")
+  }
+} className="cursor-pointer">
+            <FaRegEye  />
+</div>
+          </div>
                   </div>
+                     
+                  
 
                   {/* Divider Line */}
                   <div className="border-t mt-4 pt-3 border-gray-200">

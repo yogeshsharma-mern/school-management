@@ -82,7 +82,8 @@ deleteBannerImage:"/admins/setting/Delete",
   updateLeaderInfo:"/leadership/updateleader",
   deleteLeaderInfo:"/leadership/deleteleader",
   aboutinfoDelete:"/admins/about",
-  activeClasses:"/admins/classes/active-classes"
+  activeClasses:"/admins/classes/active-classes",
+  walletTransactions:"/admins/wallet-transactions"
 
 
 

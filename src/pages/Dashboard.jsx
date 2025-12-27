@@ -84,6 +84,7 @@ const genderOptions = (labels) => ({
   return (
     <div className="md:p-8 p-4 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
       <div className="max-w-7xl mx-auto space-y-10">
+     
         {/* --- Header --- */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <h1 className="md:text-3xl text-2xl font-bold text-gray-800 tracking-tight">

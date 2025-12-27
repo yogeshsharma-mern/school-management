@@ -47,6 +47,7 @@ const Assign = lazy(() => import('./pages/Assign.jsx'));
 const GallerySetting = lazy(() => import('./pages/GallerySetting.jsx'));
 const LeaderShip = lazy(() => import('./pages/LeaderShip.jsx'));
 const AboutUs = lazy(() => import('./pages/AboutUs.jsx'));
+const TransactionDetails = lazy(() => import('./pages/TransactionDetails.jsx'));
 
 export default function App() {
   const queryClient = new QueryClient();
@@ -98,7 +99,7 @@ export default function App() {
             <Route path="event-calendar" element={<EventCalendar />} />
             <Route path="event-calendar" element={<EventCalendar />} />
             <Route path="inquiry-management" element={<InquiryManagement />} />
-            {/* <Route path="teacher/salary/salaryinfo" element={<SalaryDetail />} /> */}
+            <Route path="wallet/transaction" element={<TransactionDetails />} />
             <Route path="teacher/salary/salaryinfo/:id" element={<SalaryDetail />} />
 
 

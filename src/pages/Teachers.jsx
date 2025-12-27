@@ -230,6 +230,7 @@ export default function StudentPage() {
 
       // ✅ Base success message
       toast.success(res.message || "Students imported successfully ✅");
+      setModalOpen(false);
 
       // ✅ Show success/failure summary in a single toast
       if (summary) {
