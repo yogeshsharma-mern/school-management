@@ -19,7 +19,7 @@
 //       const res = await apiPost(apiPath.resetPassword, { email });
 //       return res;
 //     },
-//     : (data) => {
+//     onSuccess: (data) => {
 //       setMessage(data.message || "Password reset link sent successfully!");
 //       console.log(
 //         "data",data
@@ -128,7 +128,7 @@ export default function ForgotPassword() {
       const res = await apiPost(apiPath.resetPassword, { email });
       return res;
     },
-    : (data) => {
+    onSuccess: (data) => {
       setMessage(data.message || "Password reset link sent successfully!");
       toast.success(data.message || "Reset link sent!");
       setError("");
