@@ -408,6 +408,7 @@ export default function StudentPage() {
         "state": "Rajasthan",
         "zip": "304040",
         "country": "India",
+         "class":"1st",
         "aadharFront": "",
         "aadharBack": "",
  

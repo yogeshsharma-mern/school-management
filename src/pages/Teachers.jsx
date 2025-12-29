@@ -61,11 +61,11 @@ export default function StudentPage() {
     // Columns you want the admin to fill
     const templateRows = [
       {
-        employee: "EMP-XXXX",
+        employeeId: "EMP-1001",
         name: "John Doe",
         email: "john.doe@school.com",
         phone: "9876543210",
-        dob: "YYYY/MM/DD",          // Use YYYY/MM/DD format
+        dob: "03/15/1980",          // Use YYYY/MM/DD format
         gender: "Male",
         maritalStatus: "Married",   // Married / Single / Divorced / Widowed
         street: "45 MG Road",
@@ -80,7 +80,7 @@ export default function StudentPage() {
         qualifications: "M.Sc Mathematics;B.Ed", // separate with semicolon
         specialization: "Mathematics",
         experience: "15",                 // in years
-        dateOfJoining: "YYYY/MM/DD",
+        dateOfJoining: "06/01/2015",
         classes: "10th-C,12th-B",         // comma separated  
         subjects: "science,sanskrit",     // comma separated
         basicSalary: "75000",
@@ -230,6 +230,8 @@ export default function StudentPage() {
 
       // ✅ Base success message
       toast.success(res.message || "Students imported successfully ✅");
+         queryClient.invalidateQueries(["teachers"]);
+      
       setModalOpen(false);
 
       // ✅ Show success/failure summary in a single toast
