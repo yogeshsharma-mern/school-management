@@ -382,7 +382,7 @@ export default function StudentPage() {
     // Columns you want the admin to fill
     const templateRows = [
       {
-        "Name": "john",
+        "name": "john",
         "email": "john@gmail.com",           // e.g., 10th
         "phone": "9876543210",         // e.g., A
         "dob": "2004/10/08",
@@ -393,6 +393,8 @@ export default function StudentPage() {
         "parent1Phone": "8767673647",
         "parent1Email": "doe@gmail.coom",    // active/inactive (optional)
         "parent2Name": "Fiza",
+        "parent2Occupation":"teacher",
+        "parent2Phone":"9867867567",
         "parent2Email": "fiza@gmail.com",
         "guardianName": "amily",
         "guardianRelation": "sister",

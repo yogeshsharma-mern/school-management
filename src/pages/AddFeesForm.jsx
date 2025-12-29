@@ -2,13 +2,25 @@ import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { apiPut } from "../api/apiFetch";
 import apiPath from "../api/apiPath";
+import Select from "react-select";
+const modeoptions = [
+  { value: "cash", label: "Cash" },
+  { value: "card", label: "Card" },
+  { value: "upi", label: "UPI" },
+  { value: "banktransfer", label: "BankTransfer" },
+  { value: "cheque", label: "Cheque" }
+
+
+]
 
 export default function AddFeesForm({ studentId, onClose, queryClient, remainingFee }) {
   const [amountPaid, setAmountPaid] = useState("");
   const [confirmAmountPaid, setConfirmAmountPaid] = useState("");
   const [remarks, setRemarks] = useState("");
+  const [mode, setMode] = useState("");
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   const handleAmountChange = (value) => {
     if (Number(value) > Number(remainingFee)) {
@@ -47,6 +59,7 @@ export default function AddFeesForm({ studentId, onClose, queryClient, remaining
       setIsSubmitting(true);
       const payload = {
         amountPaid: Number(amountPaid),
+        mode,
         remarks,
       };
 
@@ -76,11 +89,10 @@ export default function AddFeesForm({ studentId, onClose, queryClient, remaining
           type="number"
           value={amountPaid}
           onChange={(e) => handleAmountChange(e.target.value)}
-          className={`w-full border rounded-lg p-2 focus:outline-none focus:ring-2 ${
-            errors.amountPaid
+          className={`w-full border rounded-lg p-2 focus:outline-none focus:ring-2 ${errors.amountPaid
               ? "border-red-400 focus:ring-red-400"
               : "border-gray-300 focus:ring-blue-400"
-          }`}
+            }`}
           placeholder={`Enter amount (Max ₹${remainingFee})`}
           min="1"
         />
@@ -101,11 +113,10 @@ export default function AddFeesForm({ studentId, onClose, queryClient, remaining
             setConfirmAmountPaid(e.target.value);
             setErrors((prev) => ({ ...prev, confirmAmountPaid: "" }));
           }}
-          className={`w-full border rounded-lg p-2 focus:outline-none focus:ring-2 ${
-            errors.confirmAmountPaid
+          className={`w-full border rounded-lg p-2 focus:outline-none focus:ring-2 ${errors.confirmAmountPaid
               ? "border-red-400 focus:ring-red-400"
               : "border-gray-300 focus:ring-blue-500"
-          }`}
+            }`}
           placeholder="Re-enter amount"
           min="1"
         />
@@ -114,6 +125,12 @@ export default function AddFeesForm({ studentId, onClose, queryClient, remaining
         )}
       </div>
 
+      {/* Mode */}
+      <Select options={modeoptions}
+        value={modeoptions.find((s) => s.label === mode)}
+        onChange={(selected) => {
+          setMode(selected.label);
+        }} placeholder="Select State *" />
       {/* Remarks */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -125,11 +142,10 @@ export default function AddFeesForm({ studentId, onClose, queryClient, remaining
             setRemarks(e.target.value);
             setErrors((prev) => ({ ...prev, remarks: "" }));
           }}
-          className={`w-full border rounded-lg p-2 focus:outline-none focus:ring-2 ${
-            errors.remarks
+          className={`w-full border rounded-lg p-2 focus:outline-none focus:ring-2 ${errors.remarks
               ? "border-red-400 focus:ring-red-400"
               : "border-gray-300 focus:ring-blue-500"
-          }`}
+            }`}
           rows="3"
           placeholder="Enter remarks (e.g. Fee payment for October)"
         />
