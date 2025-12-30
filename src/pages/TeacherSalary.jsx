@@ -232,6 +232,7 @@ export default function TeacherSalaryPage() {
             </label>
             <InputField
               name="month"
+              disabled={true}
               value={salaryForm.month}
               onChange={handleSalaryChange}
               placeholder="YYYY-MM"
@@ -248,13 +249,13 @@ export default function TeacherSalaryPage() {
             <InputField
               name="leaves"
               type="number"
+              disabled={true}
               value={
                 selectedTeacher?.netSalary
                   ? Number(selectedTeacher.netSalary).toFixed(2)
                   : ""
               }
               placeholder="0.00"
-              disabled
               className="bg-gray-100 cursor-not-allowed text-gray-700"
             />
 

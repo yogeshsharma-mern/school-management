@@ -121,6 +121,7 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  
   const navigate = useNavigate();
 
   const mutation = useMutation({
@@ -153,7 +154,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-100 via-indigo-100 to-pink-100 p-4">
+    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-yellow-100 via-indigo-100 to-pink-100 p-4">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}

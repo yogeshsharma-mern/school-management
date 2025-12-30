@@ -83,7 +83,7 @@ export default function CreateTeacherPage() {
     ];
     const countries = countryList().getData();
     const states = [
-        { value: "Rajasthan", label: "Maharashtra" },
+        { value: "Rajasthan", label: "Rajasthan" },
         // { value: "Karnataka", label: "Karnataka" },
         // { value: "Tamil Nadu", label: "Tamil Nadu" },
         { value: "Delhi", label: "Delhi" },
