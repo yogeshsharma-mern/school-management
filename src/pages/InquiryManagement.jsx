@@ -371,7 +371,7 @@ export default function InquiryPage() {
 
             <div className={`
   overflow-x-auto transition-all duration-300 w-[98vw]
-  ${collapsed ? "md:w-[95vw]" : "md:w-[80vw]"}
+  ${collapsed ? "md:w-[95vw]" : "md:w-[82vw]"}
 `}>
                 <ReusableTable
                     columns={columns}

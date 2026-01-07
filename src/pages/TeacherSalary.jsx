@@ -184,7 +184,7 @@ export default function TeacherSalaryPage() {
   const totalPages = TeacherSalary?.pagination?.totalPages || 1;
 
   return (
-    <div className="md:p-6 p-2">
+    <div className="md:p-2 p-2">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Teachers Salary</h1>
@@ -193,7 +193,7 @@ export default function TeacherSalaryPage() {
       {/* Table */}
       <div className={`
   overflow-x-auto transition-all duration-300 w-[98vw]
-  ${collapsed ? "md:w-[92vw]" : "md:w-[80vw]"}
+  ${collapsed ? "md:w-[92vw]" : "md:w-[82vw]"}
 `}>
         <ReusableTable
           columns={columns}
