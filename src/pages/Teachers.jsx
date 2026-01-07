@@ -247,12 +247,15 @@ export default function StudentPage() {
 
       // ✅ Refresh table and reset form
       queryClient.invalidateQueries({ queryKey: ["students"] });
-      setShowModal(false);
+      // setShowModal(false);
+    
       setSelectedFile(null);
-      setClassId(null);
+      // setClassId(null);
+      
     },
 
     onError: (err) => {
+      console.log("err",err);
       toast.error(err?.response?.data?.message || "Import failed ❌");
     },
   });
