@@ -40,8 +40,8 @@ const validateForm = (data) => {
 const designationOptions = [
     { value: 'Principal', label: 'Principal' },
     { value: 'Director', label: 'Director' },
-    { value: 'Head Master', label: 'Head Master' },
-    { value: 'Vice principal', label: 'Vice Principal' },
+    { value: 'HeadMaster', label: 'Head Master' },
+    { value: 'VicePrincipal', label: 'Vice Principal' },
     //   { value: 'dean', label: 'Dean' },
 ];
 
@@ -516,6 +516,7 @@ const LeadersManagement = () => {
         }
     });
     let leaders = leadersData?.results || [];
+    console.log("first")
     const buildFormData = (data) => {
         const fd = new FormData();
 
@@ -537,9 +538,9 @@ const LeadersManagement = () => {
     // Create leader mutation
     const createLeaderMutation = useMutation({
         mutationFn: (data) => apiPost(apiPath.createLeader, data),
-        onSuccess: () => {
+        onSuccess: (res) => {
             queryClient.invalidateQueries(['leaders']);
-            toast.success('Leader created successfully!', {
+            toast.success(res?.message, {
                 duration: 4000,
                 position: 'top-right',
                 icon: '✅',
@@ -683,7 +684,7 @@ const LeadersManagement = () => {
                             <div>
                                 <p className="text-sm text-gray-500">Principals</p>
                                 <p className="text-2xl font-bold text-gray-900">
-                                    {leaders.filter(l => l.designation === 'principal').length}
+                                    {leaders.filter(l => l.designation === 'Principal').length}
                                 </p>
                             </div>
                             <div className="p-3 bg-green-50 rounded-lg">
@@ -699,7 +700,7 @@ const LeadersManagement = () => {
                             <div>
                                 <p className="text-sm text-gray-500">Directors</p>
                                 <p className="text-2xl font-bold text-gray-900">
-                                    {leaders.filter(l => l.designation === 'director').length}
+                                    {leaders.filter(l => l.designation === 'Director').length}
                                 </p>
                             </div>
                             <div className="p-3 bg-purple-50 rounded-lg">
@@ -713,9 +714,9 @@ const LeadersManagement = () => {
                     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-500">Academics</p>
+                                <p className="text-sm text-gray-500">Head Master</p>
                                 <p className="text-2xl font-bold text-gray-900">
-                                    {leaders.filter(l => l.department === 'academics').length}
+                                    {leaders.filter(l => l.designation === 'HeadMaster').length}
                                 </p>
                             </div>
                             <div className="p-3 bg-yellow-50 rounded-lg">
