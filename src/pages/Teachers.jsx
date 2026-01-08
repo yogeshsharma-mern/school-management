@@ -230,8 +230,8 @@ export default function StudentPage() {
 
       // ✅ Base success message
       toast.success(res.message || "Students imported successfully ✅");
-         queryClient.invalidateQueries(["teachers"]);
-      
+      queryClient.invalidateQueries(["teachers"]);
+
       setModalOpen(false);
 
       // ✅ Show success/failure summary in a single toast
@@ -248,14 +248,14 @@ export default function StudentPage() {
       // ✅ Refresh table and reset form
       queryClient.invalidateQueries({ queryKey: ["students"] });
       // setShowModal(false);
-    
+
       setSelectedFile(null);
       // setClassId(null);
 
     },
 
     onError: (err) => {
-      console.log("err",err);
+      console.log("err", err);
       toast.error(err?.response?.data?.message || "Import failed ❌");
     },
   });
@@ -382,6 +382,8 @@ export default function StudentPage() {
       { accessorKey: "email", header: "Email" },
       { accessorKey: "phone", header: "Phone" },
       { accessorKey: "gender", header: "Gender" },
+      { accessorKey: "classTeacherOf", header: "Class Teacher" },
+
       // { accessorKey: "bloodGroup", header: "Blood Group" },
       // { accessorKey: "department", header: "Department" },
       // { accessorKey: "designation", header: "Designation" },

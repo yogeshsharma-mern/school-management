@@ -290,22 +290,24 @@ export default function TeacherDetailPage() {
 
       {/* 📚 Subjects Handled */}
       {activeTab === "subjects" && (
-        <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-6 rounded-2xl shadow-inner">
+        <div className=" p-6 rounded-2xl shadow-inner">
           <h2 className="text-xl font-semibold mb-6 text-yellow-600 flex items-center gap-2">
             <BookOpen className="w-5 h-5" /> Subjects Handled
           </h2>
-          {teacher.subjectsInfo?.length ? (
+          {teacher.subjectsHandled?.length ? (
             <div className="grid md:grid-cols-3 gap-6">
-              {teacher.subjectsInfo.map((sub, idx) => (
+              {teacher.subjectsHandled.map((sub, idx) => (
                 <div
                   key={idx}
                   className="bg-white rounded-2xl p-5 shadow-lg border border-gray-100 hover:shadow-xl transition transform hover:-translate-y-1 hover:bg-gradient-to-tr from-white to-indigo-50"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-bold text-yellow-500">{sub.name}</h3>
+                    <h3 className="text-lg font-bold text-yellow-500">{sub.subjectName}</h3>
                     <CheckCircle2 className="text-green-500 w-5 h-5" />
                   </div>
-                  <p className="text-gray-700"><strong>Subject :</strong> {sub.code}</p>
+                  <p className="text-gray-700"><strong>Subject :</strong> {sub.subjectCode}</p>
+                  <p className="text-gray-700"><strong>Class :</strong> {sub.className} {sub.section}</p>
+
                   {/* <p className="text-gray-700"><strong>Class :</strong> {sub.classId}</p> */}
                 </div>
               ))}

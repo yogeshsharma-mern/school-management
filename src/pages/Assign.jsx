@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState, useEffect } from "react";
-import { Box, Button, Typography, Paper, tabClasses } from "@mui/material";
+import { Box, Button, Typography, Paper } from "@mui/material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiDelete, apiGet, apiPost, apiPut } from "../api/apiFetch";
 import apiPath from "../api/apiPath";
@@ -13,12 +13,13 @@ import { PaymentOutlined } from "@mui/icons-material";
 // 🔹 Generate Time Slots
 export function generateTimeSlotsFromSettings(settings) {
   if (!settings?.schoolTiming || !settings?.periods) return [];
-
+  console.log("setting", settings);
   const { schoolTiming, periods } = settings;
   const totalPeriods = Number(periods.totalPeriods || 6);
   const periodDuration = Number(periods.periodDuration || 60);
   const breakDuration = Number(periods.breakDuration);
   const lunch = periods.lunchBreak || { isEnabled: false };
+  console.log("lunchtime", lunch?.time);
 
   const parseHM = (hm) => {
     const [h, m] = hm.split(":").map(Number);
@@ -27,13 +28,16 @@ export function generateTimeSlotsFromSettings(settings) {
   const fmt = (d) =>
     d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
 
-  const start = parseHM(schoolTiming.startTime || "09:00");
+  const start = parseHM(schoolTiming.startTime || "09:00")
+  console.log("start", start)
   const end = parseHM(schoolTiming.endTime || "15:00");
   const lunchStart = lunch.isEnabled ? parseHM(lunch.time) : null;
   const lunchDuration = Number(lunch.duration || 0);
 
   const slots = [];
   let current = new Date(start);
+  console.log("current", current);
+  console.log("enddddd", end);
   let count = 0;
   let id = 1;
   let lunchDone = false;
@@ -47,7 +51,11 @@ export function generateTimeSlotsFromSettings(settings) {
       lunchStart < new Date(current.getTime() + periodDuration * 60000)
     ) {
       const ls = new Date(lunchStart);
+      console.log("lunchstart", lunchStart);
+      console.log("ls", ls);
+
       const le = new Date(lunchStart.getTime() + lunchDuration * 60000);
+      console.log("le", le);
       slots.push({
         id: `L${id++}`,
         period: "Lunch Break",
@@ -137,7 +145,7 @@ export default function TimetableManager() {
   // console.log("subjects",subjects);
   const allAssignments =
     assignmentsQuery.data?.timetable?.timetable || assignmentsQuery.data || [];
-
+  console.log("allassignments", allAssignments);
   // const filterdTeachers = teachers.filter((teacher)=> teacher?.classes?.includes(selectedClassId));
   const filteredTeachers = Array.isArray(teachers)
     ? teachers.filter((teacher) =>
@@ -172,7 +180,7 @@ export default function TimetableManager() {
     if (Array.isArray(allAssignments)) return allAssignments;
     return Object.values(allAssignments).flat();
   }, [allAssignments]);
-
+  console.log("flattenedassignements", flattenedAssignments);
   const filteredAssignments = useMemo(() => {
     return flattenedAssignments.filter(
       (a) =>
@@ -222,8 +230,8 @@ export default function TimetableManager() {
         `${apiPath.updateAssignment || "/api/admins/teachers/assign-teacher"}/${id}`,
         payload
       ),
-    onSuccess: () => {
-      toast.success("Assignment updated successfully");
+    onSuccess: (res) => {
+      toast.success(res?.message || "Assignment updated successfully");
       queryClient.invalidateQueries(["assignments", selectedClassId]);
     },
     onError: (err) => {
@@ -235,8 +243,8 @@ export default function TimetableManager() {
       apiDelete(
         `${apiPath.resetSingleAssignment || "/api/admins/teachers/assign-teacher"}/${id}`
       ),
-    onSuccess: () => {
-      toast.success("Timetable slot reset successfully");
+    onSuccess: (res) => {
+      toast.success(res?.message);
       queryClient.invalidateQueries(["assignments", selectedClassId]);
     },
     onError: (err) => {
@@ -250,7 +258,7 @@ export default function TimetableManager() {
 
     const map = {};
     const timetable = assignmentsQuery.data.timetable; // backend timetable object
-    // console.log("timetable",timetable);
+    console.log("timetable", timetable);
 
     for (const [day, dayAssignments] of Object.entries(timetable)) {
       // // console.log("dayassigent",dayAssignments);
