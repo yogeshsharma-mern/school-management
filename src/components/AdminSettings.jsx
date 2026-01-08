@@ -10,6 +10,7 @@ import {
   CircularProgress,
   FormControlLabel,
   Checkbox,
+  IconButton,
 } from "@mui/material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import PhoneInput from "react-phone-input-2";
@@ -82,7 +83,13 @@ export default function SchoolSettings() {
     faqs: [], // array of { question, answer }
     banner: [], // array of URLs
     gallery: [], // array of URLs
-    socialUrl: [], // array of URLs
+    socialLinks: [
+      {
+        platform: "",
+        url: "",
+        logo: null, // 👈 File object
+      }
+    ], // array of URLs
     schoolLogo: null,
     marks: []
   });
@@ -176,8 +183,16 @@ export default function SchoolSettings() {
       faqs: s.faqs || [],
       banner: s.banner || [],
       gallery: s.gallery || [],
-      socialUrl: s.socialUrl || [],
-      schoolLogo: null,
+      socialLinks: Array.isArray(s.socialLinks)
+        ? s.socialLinks.map(link => ({
+          platform: link.platform || "",
+          url: link.url || "",
+          logo: link.logo || null, // 👈 URL string
+        }))
+        : [{ platform: "", url: "", logo: null }],
+
+
+      // schoolLogo: null,
       marks: s.marks || [],
     });
 
@@ -190,27 +205,97 @@ export default function SchoolSettings() {
   //       : `${import.meta.env.VITE_API_BASE_URL}${s.aboutUs.image}`
   //   );
   // }
+  const addSocial = () => {
+    setSchoolData(prev => ({
+      ...prev,
+      socialLinks: [
+        ...(Array.isArray(prev.socialLinks) ? prev.socialLinks : []),
+        { platform: "", url: "", logo: null },
+      ],
+    }));
 
-  const handleUrlChange = (e, index) => {
-    const value = e.target.value.trim();
-    const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[^\s]*)?$/;
-
-    // Validate the current field
-    const newErrors = [...urlErrors];
-    // console.log("newErrors", newErrors);
-    if (value && !urlPattern.test(value)) {
-      newErrors[index] = "Please enter a valid URL (e.g. https://example.com)";
-    } else {
-      newErrors[index] = "";
-    }
-    setUrlErrors(newErrors);
-
-    // Update the array of URLs
-    handleChange(
-      "socialUrl",
-      schoolData.socialUrl.map((u, i) => (i === index ? value : u))
-    );
+    setUrlErrors(prev => [...prev, ""]);
   };
+
+
+
+  const removeSocial = (index) => {
+    setSchoolData(prev => ({
+      ...prev,
+      socialLinks: prev.socialLinks.filter((_, i) => i !== index),
+    }));
+
+    setUrlErrors(prev => prev.filter((_, i) => i !== index));
+  };
+
+
+  const handleSocialChange = (index, field, value) => {
+    const trimmedValue = field === "url" ? value.trim() : value;
+
+    // 🔹 Update socialLinks safely
+    setSchoolData(prev => {
+      const updated = [...prev.socialLinks];
+      updated[index] = {
+        ...updated[index],
+        [field]: trimmedValue,
+      };
+      return { ...prev, socialLinks: updated };
+    });
+
+    // 🔹 URL validation (onChange)
+    if (field === "url") {
+      const urlPattern =
+        /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[^\s]*)?$/;
+
+      setUrlErrors(prev => {
+        const errors = [...prev];
+        errors[index] =
+          trimmedValue && !urlPattern.test(trimmedValue)
+            ? "Please enter a valid URL"
+            : "";
+        return errors;
+      });
+    }
+  };
+
+  const getSocialLogoPreview = (logo) => {
+    if (!logo) return "";
+
+    // New upload
+    if (logo instanceof File) {
+      return URL.createObjectURL(logo);
+    }
+
+    // Existing image URL from backend
+    if (typeof logo === "string") {
+      return logo.startsWith("http")
+        ? logo
+        : `${API_BASE}${logo}`;
+    }
+
+    return "";
+  };
+
+  // const handleUrlChange = (e, index) => {
+  //   const value = e.target.value.trim();
+  //   const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[^\s]*)?$/;
+
+  //   // Validate the current field
+  //   const newErrors = [...urlErrors];
+  //   // console.log("newErrors", newErrors);
+  //   if (value && !urlPattern.test(value)) {
+  //     newErrors[index] = "Please enter a valid URL (e.g. https://example.com)";
+  //   } else {
+  //     newErrors[index] = "";
+  //   }
+  //   setUrlErrors(newErrors);
+
+  //   // Update the array of URLs
+  //   handleChange(
+  //     "socialUrl",
+  //     schoolData.socialUrl.map((u, i) => (i === index ? value : u))
+  //   );
+  // };
 
   // POST / PUT Save
   const mutation = useMutation({
@@ -224,8 +309,7 @@ export default function SchoolSettings() {
       queryClient.invalidateQueries(["school-settings"]);
       toast.success(data.message || "Settings saved successfully");
     },
-    onError:(error)=>
-    {
+    onError: (error) => {
       toast.error(error?.response?.data?.message);
     }
   });
@@ -375,7 +459,20 @@ export default function SchoolSettings() {
     // }
 
     formData.append("faqs", JSON.stringify(schoolData.faqs));
-    formData.append("socialUrl", JSON.stringify(schoolData.socialUrl));
+    formData.append(
+      "socialLinks",
+      JSON.stringify(
+        schoolData.socialLinks.map(({ platform, url }) => ({
+          platform,
+          url,
+        }))
+      )
+    )
+    schoolData.socialLinks.forEach((item, index) => {
+      if (item.logo) {
+        formData.append(`socialLogos[${index}]`, item.logo);
+      }
+    });
     formData.append("marks", JSON.stringify(schoolData.marks));
 
 
@@ -1010,14 +1107,14 @@ export default function SchoolSettings() {
               }
               helperText="Each line will be treated as a separate key point."
             /> */}
-          <Box>
-  {/* <Typography variant="subtitle1" fontWeight={600} mb={1}>
+            <Box>
+              {/* <Typography variant="subtitle1" fontWeight={600} mb={1}>
     🖼️ About Section Image
   </Typography> */}
 
-  {/* Upload / Preview Card */}
+              {/* Upload / Preview Card */}
 
-</Box>
+            </Box>
 
 
             {aboutImagePreview && (
@@ -1290,41 +1387,116 @@ export default function SchoolSettings() {
               🌐 Social Media Links
             </Typography>
 
-            {(schoolData.socialUrl || []).map((url, index) => (
-              <Box key={index} display="flex" gap={2} alignItems="center" mb={1}>
-                <TextField
-                  fullWidth
-                  label={`Social URL ${index + 1}`}
-                  value={url}
-                  onChange={(e) => handleUrlChange(e, index)} // ✅ pass index here
-                  error={!!urlErrors[index]}
-                  helperText={urlErrors[index]}
-                />
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={() =>
-                    handleChange(
-                      "socialUrl",
-                      schoolData.socialUrl.filter((_, i) => i !== index)
-                    )
-                  }
-                >
-                  ✕
-                </Button>
-              </Box>
-            ))}
+            {(schoolData.socialLinks || []).map((item, index) => {
+              const preview = getSocialLogoPreview(item.logo);
 
-            <Button
-              variant="outlined"
-              onClick={() =>
-                handleChange("socialUrl", [...(schoolData.socialUrl || []), ""])
-              }
-            >
-              ➕ Add Link
+              return (
+                <Box
+                  key={index}
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "160px 1fr 90px auto",
+                    gap: 2,
+                    alignItems: "center",
+                    mb: 2,
+                    p: 2,
+                    border: "1px solid #e0e0e0",
+                    borderRadius: 2,
+                    backgroundColor: "#fafafa",
+                  }}
+                >
+                  {/* Platform Name */}
+                  <TextField
+                    label="Platform"
+                    placeholder="Facebook"
+                    value={item.platform}
+                    onChange={(e) =>
+                      handleSocialChange(index, "platform", e.target.value)
+                    }
+                    fullWidth
+                  />
+
+                  {/* URL */}
+                  <TextField
+                    fullWidth
+                    label="Profile URL"
+                    placeholder="https://facebook.com/yourpage"
+                    value={item.url}
+                    onChange={(e) =>
+                      handleSocialChange(index, "url", e.target.value)
+                    }
+                    error={Boolean(urlErrors[index])}
+                    helperText={urlErrors[index]}
+                  />
+
+
+                  {/* Logo Preview */}
+                  <Box
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: "50%",
+                      border: "1px solid #ddd",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                      background: "#fff",
+                    }}
+                  >
+                    {preview ? (
+                      <img
+                        src={preview}
+                        alt="Logo"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <Typography variant="caption" color="text.secondary">
+                        No Logo
+                      </Typography>
+                    )}
+                  </Box>
+
+                  {/* Actions */}
+                  <Box display="flex" gap={1}>
+                    <Button
+                      variant="outlined"
+                      component="label"
+                      size="small"
+                    >
+                      {item.logo ? "Change" : "Upload"}
+                      <input
+                        hidden
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) =>
+                          handleSocialChange(index, "logo", e.target.files[0])
+                        }
+                      />
+                    </Button>
+
+                    <IconButton
+                      color="error"
+                      onClick={() => removeSocial(index)}
+                    >
+                      ✕
+                    </IconButton>
+                  </Box>
+                </Box>
+              );
+            })}
+
+            <Button variant="outlined" onClick={addSocial}>
+              ➕ Add Social Link
             </Button>
           </CardContent>
         </Card>
+
+
         <Box display="flex" justifyContent="space-between" mt={4}>
           <Button
             variant="outlined"

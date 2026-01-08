@@ -31,7 +31,7 @@
 
 //   const defaultStart = slot?.startTime || "";
 //   const defaultEnd = slot?.endTime || "";
-  
+
 
 //   // console.log("assignment",assignments);
 
@@ -230,7 +230,7 @@
 //             Day: {day} • Slot: {slot?.period || "-"} ({slot?.startTime} -{" "}
 //             {slot?.endTime})
 //           </Typography>
-          
+
 //         </form>
 //       </DialogContent>
 
@@ -500,9 +500,11 @@ export default function AddAssignmentModal({
   subjects = [],
   assignments = [],
   createAssignment,
+  updateAssignment,
+  resetAssignment
 }) {
   const existing = slotData?.existing;
-  // console.log("existing",existing);
+  console.log("existing", existing);
   const slot = slotData?.slot;
 
   const defaultStart = slot?.startTime || "";
@@ -517,16 +519,16 @@ export default function AddAssignmentModal({
   const [loading, setLoading] = useState(false);
 
   // 🔹 Reset modal on open or data change
-// 👇 Ensure teacherSubjects load correctly when editing existing assignment
-useEffect(() => {
-  if (existing?.teacherId && !teacherId) {
-    setTeacherId(existing.teacherId);
-    setTeacherId("fjdsjf");
-  }
-  if (existing?.subjectId && !subjectId) {
-    setSubjectId(existing.subjectId);
-  }
-}, [existing, teacherId, subjectId]);
+  // 👇 Ensure teacherSubjects load correctly when editing existing assignment
+  useEffect(() => {
+    if (existing?.teacherId && !teacherId) {
+      setTeacherId(existing.teacherId);
+      // setTeacherId("fjdsjf");
+    }
+    if (existing?.subjectId && !subjectId) {
+      setSubjectId(existing.subjectId);
+    }
+  }, [existing, teacherId, subjectId]);
 
 
   // 🔹 Compute unavailable teachers for the same day & slot
@@ -555,12 +557,24 @@ useEffect(() => {
   // 🔹 Subjects for selected teacher
   // const teacherSubjects = selectedTeacher?.subjectsHandled || selectedTeacher?.subjects || [];
   const teacherSubjects = selectedTeacher?.subjectsHandled || selectedTeacher?.subjects || [];
+  console.log("teachersubject",teacherSubjects);
+  const handleResetSlot = async () => {
+    if (!existing?._id) return;
 
-// ✅ Remove duplicates by `subjectId`
-const uniqueSubjects = teacherSubjects.filter(
-  (subj, index, self) =>
-    index === self.findIndex((s) => s.subjectId === subj.subjectId)
-);
+    try {
+      setLoading(true);
+      await resetAssignment.mutateAsync(existing._id);
+      onClose();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Remove duplicates by `subjectId`
+  const uniqueSubjects = teacherSubjects.filter(
+    (subj, index, self) =>
+      index === self.findIndex((s) => s.subjectId === subj.subjectId)
+  );
 
   // console.log("teachersubject",teacherSubjects);
 
@@ -613,15 +627,28 @@ const uniqueSubjects = teacherSubjects.filter(
       subjectId,
       section,
       day,
+      period: Number(slot?.period),
       startTime,
       endTime,
-      slotId: slot?.id,
+      // slotId: slot?.id,
       classId,
     };
 
     try {
       setLoading(true);
-      await verifyMutation.mutateAsync(payload);
+      // await verifyMutation.mutateAsync(payload);
+      if (existing) {
+        // 🔥 UPDATE FLOW
+        updateAssignment.mutate({
+          id: existing._id, // backend assignment id
+          payload,
+        });
+        onClose();
+      } else {
+        // 🆕 CREATE FLOW
+        await verifyMutation.mutateAsync(payload);
+      }
+
     } finally {
       setLoading(false);
     }
@@ -661,10 +688,10 @@ const uniqueSubjects = teacherSubjects.filter(
                 })}
               </Select>
               {
-                teachers.length===0 &&
-        (
-          <div className="text-red-500 text-[10px] mt-1">No teachers found for this class, please add the teacher and assign to this class</div>
-        )
+                teachers.length === 0 &&
+                (
+                  <div className="text-red-500 text-[10px] mt-1">No teachers found for this class, please add the teacher and assign to this class</div>
+                )
               }
             </FormControl>
 
@@ -681,7 +708,7 @@ const uniqueSubjects = teacherSubjects.filter(
                   <MenuItem disabled>No subjects assigned</MenuItem>
                 ) : (
                   uniqueSubjects.map((s) => (
-                    <MenuItem key={s._id || s.id} value={s.subjectId }>
+                    <MenuItem key={s._id || s.id} value={s.subjectId}>
                       {s.subjectCode ? `${s.subjectCode} — ${s.subjectName}` : s.subjectName || s.name}
                     </MenuItem>
                   ))
@@ -704,7 +731,7 @@ const uniqueSubjects = teacherSubjects.filter(
         </form>
       </DialogContent>
 
-      <DialogActions>
+      {/* <DialogActions>
         <Button onClick={onClose} sx={{
       // backgroundColor: '#e4e40dff',
       color: '#84782bff',
@@ -716,7 +743,43 @@ const uniqueSubjects = teacherSubjects.filter(
   }} form="assign-form" variant="contained" disabled={loading}>
           {loading ? "Checking..." : existing ? "Update" : "Create"}
         </Button>
+      </DialogActions> */}
+      <DialogActions>
+        {/* 🔴 Reset button – only show while editing */}
+        {existing && (
+          <Button
+            onClick={handleResetSlot}
+            color="error"
+            variant="outlined"
+            disabled={loading}
+          >
+            Reset Slot
+          </Button>
+        )}
+
+        <Button
+          onClick={onClose}
+          sx={{ color: "#84782bff" }}
+          disabled={loading}
+        >
+          Cancel
+        </Button>
+
+        <Button
+          type="submit"
+          form="assign-form"
+          variant="contained"
+          disabled={loading}
+          sx={{
+            '--gradient-primary': 'linear-gradient(to right, #facc15, #eab308)',
+            background: 'var(--gradient-primary)',
+            color: '#333',
+          }}
+        >
+          {loading ? "Processing..." : existing ? "Update" : "Create"}
+        </Button>
       </DialogActions>
+
     </Dialog>
   );
 }

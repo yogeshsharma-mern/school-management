@@ -83,6 +83,7 @@ export default function TimetableManager() {
   const [selectedClassId, setSelectedClassId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSlot, setModalSlot] = useState(null);
+  console.log("modalslot", modalSlot);
   const [localAssignments, setLocalAssignments] = useState({});
 
   // 🔹 Queries
@@ -189,7 +190,7 @@ export default function TimetableManager() {
     () => (settingsData ? generateTimeSlotsFromSettings(settingsData) : []),
     [settingsData]
   );
-
+  console.log("timeslots", timeSlots);
   // 🔹 Load existing assignments
   // useEffect(() => {
   //   if (!filteredAssignments?.length || !timeSlots?.length) return;
@@ -215,6 +216,35 @@ export default function TimetableManager() {
 
   // 🔹 Load existing assignments correctly
   // 🔹 Load backend timetable and map to time slots
+  const updateAssignmentMutation = useMutation({
+    mutationFn: ({ id, payload }) =>
+      apiPut(
+        `${apiPath.updateAssignment || "/api/admins/teachers/assign-teacher"}/${id}`,
+        payload
+      ),
+    onSuccess: () => {
+      toast.success("Assignment updated successfully");
+      queryClient.invalidateQueries(["assignments", selectedClassId]);
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "Update failed");
+    },
+  });
+  const resetSingleAssignmentMutation = useMutation({
+    mutationFn: (id) =>
+      apiDelete(
+        `${apiPath.resetSingleAssignment || "/api/admins/teachers/assign-teacher"}/${id}`
+      ),
+    onSuccess: () => {
+      toast.success("Timetable slot reset successfully");
+      queryClient.invalidateQueries(["assignments", selectedClassId]);
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "Failed to reset slot");
+    },
+  });
+
+
   useEffect(() => {
     if (!assignmentsQuery.data?.timetable || !timeSlots?.length) return;
 
@@ -226,13 +256,14 @@ export default function TimetableManager() {
       // // console.log("dayassigent",dayAssignments);
       if (!Array.isArray(dayAssignments)) continue; // safety
       dayAssignments.forEach((a) => {
-        // console.log("aaa",a);
+        console.log("aaa", a);
         // Find matching time slot by period
         const slot = timeSlots.find((s) => Number(s.period) === Number(a.period));
         if (!slot) return;
 
         const key = `${day}_${slot.startTime}_${slot.endTime}`;
         map[key] = {
+          _id: a._id,
           classId: selectedClassId,
           day,
           period: a.period,
@@ -248,8 +279,9 @@ export default function TimetableManager() {
     }
 
     setLocalAssignments(map); // update frontend state
-  }, [assignmentsQuery.data, timeSlots, selectedClassId]);
 
+
+  }, [assignmentsQuery.data, timeSlots, selectedClassId]);
 
 
 
@@ -437,7 +469,7 @@ export default function TimetableManager() {
               {days.map((day) => {
                 const a = getAssignmentFor(day, slot);
 
-                console.log("aaaaa",a);
+                console.log("aaaaa", a);
                 const isLunch = slot.isBreak && slot.period === "Lunch Break";
 
                 if (isLunch) {
@@ -494,7 +526,8 @@ export default function TimetableManager() {
           open={modalOpen}
           onClose={() => setModalOpen(false)}
           slotData={modalSlot}
-
+          updateAssignment={updateAssignmentMutation}
+          resetAssignment={resetSingleAssignmentMutation}
           day={modalSlot.day}
           teachers={filteredTeachers}
           subjects={subjects}
