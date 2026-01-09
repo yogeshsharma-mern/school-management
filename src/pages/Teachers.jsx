@@ -382,7 +382,30 @@ export default function StudentPage() {
       { accessorKey: "email", header: "Email" },
       { accessorKey: "phone", header: "Phone" },
       { accessorKey: "gender", header: "Gender" },
-      { accessorKey: "classTeacherOf", header: "Class Teacher" },
+   {
+  accessorKey: "classTeacherOf",
+  header: "Class Teacher",
+  cell: ({ getValue }) => {
+    const value = getValue();
+    const label = value && value.trim() ? value : "Not decided";
+
+    return (
+      <span
+        style={{
+          padding: "4px 10px",
+          borderRadius: "12px",
+          fontSize: "12px",
+          fontWeight: 500,
+          backgroundColor: value ? "#E6F4EA" : "#FDECEC",
+          color: value ? "#137333" : "#B3261E",
+        }}
+      >
+        {label}
+      </span>
+    );
+  },
+},
+
 
       // { accessorKey: "bloodGroup", header: "Blood Group" },
       // { accessorKey: "department", header: "Department" },

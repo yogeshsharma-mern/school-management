@@ -234,7 +234,7 @@ export default function SchoolSettings() {
 
     // 🔹 Update socialLinks safely
     setSchoolData(prev => {
-      console.log("prev",prev);
+      // console.log("prev",prev);
       const updated = [...prev.socialLinks];
       updated[index] = {
         ...updated[index],
