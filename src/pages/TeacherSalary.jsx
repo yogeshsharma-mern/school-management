@@ -12,6 +12,7 @@ import Loader from "../components/Loading";
 import { FaRegEye } from "react-icons/fa";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import Select from "react-select";
 export default function TeacherSalaryPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -25,10 +26,11 @@ export default function TeacherSalaryPage() {
   const [isSalaryModalOpen, setIsSalaryModalOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
 
-  const [salaryForm, setSalaryForm] = useState({
-    teacherId: "",
-    month: "",
-  });
+const [salaryForm, setSalaryForm] = useState({
+  teacherId: "",
+  month: "",
+});
+
   // console.log("salaryform", salaryForm);
   const [salaryErrors, setSalaryErrors] = useState({});
   const currentMonth = new Date().getMonth() + 1;
@@ -36,19 +38,61 @@ export default function TeacherSalaryPage() {
   // console.log("currentMonth", currentMonth);
   // console.log("currentyear", currentYear);
   const debouncedSearch = useDebounce(globalFilter, 500);
+const formatMonth = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+};
+const getPreviousMonthsOptions = (count = 2) => {
+  const options = [];
+  const now = new Date();
+
+  for (let i = 1; i <= count; i++) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+
+    const year = date.getFullYear();
+    const monthIndex = date.getMonth(); // 0-based
+    const monthNumber = String(monthIndex + 1).padStart(2, "0");
+
+    options.push({
+      label: `${date.toLocaleString("default", {
+        month: "long",
+      })} ${year}`, // November 2025
+      value: `${year}-${monthNumber}`, // 2025-11
+    });
+  }
+
+  return options;
+};
+const monthOptions = useMemo(() => getPreviousMonthsOptions(2), []);
+const getLastMonth = () => {
+  const now = new Date();
+  const date = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+
+  return `${year}-${month}`;
+};
 
   // ✅ Fetch Teacher Salary List
-  const { data: TeacherSalary, isLoading, isFetching, error } = useQuery({
-    queryKey: ["TeacherSalary", pagination.pageIndex, pagination.pageSize, debouncedSearch],
-    queryFn: () =>
-      apiGet(`${apiPath.TeacherSalary}?month=${currentYear}-${currentMonth}`,
-        {
-          page: pagination.pageIndex + 1,
-          limit: pagination.pageSize,
-          name: debouncedSearch,
-        }
-      ),
-  });
+const { data: TeacherSalary, isLoading, isFetching, error } = useQuery({
+  queryKey: [
+    "TeacherSalary",
+    pagination.pageIndex,
+    pagination.pageSize,
+    debouncedSearch,
+  ],
+  queryFn: () => {
+const formattedMonth = getLastMonth();
+    return apiGet(`${apiPath.TeacherSalary}?month=${formattedMonth}`, {
+      page: pagination.pageIndex + 1,
+      limit: pagination.pageSize,
+      name: debouncedSearch,
+    });
+  },
+});
+
 
   // ✅ Salary Mutation (Generate Salary)
   const salaryMutation = useMutation({
@@ -163,7 +207,7 @@ export default function TeacherSalaryPage() {
                     setIsSalaryModalOpen(true);
                     setSalaryForm({
                       teacherId: rowData._id,
-                      month: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`,
+                   month: getPreviousMonthsOptions(2)[0]?.value || "",
                     });
 
                   }}
@@ -230,14 +274,30 @@ export default function TeacherSalaryPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Month <span className="text-red-500">*</span>
             </label>
-            <InputField
-              name="month"
-              disabled={true}
-              value={salaryForm.month}
-              onChange={handleSalaryChange}
-              placeholder="YYYY-MM"
-              error={salaryErrors.month}
-            />
+      <Select
+  options={monthOptions}
+  value={monthOptions.find(
+    (opt) => opt.value === salaryForm.month
+  )}
+  onChange={(selected) => {
+    setSalaryForm((prev) => ({
+      ...prev,
+      month: selected.value,
+    }));
+    setSalaryErrors((prev) => ({ ...prev, month: "" }));
+  }}
+  placeholder="Select Month"
+  isSearchable={false}
+  className="react-select-container"
+  classNamePrefix="react-select"
+/>
+
+{salaryErrors.month && (
+  <p className="text-red-500 text-sm mt-1">
+    {salaryErrors.month}
+  </p>
+)}
+
 
           </div>
 
