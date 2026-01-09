@@ -16,14 +16,14 @@ import toast from "react-hot-toast";
 export default function AdminGalleryUpload() {
   const queryClient = useQueryClient();
   const [activeCategory, setActiveCategory] = useState(null);
-  const [delteImageModal,setDeleteImagemodal] = useState(false);
-  const [deleteCategoryModal,setCategoryModal]= useState(false);
+  const [delteImageModal, setDeleteImagemodal] = useState(false);
+  const [deleteCategoryModal, setCategoryModal] = useState(false);
   console.log("activecategory", activeCategory);
   console.log("activecategory", activeCategory);
   const [showAddCategory, setShowAddCategory] = useState(false);
-  const [catId,setCatId]= useState(null);
-  const [deleteImageId,setDeleteImageId]= useState(null);
-  const [catImageId,setCatImageId] = useState(null);
+  const [catId, setCatId] = useState(null);
+  const [deleteImageId, setDeleteImageId] = useState(null);
+  const [catImageId, setCatImageId] = useState(null);
   const [description, setDescription] = useState("");
   const [editingCategory, setEditingCategory] = useState(null);
   console.log("editingcategory", editingCategory);
@@ -61,7 +61,7 @@ export default function AdminGalleryUpload() {
     isLoading: imagesLoading,
     refetch: refetchImages
   } = useQuery({
-    queryKey: ["imagesssss", activeCategory?._id],
+    queryKey: ["images", activeCategory?._id],
     queryFn: () => activeCategory ? mockApi.getImages(activeCategory._id) : [],
     enabled: !!activeCategory,
   });
@@ -114,7 +114,7 @@ export default function AdminGalleryUpload() {
   const updateCategory = useMutation({
     mutationFn: ({ id, name, description, status }) => mockApi.updateCategory(id, { name, description, status }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["categoriessss"] });
       setEditingCategory(null);
     },
   });
@@ -128,32 +128,35 @@ export default function AdminGalleryUpload() {
   //       setActiveCategory(categories[0] || null);
   //              toast.success(res.message);
   //     setCategoryModal(false);
- 
+
   //     }
   //   },
   // });
-const deleteCategory = useMutation({
-  mutationFn: (id) => mockApi.deleteCategory(id),
+  const deleteCategory = useMutation({
+    mutationFn: (id) => mockApi.deleteCategory(id),
 
-  onSuccess: (res, id) => {
-    queryClient.invalidateQueries({ queryKey: ["categoriessss"] });
+    onSuccess: (res, id) => {
+      queryClient.invalidateQueries({ queryKey: ["categoriessss"] });
+queryClient.clear();
 
-    // Reset active category if deleted
-    if (activeCategory?._id === id) {
-      setActiveCategory(null);
-    }
 
-    toast.success(res?.message || "Category deleted successfully");
-    setCategoryModal(false); // ✅ CLOSE MODAL
-  },
 
-  onError: (error) => {
-    toast.error(
-      error?.response?.data?.message || "Failed to delete category"
-    );
-    setCategoryModal(false); // optional: still close modal
-  },
-});
+      // Reset active category if deleted
+      if (activeCategory?._id === id) {
+        setActiveCategory(null);
+      }
+
+      toast.success(res?.message || "Category deleted successfully");
+      setCategoryModal(false); // ✅ CLOSE MODAL
+    },
+
+    onError: (error) => {
+      toast.error(
+        error?.response?.data?.message || "Failed to delete category"
+      );
+      setCategoryModal(false); // optional: still close modal
+    },
+  });
 
   // Upload Images Mutation
   // Upload Images Mutation - FIXED VERSION
@@ -316,7 +319,9 @@ const deleteCategory = useMutation({
   const deleteImage = useMutation({
     mutationFn: ({ categoryId, imageId }) =>
       mockApi.deleteImage({ categoryId, imageId }),
-
+    onSuccess: (res) => {
+      toast.success(res.message || "Image deleted successfully");
+    },
     onMutate: async ({ imageId }) => {
       await queryClient.cancelQueries({
         queryKey: ["images", activeCategory._id],
@@ -349,7 +354,8 @@ const deleteCategory = useMutation({
       );
     },
 
-    onSuccess: () => {
+    onSuccess: (res) => {
+      toast.success(res.message || "Image deleted successfully");
       queryClient.invalidateQueries(["images", activeCategory._id]);
       setDeleteImagemodal(false);
       queryClient.invalidateQueries(["categories"]);
@@ -457,24 +463,24 @@ const deleteCategory = useMutation({
   return (
     <div className="min-h-screen w-[100vw] md:w-auto bg-gradient-to-br from-gray-50 to-white p-4 md:p-8">
       {
-        deleteCategoryModal && 
+        deleteCategoryModal &&
         (
-          <ConfirBox isOpen={deleteCategoryModal} message="If you delete this category, all your images in this category will be remove." onConfirm={()=>deleteCategory.mutate(catId)} onCancel={()=>setCategoryModal(false)}/>
+          <ConfirBox isOpen={deleteCategoryModal} message="If you delete this category, all your images in this category will be remove." onConfirm={() => deleteCategory.mutate(catId)} onCancel={() => setCategoryModal(false)} />
         )
       }
       {
-        delteImageModal && 
+        delteImageModal &&
         (
           <ConfirBox isOpen={delteImageModal} message="you want to delete this image" onConfirm={() =>
-  deleteImage.mutate({
-    categoryId: catImageId,
-    imageId: deleteImageId
-  })
-}
- onCancel={()=>setDeleteImagemodal(false)}/>
+            deleteImage.mutate({
+              categoryId: catImageId,
+              imageId: deleteImageId
+            })
+          }
+            onCancel={() => setDeleteImagemodal(false)} />
         )
       }
-    
+
       <div className="max-w-7xl mx-auto">
         {/* HEADER */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
