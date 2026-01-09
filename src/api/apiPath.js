@@ -85,7 +85,8 @@ deleteBannerImage:"/admins/setting/Delete",
   activeClasses:"/admins/classes/active-classes",
   walletTransactions:"/admins/wallet-transactions",
 updateAssignment:"/admins/timetable/timetable/slot",
-resetSingleAssignment:"/admins/timetable/timetable/slot/reset"
+resetSingleAssignment:"/admins/timetable/timetable/slot/reset",
+getallSubjectsWithoutPagination:"/admins/classes/getAllSubjects",
 
 
   // getTeachers:"/admins/teachers/getAllTeacher",

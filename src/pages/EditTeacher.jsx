@@ -136,6 +136,7 @@ export default function CreateTeacherPage() {
     // console.log("errors", errors);
     const [showPassword, setShowPassword] = useState(false);
     const [selectedClassSlug, setSelectedClassSlug] = useState(null);
+    const [subjectsByClass, setSubjectsByClass] = useState({});
 
     const [activeStep, setActiveStep] = useState(0);
     const [previews, setPreviews] = useState({
@@ -281,25 +282,49 @@ export default function CreateTeacherPage() {
                 t.marksheets?.map(c => (c.fileUrl ? `${c.fileUrl}` : `${BASE_URL}${c}`)) || [],
         });
     }, [teacherData]);
-useEffect(() => {
-    if (!teacher.subjectsHandled?.length) return;
+    // useEffect(() => {
+    //     if (!teacher.subjectsHandled?.length) return;
 
-    // take first subject's class (or loop if needed)
-    const classId = teacher.subjectsHandled[0]?.classId;
-    if (!classId) return;
+    //     // take first subject's class (or loop if needed)
+    //     const classId = teacher.subjectsHandled[0]?.classId;
+    //     if (!classId) return;
 
-    const foundClass = classes?.results?.docs?.find(
-        cls => cls._id === classId
-    );
+    //     const foundClass = classes?.results?.docs?.find(
+    //         cls => cls._id === classId
+    //     );
 
-    if (foundClass) {
-        const slug = `${foundClass.name}-${foundClass.section}`.toLowerCase();
-        setSelectedClassSlug(slug);
-    }
-}, [teacher.subjectsHandled, classes]);
+    //     if (foundClass) {
+    //         const slug = `${foundClass.name}-${foundClass.section}`.toLowerCase();
+    //         setSelectedClassSlug(slug);
+    //     }
+    // }, [teacher.subjectsHandled, classes]);
 
     // console.log("subjects", subjects);
     // console.log("classess", classes);
+    useEffect(() => {
+        if (!teacher.subjectsHandled?.length || !classes?.results?.docs) return;
+
+        teacher.subjectsHandled.forEach(async (subj) => {
+            if (!subj.classId || subjectsByClass[subj.classId]) return;
+
+            const foundClass = classes.results.docs.find(
+                cls => cls._id === subj.classId
+            );
+
+            if (!foundClass) return;
+
+            const slug = `${foundClass.name}-${foundClass.section}`.toLowerCase();
+
+            const res = await apiGet(
+                `${apiPath.getSubjectByClassnameSectionWise}/${slug}`
+            );
+
+            setSubjectsByClass(prev => ({
+                ...prev,
+                [subj.classId]: res?.results?.subjects || [],
+            }));
+        });
+    }, [teacher.subjectsHandled, classes]);
 
 
     const steps = ["Personal Details", "Professional Information", "Academic & Documents"];
@@ -1270,223 +1295,206 @@ useEffect(() => {
                             </div>
 
                             {/* Subjects List */}
-                            {teacher.subjectsHandled.map((subject, index) => (
-                                <Paper
-                                    key={index}
-                                    elevation={1}
-                                    className="p-6 mb-6 rounded-2xl border border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 hover:shadow-md transition-all duration-300"
-                                >
-                                    <div className="flex justify-between items-center mb-5">
-                                        <h3 className="text-lg font-semibold text-gray-700">
-                                            Subject {index + 1}
-                                        </h3>
-                                        {teacher.subjectsHandled.length > 1 && (
-                                            <Tooltip title="Remove subject">
-                                                <IconButton
-                                                    color="error"
-                                                    onClick={() => {
-                                                        const updated = [...teacher.subjectsHandled];
-                                                        updated.splice(index, 1);
-                                                        setteacher({ ...teacher, subjectsHandled: updated });
-                                                    }}
-                                                >
-                                                    <DeleteOutline />
-                                                </IconButton>
-                                            </Tooltip>
-                                        )}
-                                    </div>
+                        {teacher.subjectsHandled.map((subject, index) => {
 
-                                    <Grid container spacing={3} alignItems="center">
-                                        {/* Subject Name */}
-                                        {/* Subject Name */}
-                                        {/* Class */}
-                                        <Grid item xs={12} sm={4}>
-                                            <Select
-                                                key={index}
-                                                placeholder="Select class..."
-                                                classNamePrefix="select"
-                                                styles={{
-                                                    control: (base, state) => ({
-                                                        ...base,
-                                                        minHeight: "56px",
-                                                        borderRadius: "8px",
-                                                        borderColor: errors[`classId_${index}`]
-                                                            ? "red"
-                                                            : state.isFocused
-                                                                ? "#1976d2"
-                                                                : "#d1d5db",
-                                                        boxShadow: state.isFocused
-                                                            ? "0 0 0 2px rgba(25,118,210,0.1)"
-                                                            : "none",
-                                                        "&:hover": {
-                                                            borderColor: state.isFocused ? "#1976d2" : "#d1d5db",
-                                                        },
-                                                    }),
-                                                }}
-                                                options={
-                                                    classes?.results?.docs
-                                                        ?.filter((cls) =>
-                                                            // ✅ 1️⃣ show only assigned classes
-                                                            teacher.classes.includes(cls._id)
-                                                            //  &&
-                                                            // // ✅ 2️⃣ exclude classes already selected in other subjects
-                                                            // !teacher.subjectsHandled.some(
-                                                            //     (sub, i) => sub.classId === cls._id && i !== index
-                                                            // )
-                                                        )
-                                                        ?.map((cls) => ({
-                                                            value: cls._id,
-                                                            label: `${cls.name} ${cls.section}`,
-                                                        }))
-                                                }
-                                                value={
-                                                    subject.classId
-                                                        ? {
-                                                            value: subject.classId,
-                                                            label: (() => {
-                                                                const foundClass = classes?.results?.docs.find(
-                                                                    cls => cls._id === subject.classId
-                                                                );
-                                                                return foundClass ? `${foundClass.name} ${foundClass.section}` : "";
-                                                            })(),
-                                                        }
-                                                        : null
-                                                }
+    // ✅ SUBJECTS FOR THIS ROW ONLY
+    const rowSubjects = subjectsByClass[subject.classId] || [];
 
-                                                onChange={(selected) => {
-                                                    const updatedSubjects = [...teacher.subjectsHandled];
+    return (
+        <Paper
+            key={index}
+            elevation={1}
+            className="p-6 mb-6 rounded-2xl border border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 hover:shadow-md transition-all duration-300"
+        >
+            <div className="flex justify-between items-center mb-5">
+                <h3 className="text-lg font-semibold text-gray-700">
+                    Subject {index + 1}
+                </h3>
 
-                                                    updatedSubjects[index] = {
-                                                        ...updatedSubjects[index],
-                                                        classId: selected?.value || "",
-                                                        subjectName: "",   // clear
-                                                        subjectCode: "",   // clear
-                                                    };
+                {teacher.subjectsHandled.length > 1 && (
+                    <Tooltip title="Remove subject">
+                        <IconButton
+                            color="error"
+                            onClick={() => {
+                                const updated = [...teacher.subjectsHandled];
+                                updated.splice(index, 1);
+                                setteacher({ ...teacher, subjectsHandled: updated });
+                            }}
+                        >
+                            <DeleteOutline />
+                        </IconButton>
+                    </Tooltip>
+                )}
+            </div>
 
-                                                    setteacher({ ...teacher, subjectsHandled: updatedSubjects });
+            <Grid container spacing={3} alignItems="center">
 
-                                                    const foundClass = classes?.results?.docs.find(
-                                                        cls => cls._id === selected?.value
-                                                    );
+                {/* CLASS SELECT */}
+                <Grid item xs={12} sm={4}>
+                    <Select
+                        placeholder="Select class..."
+                        classNamePrefix="select"
+                        styles={{
+                            control: (base, state) => ({
+                                ...base,
+                                minHeight: "56px",
+                                borderRadius: "8px",
+                                borderColor: errors[`classId_${index}`]
+                                    ? "red"
+                                    : state.isFocused
+                                        ? "#1976d2"
+                                        : "#d1d5db",
+                                boxShadow: state.isFocused
+                                    ? "0 0 0 2px rgba(25,118,210,0.1)"
+                                    : "none",
+                            }),
+                        }}
+                        options={
+                            classes?.results?.docs
+                                ?.filter(cls => teacher.classes.includes(cls._id))
+                                ?.map(cls => ({
+                                    value: cls._id,
+                                    label: `${cls.name} ${cls.section}`,
+                                }))
+                        }
+                        value={
+                            subject.classId
+                                ? {
+                                    value: subject.classId,
+                                    label: (() => {
+                                        const found = classes?.results?.docs.find(
+                                            cls => cls._id === subject.classId
+                                        );
+                                        return found ? `${found.name} ${found.section}` : "";
+                                    })(),
+                                }
+                                : null
+                        }
+                        onChange={async (selected) => {
+                            const updated = [...teacher.subjectsHandled];
 
-                                                    if (foundClass) {
-                                                        const slug = `${foundClass.name}-${foundClass.section}`.toLowerCase();
-                                                        setSelectedClassSlug(slug);
-                                                    }
-                                                }}
+                            updated[index] = {
+                                ...updated[index],
+                                classId: selected?.value || "",
+                                subjectName: "",
+                                subjectCode: "",
+                            };
 
+                            setteacher({ ...teacher, subjectsHandled: updated });
 
-                                            />
+                            const foundClass = classes?.results?.docs.find(
+                                cls => cls._id === selected?.value
+                            );
 
-                                            {errors[`classId_${index}`] && (
-                                                <p className="text-red-500 text-sm mt-1">{errors[`classId_${index}`]}</p>
-                                            )}
-                                        </Grid>
-                                        <Grid item xs={12} sm={4}>
-                                            <Select
-                                                key={index}
-                                                placeholder="Select subject..."
-                                                classNamePrefix="select"
-                                                isLoading={loading}
-                                                styles={{
-                                                    control: (base, state) => ({
-                                                        ...base,
-                                                        minHeight: "56px",
-                                                        borderRadius: "8px",
-                                                        borderColor: errors[`subjectName_${index}`]
-                                                            ? "red"
-                                                            : state.isFocused
-                                                                ? "#1976d2"
-                                                                : "#d1d5db",
-                                                        boxShadow: state.isFocused
-                                                            ? "0 0 0 2px rgba(25,118,210,0.1)"
-                                                            : "none",
-                                                    }),
-                                                }}
+                            if (foundClass) {
+                                const slug = `${foundClass.name}-${foundClass.section}`.toLowerCase();
 
-                                                /* ✅ FIXED OPTIONS */
-                                                // options={subjects.map((subj) => ({
-                                                //     value: subj._id,
-                                                //     label: subj.name,
-                                                // }))}
-                                                options={
-                                                    subjects
-                                                        ?.filter((apiSubject) => {
-                                                            return !teacher.subjectsHandled.some(
-                                                                (handled, i) =>
-                                                                    handled.classId === subject.classId &&   // ✅ same class
-                                                                    handled.subjectName === apiSubject.name && // ✅ same subject
-                                                                    i !== index                               // ✅ ignore current row
-                                                            );
-                                                        })
-                                                        ?.map((apiSubject) => ({
-                                                            value: apiSubject._id,
-                                                            label: apiSubject.name,
-                                                        }))
-                                                }
+                                const res = await apiGet(
+                                    `${apiPath.getSubjectByClassnameSectionWise}/${slug}`
+                                );
 
+                                setSubjectsByClass(prev => ({
+                                    ...prev,
+                                    [selected.value]: res?.results?.subjects || [],
+                                }));
+                            }
+                        }}
+                    />
 
-                                                /* ✅ FIXED VALUE */
-                                                value={
-                                                    subject.subjectName
-                                                        ? {
-                                                            value: subjects.find(s => s.name === subject.subjectName)?._id,
-                                                            label: subject.subjectName,
-                                                        }
-                                                        : null
-                                                }
+                    {errors[`classId_${index}`] && (
+                        <p className="text-red-500 text-sm mt-1">
+                            {errors[`classId_${index}`]}
+                        </p>
+                    )}
+                </Grid>
 
-                                                onChange={(selected) => {
-                                                    const foundSubject = subjects.find(
-                                                        (subj) => subj._id === selected?.value
-                                                    );
+                {/* SUBJECT SELECT */}
+                <Grid item xs={12} sm={4}>
+                    <Select
+                        placeholder="Select subject..."
+                        classNamePrefix="select"
+                        styles={{
+                            control: (base, state) => ({
+                                ...base,
+                                minHeight: "56px",
+                                borderRadius: "8px",
+                                borderColor: errors[`subjectName_${index}`]
+                                    ? "red"
+                                    : state.isFocused
+                                        ? "#1976d2"
+                                        : "#d1d5db",
+                                boxShadow: state.isFocused
+                                    ? "0 0 0 2px rgba(25,118,210,0.1)"
+                                    : "none",
+                            }),
+                        }}
+                        options={
+                            rowSubjects
+                                .filter(apiSubject =>
+                                    !teacher.subjectsHandled.some(
+                                        (handled, i) =>
+                                            handled.classId === subject.classId &&
+                                            handled.subjectName === apiSubject.name &&
+                                            i !== index
+                                    )
+                                )
+                                .map(apiSubject => ({
+                                    value: apiSubject._id,
+                                    label: apiSubject.name,
+                                }))
+                        }
+                        value={
+                            subject.subjectName
+                                ? {
+                                    value: rowSubjects.find(
+                                        s => s.name === subject.subjectName
+                                    )?._id,
+                                    label: subject.subjectName,
+                                }
+                                : null
+                        }
+                        onChange={(selected) => {
+                            const foundSubject = rowSubjects.find(
+                                subj => subj._id === selected?.value
+                            );
 
-                                                    const updatedSubjects = [...teacher.subjectsHandled];
-                                                    updatedSubjects[index] = {
-                                                        ...updatedSubjects[index],
-                                                        subjectName: selected?.label || "",
-                                                        subjectCode: foundSubject?.code || "",
-                                                    };
+                            const updated = [...teacher.subjectsHandled];
+                            updated[index] = {
+                                ...updated[index],
+                                subjectName: selected?.label || "",
+                                subjectCode: foundSubject?.code || "",
+                            };
 
-                                                    setteacher({ ...teacher, subjectsHandled: updatedSubjects });
+                            setteacher({ ...teacher, subjectsHandled: updated });
+                        }}
+                    />
 
-                                                    setErrors(prev => ({
-                                                        ...prev,
-                                                        [`subjectName_${index}`]: "",
-                                                    }));
-                                                }}
-                                            />
+                    {errors[`subjectName_${index}`] && (
+                        <p className="text-red-500 text-sm mt-1">
+                            {errors[`subjectName_${index}`]}
+                        </p>
+                    )}
+                </Grid>
 
-                                            {errors[`subjectName_${index}`] && (
-                                                <p className="text-red-500 text-sm mt-1">{errors[`subjectName_${index}`]}</p>
-                                            )}
-                                        </Grid>
+                {/* SUBJECT CODE */}
+                <Grid item xs={12} sm={4}>
+                    <TextField
+                        fullWidth
+                        label="Subject Code"
+                        value={subject.subjectCode || ""}
+                        disabled
+                        InputProps={{ style: { height: "56px", borderRadius: "8px" } }}
+                    />
+                </Grid>
+            </Grid>
 
+            {index !== teacher.subjectsHandled.length - 1 && (
+                <Divider className="mt-6" />
+            )}
+        </Paper>
+    );
+})}
 
-                                        {/* Subject Code */}
-                                        <Grid item xs={12} sm={4}>
-                                            <TextField
-                                                fullWidth
-                                                label="Subject Code"
-                                                value={subject.subjectCode || ""}
-                                                disabled
-                                                InputProps={{
-                                                    style: { height: "56px", borderRadius: "8px" },
-                                                }}
-                                            />
-                                        </Grid>
-
-
-
-
-
-                                    </Grid>
-
-                                    {index !== teacher.subjectsHandled.length - 1 && (
-                                        <Divider className="mt-6" />
-                                    )}
-                                </Paper>
-                            ))}
                         </Paper>
 
                         {/* SALARY INFO */}
