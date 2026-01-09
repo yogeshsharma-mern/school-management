@@ -281,6 +281,22 @@ export default function CreateTeacherPage() {
                 t.marksheets?.map(c => (c.fileUrl ? `${c.fileUrl}` : `${BASE_URL}${c}`)) || [],
         });
     }, [teacherData]);
+useEffect(() => {
+    if (!teacher.subjectsHandled?.length) return;
+
+    // take first subject's class (or loop if needed)
+    const classId = teacher.subjectsHandled[0]?.classId;
+    if (!classId) return;
+
+    const foundClass = classes?.results?.docs?.find(
+        cls => cls._id === classId
+    );
+
+    if (foundClass) {
+        const slug = `${foundClass.name}-${foundClass.section}`.toLowerCase();
+        setSelectedClassSlug(slug);
+    }
+}, [teacher.subjectsHandled, classes]);
 
     // console.log("subjects", subjects);
     // console.log("classess", classes);

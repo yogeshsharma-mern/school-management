@@ -187,7 +187,7 @@ export default function SchoolSettings() {
         ? s.socialLinks.map(link => ({
           platform: link.platform || "",
           url: link.url || "",
-          logo: link.logo || null, // 👈 URL string
+          logo: link.socialLogos || null, // 👈 URL string
         }))
         : [{ platform: "", url: "", logo: null }],
 
@@ -234,6 +234,7 @@ export default function SchoolSettings() {
 
     // 🔹 Update socialLinks safely
     setSchoolData(prev => {
+      console.log("prev",prev);
       const updated = [...prev.socialLinks];
       updated[index] = {
         ...updated[index],
