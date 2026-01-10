@@ -291,6 +291,15 @@ export default function TimetableManager() {
 
   }, [assignmentsQuery.data, timeSlots, selectedClassId]);
 
+const removeLocalAssignment = (day, slot) => {
+  const key = `${day}_${slot.startTime}_${slot.endTime}`;
+
+  setLocalAssignments((prev) => {
+    const updated = { ...prev };
+    delete updated[key];
+    return updated;
+  });
+};
 
 
   // 🔹 Helpers
@@ -540,6 +549,7 @@ export default function TimetableManager() {
           teachers={filteredTeachers}
           subjects={subjects}
           assignments={filteredAssignments}
+            onLocalReset={removeLocalAssignment}  
           createAssignment={{
             mutateAsync: (payload) =>
 

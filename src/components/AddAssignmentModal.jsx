@@ -484,6 +484,7 @@ import {
   InputLabel,
   FormControl,
   Typography,
+  CircularProgress,
 } from "@mui/material";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -501,7 +502,8 @@ export default function AddAssignmentModal({
   assignments = [],
   createAssignment,
   updateAssignment,
-  resetAssignment
+  resetAssignment,
+  onLocalReset
 }) {
   const existing = slotData?.existing;
   console.log("existing", existing);
@@ -509,6 +511,7 @@ export default function AddAssignmentModal({
 
   const defaultStart = slot?.startTime || "";
   const defaultEnd = slot?.endTime || "";
+
 
   const [teacherId, setTeacherId] = useState(existing?.teacherId || "");
   const [subjectId, setSubjectId] = useState(existing?.subjectId || "");
@@ -529,6 +532,11 @@ export default function AddAssignmentModal({
       setSubjectId(existing.subjectId);
     }
   }, [existing, teacherId, subjectId]);
+  useEffect(() => {
+    if (existing && existing.saved === false) {
+      toast("This slot is not saved yet", { icon: "ℹ️" });
+    }
+  }, []);
 
 
   // 🔹 Compute unavailable teachers for the same day & slot
@@ -557,20 +565,41 @@ export default function AddAssignmentModal({
   // 🔹 Subjects for selected teacher
   // const teacherSubjects = selectedTeacher?.subjectsHandled || selectedTeacher?.subjects || [];
   const teacherSubjects = selectedTeacher?.subjectsHandled || selectedTeacher?.subjects || [];
-  console.log("teachersubject",teacherSubjects);
-  const handleResetSlot = async () => {
-    if (!existing?._id) return;
+  console.log("teachersubject", teacherSubjects);
+  // const handleResetSlot = async () => {
+  //   if (!existing?._id) return;
 
+  //   try {
+  //     setLoading(true);
+  //     await resetAssignment.mutateAsync(existing._id);
+  //     onClose();
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // ✅ Remove duplicates by `subjectId`
+  const handleResetSlot = async () => {
     try {
       setLoading(true);
-      await resetAssignment.mutateAsync(existing._id);
+
+      if (existing?._id) {
+        // ✅ Saved in backend → call API
+        await resetAssignment.mutateAsync(existing._id);
+      } else {
+        // ✅ NOT saved → remove only from local state
+        onLocalReset(day, slot);
+      }
+
       onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to reset slot");
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Remove duplicates by `subjectId`
   const uniqueSubjects = teacherSubjects.filter(
     (subj, index, self) =>
       index === self.findIndex((s) => s.subjectId === subj.subjectId)
@@ -614,11 +643,59 @@ export default function AddAssignmentModal({
       toast.error(err.response?.data?.message || "Failed to verify teacher availability");
     },
   });
+  const isSubmitting =
+    verifyMutation.isPending || updateAssignment.isPending || loading;
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   if (!teacherId || !subjectId) {
+  //     toast.error("Please select both teacher and subject");
+  //     return;
+  //   }
 
+  //   const payload = {
+  //     teacherId,
+  //     subjectId,
+  //     section,
+  //     day,
+  //     period: Number(slot?.period),
+  //     startTime,
+  //     endTime,
+  //     // slotId: slot?.id,
+  //     classId,
+  //   };
+
+  //   try {
+  //     setLoading(true);
+  //     // await verifyMutation.mutateAsync(payload);
+  //     if (existing) {
+  //       // 🔥 UPDATE FLOW
+  //       updateAssignment.mutate({
+  //         id: existing._id, // backend assignment id
+  //         payload,
+  //       });
+  //       onClose();
+  //     } else {
+  //       // 🆕 CREATE FLOW
+  //       await verifyMutation.mutateAsync(payload);
+  //     }
+
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!teacherId || !subjectId) {
       toast.error("Please select both teacher and subject");
+      return;
+    }
+
+    // 🚫 BLOCK UPDATE FOR UNSAVED SLOT
+    if (existing && existing.saved === false) {
+      toast.error(
+        "This slot is not saved yet. Please save it first or reset and reassign."
+      );
       return;
     }
 
@@ -630,40 +707,50 @@ export default function AddAssignmentModal({
       period: Number(slot?.period),
       startTime,
       endTime,
-      // slotId: slot?.id,
       classId,
     };
 
     try {
-      setLoading(true);
-      // await verifyMutation.mutateAsync(payload);
-      if (existing) {
-        // 🔥 UPDATE FLOW
-        updateAssignment.mutate({
-          id: existing._id, // backend assignment id
+      if (existing && existing.saved === true) {
+        // ✅ UPDATE FLOW (only for saved slots)
+        await updateAssignment.mutateAsync({
+          id: existing._id,
           payload,
         });
         onClose();
       } else {
         // 🆕 CREATE FLOW
         await verifyMutation.mutateAsync(payload);
+        onClose();
       }
-
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{existing ? "Edit Assignment" : "Assign Teacher To Time Slot"}</DialogTitle>
 
+  return (
+    <Dialog
+      open={open}
+      onClose={isSubmitting ? undefined : onClose}
+      maxWidth="sm"
+      fullWidth
+    >
+
+      <DialogTitle>{existing ? "Edit Assignment" : "Assign Teacher To Time Slot"}</DialogTitle>
+      {isSubmitting && (
+        <div className="flex justify-center my-2">
+          <CircularProgress size={24} />
+        </div>
+      )}
       <DialogContent>
         <form id="assign-form" onSubmit={handleSubmit} className="space-y-4 mt-2">
           {/* 🔹 Teacher + Subject */}
           <div className="grid grid-cols-2 gap-4">
             <FormControl fullWidth>
               <InputLabel id="teacher-label">Teacher *</InputLabel>
+
+
               <Select
                 labelId="teacher-label"
                 value={teacherId}
@@ -757,27 +844,26 @@ export default function AddAssignmentModal({
           </Button>
         )}
 
-        <Button
-          onClick={onClose}
-          sx={{ color: "#84782bff" }}
-          disabled={loading}
-        >
+        <Button onClick={onClose} disabled={isSubmitting}>
           Cancel
         </Button>
+
+
 
         <Button
           type="submit"
           form="assign-form"
           variant="contained"
-          disabled={loading}
-          sx={{
-            '--gradient-primary': 'linear-gradient(to right, #facc15, #eab308)',
-            background: 'var(--gradient-primary)',
-            color: '#333',
-          }}
+          disabled={isSubmitting || (existing && existing.saved === false)}
         >
-          {loading ? "Processing..." : existing ? "Update" : "Create"}
+          {existing
+            ? existing.saved
+              ? "Update"
+              : "Save First"
+            : "Create"}
         </Button>
+
+
       </DialogActions>
 
     </Dialog>
