@@ -6,8 +6,13 @@ import { apiGet, apiPost, apiDelete, apiPut } from '../api/apiFetch';
 import { FaUserTie } from 'react-icons/fa';
 
 // Validation schema
-const validateForm = (data) => {
+const validateForm = (data, isEdit = false) => {
     const errors = {};
+
+    // ✅ Profile photo required ONLY when creating
+    if (!isEdit && !data.profilephoto) {
+        errors.profilephoto = 'Leader photo is required';
+    }
 
     if (!data.name?.trim()) {
         errors.name = 'Full Name is required';
@@ -35,6 +40,7 @@ const validateForm = (data) => {
 
     return errors;
 };
+
 
 // Designation options
 const designationOptions = [
@@ -84,42 +90,95 @@ const SelectField = ({ label, value, onChange, options, error, required = false,
 };
 
 // Profile Photo Upload Component
-const ProfilePhotoUpload = ({ photoUrl, onPhotoChange, isLoading }) => {
+// const ProfilePhotoUpload = ({ photoUrl, onPhotoChange, isLoading }) => {
+//     const [preview, setPreview] = useState(null);
+
+//     // ✅ sync when editing
+//     React.useEffect(() => {
+//         if (!photoUrl) {
+//             setPreview(null);
+//             return;
+//         }
+
+//         // If photoUrl is File → create object URL
+//         if (photoUrl instanceof File) {
+//             const objectUrl = URL.createObjectURL(photoUrl);
+//             setPreview(objectUrl);
+
+//             return () => URL.revokeObjectURL(objectUrl);
+//         }
+
+//         // If photoUrl is string (URL from backend)
+//         setPreview(photoUrl);
+//     }, [photoUrl]);
+
+
+//     const handleFileChange = (e) => {
+//         const file = e.target.files[0];
+//         if (file) {
+//             const url = URL.createObjectURL(file);
+//             setPreview(url);
+//             onPhotoChange(file);
+//         }
+//     };
+
+//     return (
+//         <div className="flex flex-col items-center space-y-4">
+//             <div className="relative">
+//                 <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-100">
+//                     {preview ? (
+//                         <img src={preview} className="w-full h-full object-cover" />
+//                     ) : (
+//                         <div className="w-full h-full flex items-center justify-center text-gray-400">
+//                             No Image
+//                         </div>
+//                     )}
+//                 </div>
+
+//                 {!isLoading && (
+//                     <label className="absolute  bottom-0 right-0 bg-yellow-500 text-white p-2 rounded-full cursor-pointer">
+//                         <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+//                         📷
+//                     </label>
+//                 )}
+//             </div>
+//         </div>
+//     );
+// };
+
+const ProfilePhotoUpload = ({ photoUrl, onPhotoChange, isLoading, error }) => {
     const [preview, setPreview] = useState(null);
 
-    // ✅ sync when editing
     React.useEffect(() => {
         if (!photoUrl) {
             setPreview(null);
             return;
         }
 
-        // If photoUrl is File → create object URL
         if (photoUrl instanceof File) {
             const objectUrl = URL.createObjectURL(photoUrl);
             setPreview(objectUrl);
-
             return () => URL.revokeObjectURL(objectUrl);
         }
 
-        // If photoUrl is string (URL from backend)
         setPreview(photoUrl);
     }, [photoUrl]);
-
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            const url = URL.createObjectURL(file);
-            setPreview(url);
+            setPreview(URL.createObjectURL(file));
             onPhotoChange(file);
         }
     };
 
     return (
-        <div className="flex flex-col items-center space-y-4">
+        <div className="flex flex-col items-center space-y-2">
             <div className="relative">
-                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-100">
+                <div
+                    className={`w-32 h-32 rounded-full overflow-hidden border-4 shadow-lg bg-gray-100
+                    ${error ? 'border-red-500' : 'border-white'}`}
+                >
                     {preview ? (
                         <img src={preview} className="w-full h-full object-cover" />
                     ) : (
@@ -130,16 +189,18 @@ const ProfilePhotoUpload = ({ photoUrl, onPhotoChange, isLoading }) => {
                 </div>
 
                 {!isLoading && (
-                    <label className="absolute  bottom-0 right-0 bg-yellow-500 text-white p-2 rounded-full cursor-pointer">
+                    <label className="absolute bottom-0 right-0 bg-yellow-500 text-white p-2 rounded-full cursor-pointer">
                         <input type="file" hidden accept="image/*" onChange={handleFileChange} />
                         📷
                     </label>
                 )}
             </div>
+
+            {/* ✅ Error message */}
+            {error && <p className="text-red-500 text-sm">{error}</p>}
         </div>
     );
 };
-
 
 // Leader Form Modal Component
 const LeaderFormModal = ({ isOpen, onClose, leader = null, onSave }) => {
@@ -183,8 +244,32 @@ const LeaderFormModal = ({ isOpen, onClose, leader = null, onSave }) => {
     }, [leader, isOpen]);
 
 
+    // const handleChange = (field, value) => {
+    //     setFormData(prev => ({ ...prev, [field]: value }));
+    //     if (errors[field]) {
+    //         setErrors(prev => ({ ...prev, [field]: '' }));
+    //     }
+    // };
+
+    // const handleSubmit = (e) => {
+    //     e.preventDefault();
+
+    //     const validationErrors = validateForm(formData);
+    //     if (Object.keys(validationErrors).length > 0) {
+    //         setErrors(validationErrors);
+    //         toast.error('Please fix the errors in the form', {
+    //             duration: 4000,
+    //             position: 'top-right',
+    //             icon: '⚠️',
+    //         });
+    //         return;
+    //     }
+
+    //     onSave(formData, leader?._id);
+    // };
     const handleChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
+
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: '' }));
         }
@@ -193,14 +278,10 @@ const LeaderFormModal = ({ isOpen, onClose, leader = null, onSave }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        const validationErrors = validateForm(formData);
+        const validationErrors = validateForm(formData, !!leader); // 👈 edit flag
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
-            toast.error('Please fix the errors in the form', {
-                duration: 4000,
-                position: 'top-right',
-                icon: '⚠️',
-            });
+            toast.error('Please fix the errors in the form');
             return;
         }
 
@@ -258,7 +339,9 @@ const LeaderFormModal = ({ isOpen, onClose, leader = null, onSave }) => {
                                 photoUrl={formData.profilephoto}
                                 onPhotoChange={(photo) => handleChange('profilephoto', photo)}
                                 isLoading={false}
+                                error={errors.profilephoto}
                             />
+
                         </div>
 
                         {/* Right Column - Form */}

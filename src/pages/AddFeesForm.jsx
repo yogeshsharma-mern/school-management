@@ -130,7 +130,7 @@ export default function AddFeesForm({ studentId, onClose, queryClient, remaining
         value={modeoptions.find((s) => s.label === mode)}
         onChange={(selected) => {
           setMode(selected.label);
-        }} placeholder="Select State *" />
+        }} placeholder="Select Payment Mode *" />
       {/* Remarks */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
