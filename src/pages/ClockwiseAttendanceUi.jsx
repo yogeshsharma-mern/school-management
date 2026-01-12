@@ -394,7 +394,7 @@ const statusIcon = (status) => {
   if (status === "Late") return <Clock className="w-4 h-4 text-orange-500 mx-auto" />;
   if (status === "Absent") return <X className="w-4 h-4 text-red-500 mx-auto" />;
   if (status === "Holiday") return <Star className="w-4 h-4 text-yellow-500 mx-auto" />;
-  if (status === "Leave") return <Plane className="w-4 h-4 text-blue-500 mx-auto" />;
+  // if (status === "Leave") return <Plane className="w-4 h-4 text-blue-500 mx-auto" />;
   if (status === "Half Day") return <StarHalf className="w-4 h-4 text-blue-500 mx-auto" />;
   return <span className="text-gray-300">—</span>;
 };
@@ -740,7 +740,7 @@ Copy code */}
           <span className="flex items-center gap-1 bg-white px-2 py-1 rounded-md shadow-sm"><Check className="w-4 h-4 text-green-500" /> Present</span>
           <span className="flex items-center gap-1 bg-white px-2 py-1 rounded-md shadow-sm"><Clock className="w-4 h-4 text-orange-500" /> Late</span>
           <span className="flex items-center gap-1 bg-white px-2 py-1 rounded-md shadow-sm"><X className="w-4 h-4 text-red-500" /> Absent</span>
-          <span className="flex items-center gap-1 bg-white px-2 py-1 rounded-md shadow-sm"><Plane className="w-4 h-4 text-blue-500" /> On Leave</span>
+          {/* <span className="flex items-center gap-1 bg-white px-2 py-1 rounded-md shadow-sm"><Plane className="w-4 h-4 text-blue-500" /> On Leave</span> */}
           <span className="flex items-center gap-1 bg-white px-2 py-1 rounded-md shadow-sm"><StarHalf className="w-4 h-4 text-blue-500" /> On Half Day</span>
         </div>
       </div>
@@ -873,7 +873,7 @@ Copy code */}
                   <option value="Absent">Absent</option>
                   <option value="Late">Late</option>
                   <option value="Holiday">Holiday</option>
-                  <option value="Leave">Leave</option>
+                  {/* <option value="Leave">Leave</option> */}
                   <option value="Half Day">Half Day</option>
                 </select>
               </div>

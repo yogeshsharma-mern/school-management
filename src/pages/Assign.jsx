@@ -369,7 +369,7 @@ const removeLocalAssignment = (day, slot) => {
 
   const handleSaveAll = () => {
     const payloads = collectUnsavedPayloads();
-    // console.log("payloads",payloads);
+    console.log("payloads",payloads);
 
     if (!payloads.length) return;
     bulkSaveMutation.mutate(payloads);
