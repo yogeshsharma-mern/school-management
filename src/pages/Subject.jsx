@@ -610,10 +610,10 @@ const classes = useMemo(() => {
                     
                     <button
                         type="submit"
-                        disabled={subjectMutation.isLoading || !selectedClassId}
+                        disabled={subjectMutation.isPending || !selectedClassId}
                         className="w-full cursor-pointer bg-[image:var(--gradient-primary)] text-white py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {subjectMutation.isLoading ? (
+                        {subjectMutation.isPending ? (
                             <div className="flex items-center justify-center gap-2">
                                 <Loader size={20} />
                                 <span>{editingClass ? "Updating..." : "Creating..."}</span>
