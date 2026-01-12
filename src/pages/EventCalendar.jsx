@@ -61,25 +61,27 @@ export default function CalendarPage() {
                 headers: { "Content-Type": "multipart/form-data" },
             }),
         onSuccess: (res) => {
-            const summary = res?.results?.summary;
+            const summary = res?.results?.created;
 
             // Base success message
             toast.success(res?.message || "Holidays imported successfully ✅");
+                      setShowModal(false);
+
 
             // Show success/failure summary
-            if (summary) {
-                toast(
-                    `📊 Import Summary:
-Total Records: ${summary.totalProcessed}
-✅ Successfully Created: ${summary.successCount}
-⚠️ Duplicates: ${summary.duplicateCount}
-❌ Errors: ${summary.errorCount}`,
-                    {
-                        icon: "📦",
-                        duration: 6000,
-                    }
-                );
-            }
+//             if (summary) {
+//                 toast(
+//                     `📊 Import Summary:
+// Total Records: ${summary.totalProcessed}
+// ✅ Successfully Created: ${summary.successCount}
+// ⚠️ Duplicates: ${summary.duplicateCount}
+// ❌ Errors: ${summary.errorCount}`,
+//                     {
+//                         icon: "📦",
+//                         duration: 6000,
+//                     }
+//                 );
+//             }
 
             // Refresh table and reset form
             queryClient.invalidateQueries({ queryKey: ["eventcalender"] });

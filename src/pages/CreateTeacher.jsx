@@ -89,7 +89,10 @@ export default function CreateTeacherPage() {
         { value: "SST", label: "SST" },
         { value: "English", label: "English" },
         { value: "Hindi", label: "Hindi" },
-        { value: "Sanskrit", label: "Sanskrit" }
+        { value: "Sanskrit", label: "Sanskrit" },
+        { value: "Science", label: "Science" }
+        
+
 
     ];
 
