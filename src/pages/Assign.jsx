@@ -11,75 +11,185 @@ import { PaymentOutlined } from "@mui/icons-material";
 
 
 // 🔹 Generate Time Slots
+// export function generateTimeSlotsFromSettings(settings) {
+//   if (!settings?.schoolTiming || !settings?.periods) return [];
+//   console.log("setting", settings);
+//   const { schoolTiming, periods } = settings;
+//   const totalPeriods = Number(periods.totalPeriods || 6);
+//   const periodDuration = Number(periods.periodDuration || 60);
+//   const breakDuration = Number(periods.breakDuration);
+//   const lunch = periods.lunchBreak || { isEnabled: false };
+//   console.log("lunchtime", lunch?.time);
+
+//   const parseHM = (hm) => {
+//     const [h, m] = hm.split(":").map(Number);
+//     return new Date(1970, 0, 1, h, m);
+//   };
+//   const fmt = (d) =>
+//     d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
+
+//   const start = parseHM(schoolTiming.startTime || "09:00")
+//   console.log("start", start)
+//   const end = parseHM(schoolTiming.endTime || "15:00");
+//   const lunchStart = lunch.isEnabled ? parseHM(lunch.time) : null;
+//   const lunchDuration = Number(lunch.duration || 0);
+
+//   const slots = [];
+//   let current = new Date(start);
+//   console.log("current", current);
+//   console.log("enddddd", end);
+//   let count = 0;
+//   let id = 1;
+//   let lunchDone = false;
+
+//   while (count < totalPeriods && current < end) {
+//     if (
+//       lunch.isEnabled &&
+//       !lunchDone &&
+//       lunchStart &&
+//       lunchStart >= current &&
+//       lunchStart < new Date(current.getTime() + periodDuration * 60000)
+//     ) {
+//       const ls = new Date(lunchStart);
+//       console.log("lunchstart", lunchStart);
+//       console.log("ls", ls);
+
+//       const le = new Date(lunchStart.getTime() + lunchDuration * 60000);
+//       console.log("le", le);
+//       slots.push({
+//         id: `L${id++}`,
+//         period: "Lunch Break",
+//         startTime: fmt(ls),
+//         endTime: fmt(le),
+//         isBreak: true,
+//       });
+//       lunchDone = true;
+//       current = new Date(le);
+//       continue;
+//     }
+
+//     const pStart = new Date(current);
+//     const pEnd = new Date(pStart.getTime() + periodDuration * 60000);
+//     slots.push({
+//       id: id++,
+//       period: `${count + 1}`,
+//       startTime: fmt(pStart),
+//       endTime: fmt(pEnd),
+//       isBreak: false,
+//       timeSlotId: count + 1,
+//     });
+//     count++;
+//     current = new Date(pEnd.getTime() + breakDuration * 60000);
+//   }
+
+//   return slots;
+// }
 export function generateTimeSlotsFromSettings(settings) {
   if (!settings?.schoolTiming || !settings?.periods) return [];
-  console.log("setting", settings);
-  const { schoolTiming, periods } = settings;
-  const totalPeriods = Number(periods.totalPeriods || 6);
-  const periodDuration = Number(periods.periodDuration || 60);
-  const breakDuration = Number(periods.breakDuration);
-  const lunch = periods.lunchBreak || { isEnabled: false };
-  console.log("lunchtime", lunch?.time);
 
+  const { schoolTiming, periods } = settings;
+
+  const totalPeriods = Number(periods.totalPeriods);
+  const periodDuration = Number(periods.periodDuration);
+  const breakDuration = Number(periods.breakDuration || 0);
+
+  const lunch = periods.lunchBreak || { isEnabled: false };
+
+  // -------------------------
+  // Helpers
+  // -------------------------
   const parseHM = (hm) => {
     const [h, m] = hm.split(":").map(Number);
-    return new Date(1970, 0, 1, h, m);
+    return new Date(1970, 0, 1, h, m, 0, 0);
   };
-  const fmt = (d) =>
-    d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
 
-  const start = parseHM(schoolTiming.startTime || "09:00")
-  console.log("start", start)
-  const end = parseHM(schoolTiming.endTime || "15:00");
-  const lunchStart = lunch.isEnabled ? parseHM(lunch.time) : null;
-  const lunchDuration = Number(lunch.duration || 0);
+  // 🔒 FORCE 12-HOUR FORMAT (NO 24H LEAK EVER)
+  const fmt = (date) => {
+    let h = date.getHours();
+    const m = String(date.getMinutes()).padStart(2, "0");
+    const ampm = h >= 12 ? "PM" : "AM";
 
+    h = h % 12;
+    h = h === 0 ? 12 : h;
+
+    return `${h}:${m} ${ampm}`;
+  };
+
+  // -------------------------
+  // Base Times
+  // -------------------------
+  const schoolStart = parseHM(schoolTiming.startTime);
+  const schoolEnd = parseHM(schoolTiming.endTime);
+
+  const lunchStart =
+    lunch.isEnabled && lunch.time ? parseHM(lunch.time) : null;
+
+  const lunchEnd =
+    lunch.isEnabled && lunch.time && lunch.duration
+      ? new Date(lunchStart.getTime() + lunch.duration * 60000)
+      : null;
+
+  // -------------------------
+  // Slot Generation
+  // -------------------------
   const slots = [];
-  let current = new Date(start);
-  console.log("current", current);
-  console.log("enddddd", end);
-  let count = 0;
+  let current = new Date(schoolStart);
+  let periodCount = 0;
+  let lunchInserted = false;
   let id = 1;
-  let lunchDone = false;
 
-  while (count < totalPeriods && current < end) {
+  while (periodCount < totalPeriods && current < schoolEnd) {
+    // 🍱 Insert lunch EXACTLY at lunch time
     if (
       lunch.isEnabled &&
-      !lunchDone &&
       lunchStart &&
-      lunchStart >= current &&
-      lunchStart < new Date(current.getTime() + periodDuration * 60000)
+      lunchEnd &&
+      !lunchInserted &&
+      current.getTime() === lunchStart.getTime()
     ) {
-      const ls = new Date(lunchStart);
-      console.log("lunchstart", lunchStart);
-      console.log("ls", ls);
-
-      const le = new Date(lunchStart.getTime() + lunchDuration * 60000);
-      console.log("le", le);
       slots.push({
         id: `L${id++}`,
         period: "Lunch Break",
-        startTime: fmt(ls),
-        endTime: fmt(le),
+        startTime: fmt(lunchStart),
+        endTime: fmt(lunchEnd),
         isBreak: true,
       });
-      lunchDone = true;
-      current = new Date(le);
+
+      current = new Date(lunchEnd);
+      lunchInserted = true;
       continue;
     }
 
+    // 📘 Period slot
     const pStart = new Date(current);
     const pEnd = new Date(pStart.getTime() + periodDuration * 60000);
+
     slots.push({
       id: id++,
-      period: `${count + 1}`,
+      period: periodCount + 1,
       startTime: fmt(pStart),
       endTime: fmt(pEnd),
       isBreak: false,
-      timeSlotId: count + 1,
+      timeSlotId: periodCount + 1,
     });
-    count++;
-    current = new Date(pEnd.getTime() + breakDuration * 60000);
+
+    periodCount++;
+    current = new Date(pEnd);
+
+    // ❌ NO break:
+    // - after last period
+    // - before lunch
+    if (
+      periodCount === totalPeriods ||
+      (lunch.isEnabled &&
+        lunchStart &&
+        current.getTime() === lunchStart.getTime())
+    ) {
+      continue;
+    }
+
+    // ☕ Normal break
+    current = new Date(current.getTime() + breakDuration * 60000);
   }
 
   return slots;
