@@ -550,9 +550,14 @@ const validatePeriodsAgainstSchoolTime = (data, silent = false) => {
   const periodDuration = Number(periods.periodDuration);
   const breakDuration = Number(periods.breakDuration || 0); // ✅ DEFAULT 0
 
-  let totalUsedMinutes =
-    totalPeriods * periodDuration +
-    (totalPeriods - 1) * breakDuration;
+const breakCount = getEffectiveBreakCount(
+  totalPeriods,
+  periods.lunchBreak.isEnabled
+);
+
+let totalUsedMinutes =
+  totalPeriods * periodDuration +
+  breakCount * breakDuration;
 
   // 🍱 Lunch
   if (periods.lunchBreak.isEnabled) {
@@ -587,9 +592,14 @@ const getUsedMinutes = (data) => {
   const periodDuration = Number(periods.periodDuration);
   const breakDuration = Number(periods.breakDuration || 0);
 
+  const breakCount = getEffectiveBreakCount(
+    totalPeriods,
+    periods.lunchBreak.isEnabled
+  );
+
   let total =
     totalPeriods * periodDuration +
-    (totalPeriods - 1) * breakDuration;
+    breakCount * breakDuration;
 
   if (periods.lunchBreak.isEnabled && periods.lunchBreak.duration) {
     total += Number(periods.lunchBreak.duration);
@@ -597,46 +607,17 @@ const getUsedMinutes = (data) => {
 
   return total;
 };
-const getValidLunchTimes = (data) => {
-  const { schoolTiming, periods } = data;
 
-  if (
-    !schoolTiming.startTime ||
-    !schoolTiming.endTime ||
-    !periods.totalPeriods ||
-    !periods.periodDuration ||
-    !periods.lunchBreak.duration
-  )
-    return [];
+const getEffectiveBreakCount = (totalPeriods, lunchEnabled) => {
+  if (totalPeriods <= 1) return 0;
 
-  const totalPeriods = Number(periods.totalPeriods);
-  const periodDuration = Number(periods.periodDuration);
-  const breakDuration = Number(periods.breakDuration || 0);
-  const lunchDuration = Number(periods.lunchBreak.duration);
-
-  let currentTime = schoolTiming.startTime;
-  const options = [];
-
-  for (let i = 1; i <= totalPeriods; i++) {
-    currentTime = addMinutes(currentTime, periodDuration);
-
-    const lunchEnd = addMinutes(currentTime, lunchDuration);
-    if (
-      timeToMinutes(lunchEnd) <=
-      timeToMinutes(schoolTiming.endTime)
-    ) {
-      options.push({
-        label: `After Period ${i} (${currentTime})`,
-        value: currentTime,
-      });
-    }
-
-    if (i < totalPeriods) {
-      currentTime = addMinutes(currentTime, breakDuration);
-    }
+  // lunch enabled → 2 breaks removed
+  if (lunchEnabled) {
+    return Math.max(totalPeriods - 2, 0);
   }
 
-  return options;
+  // lunch disabled → normal breaks
+  return Math.max(totalPeriods - 1, 0);
 };
 
 const getTimingStatus = (data) => {
