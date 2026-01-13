@@ -16,6 +16,9 @@ import Papa from "papaparse";
 import { saveAs } from "file-saver";
 import { FaFileExport } from "react-icons/fa";
 import { useSelector } from "react-redux";
+import { GiBrassEye } from "react-icons/gi";
+import { set } from "react-hook-form";
+import { FaEye } from "react-icons/fa";
 
 
 
@@ -29,8 +32,10 @@ export default function ClassPage() {
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState([]);
   const [addclassTeacherModal,setClassTeacherModal] = useState(false);
+  const [detailModal,setDetailModal] = useState(false);
   const [selectedTeacher,setSelectedTeacher] = useState(null);
   const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
+  const [classDetail,setClassDetail] = useState(null);
   // console.log("selectedteacher",selectedTeacher);
 
 
@@ -272,6 +277,24 @@ const handleSubmit = (e) => {
     mutationFn: (id) => apiDelete(`/admins/classes/${id}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["classes"] }),
   });
+const removeClassTeacherMutation = useMutation({
+  mutationFn: (classId) =>
+    apiDelete(`${apiPath.removeClassTeacher}/${classId}`),
+
+  onSuccess: (data) => {
+    toast.success(data?.message || "Class teacher removed successfully ✅");
+    queryClient.invalidateQueries({ queryKey: ["classes"] });
+    setDetailModal(false);
+    setClassDetail(null);
+  },
+
+  onError: (error) => {
+    toast.error(
+      error?.response?.data?.message || "Failed to remove class teacher ❌"
+    );
+  },
+});
+
 
   // Table columns
   const columns = useMemo(
@@ -363,10 +386,24 @@ const handleSubmit = (e) => {
   setClassTeacherModal(true);
 }}
 
-              className="text-blue-600 cursor-pointer text-[20px] hover:text-blue-700"
+              className="text-green-600 cursor-pointer text-[20px] hover:text-blue-700"
               title="Delete"
             >
              <IoIosAddCircleOutline />
+            </button>
+                       <button
+              // onClick={() => openDeleteModal(row.original)}
+            onClick={() => {
+  const cls = row.original;
+  console.log("cls",cls)
+setClassDetail(cls);
+  setDetailModal(true);
+}}
+
+              className="text-blue-600 cursor-pointer text-[20px] hover:text-blue-700"
+              title="view"
+            >
+             <FaEye />
             </button>
           </div>
         ),
@@ -448,6 +485,7 @@ const handleSubmit = (e) => {
     setClassTeacherModal(false)
   }
 }>
+
        <Select
               options={teacherOptions}
               // value={head.type ? { value: head.type, label: head.type } : null}
@@ -482,6 +520,91 @@ const handleSubmit = (e) => {
 </button>
 
 </Modal>
+<Modal
+  isOpen={detailModal}
+  flag={2}
+  title="View Class Detail"
+  onClose={() => setDetailModal(false)}
+>
+  {classDetail ? (
+    <div className="space-y-5 text-sm">
+
+      {/* Class Info */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <p className="text-gray-500">Class</p>
+          <p className="font-semibold">{classDetail.name}</p>
+        </div>
+
+        <div>
+          <p className="text-gray-500">Section</p>
+          <p className="font-semibold">{classDetail.section}</p>
+        </div>
+
+        <div>
+          <p className="text-gray-500">Status</p>
+          <p className="font-semibold capitalize">
+            {classDetail.status}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-gray-500">Students</p>
+          <p className="font-semibold">
+            {classDetail.studentCount ?? 0}
+          </p>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <hr />
+
+      {/* Class Teacher */}
+      <div>
+        <h3 className="font-semibold text-base mb-2">Class Teacher</h3>
+
+        {classDetail.classTeacher ? (
+          <>
+            <p>
+              <span className="text-gray-500">Name:</span>{" "}
+              <span className="font-medium">
+                {classDetail.classTeacher.name}
+              </span>
+            </p>
+
+            <p>
+              <span className="text-gray-500">Email:</span>{" "}
+              <span className="font-medium">
+                {classDetail.classTeacher.email}
+              </span>
+            </p>
+
+            {/* Remove Button */}
+            <div className="flex justify-end pt-4">
+              <button
+                onClick={() =>
+                  removeClassTeacherMutation.mutate(classDetail._id)
+                }
+                disabled={removeClassTeacherMutation.isLoading}
+                className="px-4 py-2 bg-red-600 text-white cursor-pointer rounded-md hover:bg-red-700 transition disabled:opacity-60"
+              >
+                {removeClassTeacherMutation.isLoading
+                  ? "Removing..."
+                  : "Remove Class Teacher"}
+              </button>
+            </div>
+          </>
+        ) : (
+          <p className="text-gray-400">No class teacher assigned</p>
+        )}
+      </div>
+    </div>
+  ) : (
+    <p className="text-center text-gray-400">No data available</p>
+  )}
+</Modal>
+
+
       {/* Modal */}
       <Modal
         isOpen={isModalOpen}

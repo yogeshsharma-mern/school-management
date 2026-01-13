@@ -426,6 +426,8 @@ export default function SchoolSettings() {
       if (["periods.totalPeriods", "periods.periodDuration", "periods.breakDuration"].includes(path) && Number(value) < 0) return prev;
 
       temp[keys[keys.length - 1]] = value;
+
+
       return newData;
     });
   };
@@ -494,9 +496,174 @@ export default function SchoolSettings() {
       formData.append("schoolLogo", schoolData.schoolLogo);
     }
 
+
+if (!validatePeriodsAgainstSchoolTime(schoolData)) {
+  toast.error("Please fix school timing and periods");
+  return;
+}
     // ✅ Submit using mutation
     mutation.mutate(formData);
   };
+const timeToMinutes = (time) => {
+  if (!time) return 0;
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + m;
+};
+    const runPeriodsValidation = () => {
+  validatePeriodsAgainstSchoolTime(schoolData);
+};
+const getSchoolTotalMinutes = (data) => {
+  const start = timeToMinutes(data.schoolTiming.startTime);
+  const end = timeToMinutes(data.schoolTiming.endTime);
+  return end - start;
+};
+const validateSchoolTiming = (start, end) => {
+  const diff = timeToMinutes(end) - timeToMinutes(start);
+
+  if (diff <= 0) {
+    toast.error("End time must be after start time");
+    return false;
+  }
+
+  return true;
+};
+
+const validatePeriodsAgainstSchoolTime = (data, silent = false) => {
+  const { schoolTiming, periods } = data;
+
+  // ⛔ timing missing
+  if (!schoolTiming.startTime || !schoolTiming.endTime) return true;
+
+  const schoolMinutes =
+    timeToMinutes(schoolTiming.endTime) -
+    timeToMinutes(schoolTiming.startTime);
+
+  if (schoolMinutes <= 0) {
+    if (!silent) toast.error("Invalid school timing");
+    return false;
+  }
+
+  // ⛔ required fields missing
+  if (!periods.totalPeriods || !periods.periodDuration) return true;
+
+  const totalPeriods = Number(periods.totalPeriods);
+  const periodDuration = Number(periods.periodDuration);
+  const breakDuration = Number(periods.breakDuration || 0); // ✅ DEFAULT 0
+
+  let totalUsedMinutes =
+    totalPeriods * periodDuration +
+    (totalPeriods - 1) * breakDuration;
+
+  // 🍱 Lunch
+  if (periods.lunchBreak.isEnabled) {
+    if (!periods.lunchBreak.duration) return true;
+    totalUsedMinutes += Number(periods.lunchBreak.duration);
+  }
+
+  if (totalUsedMinutes > schoolMinutes) {
+    if (!silent)
+      toast.error(
+        `Total time (${totalUsedMinutes} min) exceeds school timing (${schoolMinutes} min)`
+      );
+    return false;
+  }
+
+  if (totalUsedMinutes < schoolMinutes) {
+    if (!silent)
+      toast.error(
+        `Total time (${totalUsedMinutes} min) is less than school timing (${schoolMinutes} min)`
+      );
+    return false;
+  }
+
+  return true;
+};
+const getUsedMinutes = (data) => {
+  const { periods } = data;
+
+  if (!periods.totalPeriods || !periods.periodDuration) return 0;
+
+  const totalPeriods = Number(periods.totalPeriods);
+  const periodDuration = Number(periods.periodDuration);
+  const breakDuration = Number(periods.breakDuration || 0);
+
+  let total =
+    totalPeriods * periodDuration +
+    (totalPeriods - 1) * breakDuration;
+
+  if (periods.lunchBreak.isEnabled && periods.lunchBreak.duration) {
+    total += Number(periods.lunchBreak.duration);
+  }
+
+  return total;
+};
+const getValidLunchTimes = (data) => {
+  const { schoolTiming, periods } = data;
+
+  if (
+    !schoolTiming.startTime ||
+    !schoolTiming.endTime ||
+    !periods.totalPeriods ||
+    !periods.periodDuration ||
+    !periods.lunchBreak.duration
+  )
+    return [];
+
+  const totalPeriods = Number(periods.totalPeriods);
+  const periodDuration = Number(periods.periodDuration);
+  const breakDuration = Number(periods.breakDuration || 0);
+  const lunchDuration = Number(periods.lunchBreak.duration);
+
+  let currentTime = schoolTiming.startTime;
+  const options = [];
+
+  for (let i = 1; i <= totalPeriods; i++) {
+    currentTime = addMinutes(currentTime, periodDuration);
+
+    const lunchEnd = addMinutes(currentTime, lunchDuration);
+    if (
+      timeToMinutes(lunchEnd) <=
+      timeToMinutes(schoolTiming.endTime)
+    ) {
+      options.push({
+        label: `After Period ${i} (${currentTime})`,
+        value: currentTime,
+      });
+    }
+
+    if (i < totalPeriods) {
+      currentTime = addMinutes(currentTime, breakDuration);
+    }
+  }
+
+  return options;
+};
+
+const getTimingStatus = (data) => {
+  const used = getUsedMinutes(data);
+  const school = getSchoolTotalMinutes(data);
+
+  if (!used || !school) return { color: "text.secondary", msg: "" };
+
+  if (used > school) {
+    return {
+      color: "error.main",
+      msg: `Over by ${used - school} min`,
+    };
+  }
+
+  if (used < school) {
+    return {
+      color: "warning.main",
+      msg: `Short by ${school - used} min`,
+    };
+  }
+
+  return {
+    color: "success.main",
+    msg: "Perfect match",
+  };
+};
 
 
 
@@ -693,27 +860,35 @@ export default function SchoolSettings() {
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
-                  type="time"
-                  label="Start Time"
-                  value={schoolData.schoolTiming.startTime || "09:00"}
-                  onChange={(e) =>
-                    handleChange("schoolTiming.startTime", e.target.value)
-                  }
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                />
+  type="time"
+  label="Start Time"
+  value={schoolData.schoolTiming.startTime}
+  onChange={(e) => {
+    const newStart = e.target.value;
+    const end = schoolData.schoolTiming.endTime;
+    if (end && !validateSchoolTiming(newStart, end)) return;
+    handleChange("schoolTiming.startTime", newStart);
+  }}
+  fullWidth
+  InputLabelProps={{ shrink: true }}
+/>
+
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField
-                  type="time"
-                  label="End Time"
-                  value={schoolData.schoolTiming.endTime || "15:00"}
-                  onChange={(e) =>
-                    handleChange("schoolTiming.endTime", e.target.value)
-                  }
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                />
+              <TextField
+  type="time"
+  label="End Time"
+  value={schoolData.schoolTiming.endTime}
+  onChange={(e) => {
+    const newEnd = e.target.value;
+    const start = schoolData.schoolTiming.startTime;
+    if (start && !validateSchoolTiming(start, newEnd)) return;
+    handleChange("schoolTiming.endTime", newEnd);
+  }}
+  fullWidth
+  InputLabelProps={{ shrink: true }}
+/>
+
               </Grid>
             </Grid>
           </CardContent>
@@ -727,67 +902,67 @@ export default function SchoolSettings() {
             </Typography>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={4}>
-                <TextField
-                  type="number"
-                  label="Total Periods"
-                  value={schoolData.periods.totalPeriods || ""}
-                  onChange={(e) => {
-                    const value = e.target.value;
+              <TextField
+  type="number"
+  label="Total Periods"
+  value={schoolData.periods.totalPeriods || ""}
+  onChange={(e) => {
+    const value = e.target.value;
+    if (value === "" || (Number(value) >= 1 && Number(value) <= 10)) {
+      handleChange("periods.totalPeriods", value);
+    }
+  }}
+  onBlur={runPeriodsValidation}
+  fullWidth
+/>
 
-                    // Allow only numbers between 1 and 10
-                    if (value === "" || (Number(value) >= 1 && Number(value) <= 10)) {
-                      handleChange("periods.totalPeriods", value);
-                    }
-                  }}
-                  // inputProps={{ min: 1, max: 10 }}
-                  fullWidth
-                />
 
               </Grid>
               <Grid item xs={12} sm={4}>
-                <TextField
-                  type="number"
-                  label="Period Duration (min)"
-                  value={schoolData.periods.periodDuration || ""}
-                  onChange={(e) => {
-                    let value = e.target.value.replace(/\D/g, ""); // only digits
-                    if (value.length > 3) value = value.slice(0, 3); // limit to 3 digits
-                    handleChange("periods.periodDuration", value);
-                  }}
-                  inputProps={{ maxLength: 3, min: 0 }}
-                  fullWidth
-                />
+               <TextField
+  type="number"
+  label="Period Duration (min)"
+  value={schoolData.periods.periodDuration || ""}
+  onChange={(e) => {
+    let value = e.target.value.replace(/\D/g, "");
+    if (value.length > 3) value = value.slice(0, 3);
+    handleChange("periods.periodDuration", value);
+  }}
+  onBlur={runPeriodsValidation}
+  fullWidth
+/>
+
+
               </Grid>
               <Grid item xs={12} sm={4}>
-                <TextField
-                  type="number"
-                  label="Break Duration (min)"
-                  value={schoolData.periods.breakDuration || ""}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (Number(value) > 30) {
-                      toast.error("Break duration cannot exceed 30 minutes");
-                      return;
-                    }
-                    handleChange("periods.breakDuration", value);
-                  }}
-                  // inputProps={{ min: 0, max: 550 }}
-                  fullWidth
-                />
+              <TextField
+  type="number"
+  label="Break Duration (min)"
+  value={schoolData.periods.breakDuration || ""}
+  onChange={(e) => {
+    const value = e.target.value;
+    if (Number(value) > 30) {
+      toast.error("Break duration cannot exceed 30 minutes");
+      return;
+    }
+    handleChange("periods.breakDuration", value);
+  }}
+  onBlur={runPeriodsValidation}
+  fullWidth
+/>
 
               </Grid>
               <Grid item xs={12}>
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={schoolData.periods.lunchBreak.isEnabled || false}
-                      onChange={(e) =>
-                        handleChange(
-                          "periods.lunchBreak.isEnabled",
-                          e.target.checked
-                        )
-                      }
-                    />
+  checked={schoolData.periods.lunchBreak.isEnabled || false}
+  onChange={(e) => {
+    handleChange("periods.lunchBreak.isEnabled", e.target.checked);
+    setTimeout(runPeriodsValidation, 0);
+  }}
+/>
+
                   }
                   label="Enable Lunch Break"
                 />
@@ -820,7 +995,27 @@ export default function SchoolSettings() {
                 </>
               )}
             </Grid>
+            {(() => {
+  const used = getUsedMinutes(schoolData);
+  const school = getSchoolTotalMinutes(schoolData);
+  const status = getTimingStatus(schoolData);
+
+  if (!used || !school) return null;
+
+  return (
+    <Typography
+      variant="body2"
+      sx={{ color: status.color, fontWeight: 600, marginTop: 2 }}
+    >
+      Used: {used} min / School: {school} min — {status.msg}
+    </Typography>
+  );
+})()}
           </CardContent>
+
+
+
+
         </Card>
         <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
           <CardContent>
