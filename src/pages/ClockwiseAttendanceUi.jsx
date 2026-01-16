@@ -406,6 +406,7 @@ export default function AttendanceTable() {
   const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
   const [searchTerm, setSearchTerm] = useState("");
+  const [modalErrors, setModalErrors] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const debouncedSearch = useDebounce(searchTerm, 500);
@@ -526,6 +527,35 @@ export default function AttendanceTable() {
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     saveAs(blob, filename);
   };
+const validateAttendanceModal = () => {
+  const errors = {};
+
+  // 1️⃣ Date validation
+  if (!modalDate) {
+    errors.date = "Please select a date";
+  } else {
+    const selected = new Date(modalDate);
+    if (
+      selected.getMonth() !== selectedMonth ||
+      selected.getFullYear() !== selectedYear
+    ) {
+      errors.date = "Selected date must be within current month/year";
+    }
+  }
+
+  // 2️⃣ Status validation
+  if (!modalStatus) {
+    errors.status = "Please select attendance status";
+  }
+
+  // 3️⃣ Specific mode validation
+  if (modalMode === "specific" && selectedTeacherIds.length === 0) {
+    errors.teachers = "Please select at least one teacher";
+  }
+
+  setModalErrors(errors);
+  return Object.keys(errors).length === 0;
+};
 
   // ---------- loading UI (hooks already declared above) ----------
   if (isLoading) {
@@ -557,27 +587,41 @@ export default function AttendanceTable() {
   const clearSelection = () => setSelectedTeacherIds([]);
 
   // submit handler for modal
-  const handleModalSubmit = () => {
-    if (!modalDate || !modalStatus) {
-      alert("Please select date and status.");
-      return;
-    }
-    if (modalMode === "specific" && selectedTeacherIds.length === 0) {
-      //   alert("Please select at least one teacher.");
-      toast.error("Please select at least one teacher. ");
-      return;
-    }
+  // const handleModalSubmit = () => {
+  //   if (!modalDate || !modalStatus) {
+  //     alert("Please select date and status.");
+  //     return;
+  //   }
+  //   if (modalMode === "specific" && selectedTeacherIds.length === 0) {
+  //     //   alert("Please select at least one teacher.");
+  //     toast.error("Please select at least one teacher. ");
+  //     return;
+  //   }
 
-    const payload = {
-      date: modalDate,
-      status: modalStatus,
-      applyTo: modalMode, // 'all' or 'specific'
-    };
+  //   const payload = {
+  //     date: modalDate,
+  //     status: modalStatus,
+  //     applyTo: modalMode, // 'all' or 'specific'
+  //   };
 
-    if (modalMode === "specific") payload.teachers = selectedTeacherIds;
-    updateMutation.mutate(payload);
+  //   if (modalMode === "specific") payload.teachers = selectedTeacherIds;
+  //   updateMutation.mutate(payload);
+  // };
+const handleModalSubmit = () => {
+  if (!validateAttendanceModal()) return;
+
+  const payload = {
+    date: modalDate,
+    status: modalStatus,
+    applyTo: modalMode,
   };
 
+  if (modalMode === "specific") {
+    payload.teachers = selectedTeacherIds;
+  }
+
+  updateMutation.mutate(payload);
+};
 
   //         <div className={`
   //   overflow-x-auto transition-all duration-300 w-[98vw]
@@ -860,23 +904,49 @@ Copy code */}
 
             {/* Date + Status */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="text-sm text-gray-600">Select Date</label>
-                <input type="date" className="mt-2 border px-3 py-2 rounded w-full" value={modalDate} onChange={(e) => setModalDate(e.target.value)} />
-              </div>
+             <div>
+  <label className="text-sm text-gray-600">Select Date</label>
+  <input
+    type="date"
+    className={`mt-2 border px-3 py-2 rounded w-full ${
+      modalErrors.date ? "border-red-500" : "border-gray-300"
+    }`}
+    value={modalDate}
+    onChange={(e) => {
+      setModalDate(e.target.value);
+      setModalErrors((prev) => ({ ...prev, date: "" }));
+    }}
+  />
+  {modalErrors.date && (
+    <p className="text-red-500 text-xs mt-1">{modalErrors.date}</p>
+  )}
+</div>
+
 
               <div>
-                <label className="text-sm text-gray-600">Select Status</label>
-                <select className="mt-2 border px-3 py-2 rounded w-full" value={modalStatus} onChange={(e) => setModalStatus(e.target.value)}>
-                  <option value="">-- Choose status --</option>
-                  <option value="Present">Present</option>
-                  <option value="Absent">Absent</option>
-                  <option value="Late">Late</option>
-                  <option value="Holiday">Holiday</option>
-                  {/* <option value="Leave">Leave</option> */}
-                  <option value="Half Day">Half Day</option>
-                </select>
-              </div>
+  <label className="text-sm text-gray-600">Select Status</label>
+  <select
+    className={`mt-2 border px-3 py-2 rounded w-full ${
+      modalErrors.status ? "border-red-500" : "border-gray-300"
+    }`}
+    value={modalStatus}
+    onChange={(e) => {
+      setModalStatus(e.target.value);
+      setModalErrors((prev) => ({ ...prev, status: "" }));
+    }}
+  >
+    <option value="">-- Choose status --</option>
+    <option value="Present">Present</option>
+    <option value="Absent">Absent</option>
+    <option value="Late">Late</option>
+    <option value="Holiday">Holiday</option>
+    <option value="Half Day">Half Day</option>
+  </select>
+  {modalErrors.status && (
+    <p className="text-red-500 text-xs mt-1">{modalErrors.status}</p>
+  )}
+</div>
+
             </div>
 
             {/* Mode buttons */}
@@ -918,7 +988,7 @@ Copy code */}
             {/* Buttons */}
             <div className="flex justify-end gap-3">
               <button onClick={() => setModalOpen(false)} className="px-4 py-2 rounded cursor-pointer bg-gray-200">Cancel</button>
-              <button onClick={handleModalSubmit} disabled={!modalDate || !modalStatus || (modalMode === "specific" && selectedTeacherIds.length === 0)} className="px-4 py-2 rounded bg-yellow-500 cursor-pointer text-white">
+              <button onClick={handleModalSubmit}  className="px-4 py-2 rounded bg-yellow-500 cursor-pointer text-white">
                 {updateMutation.isPending ? "Applying..." : "Apply"}
               </button>
             </div>

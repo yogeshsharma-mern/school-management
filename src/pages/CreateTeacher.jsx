@@ -91,7 +91,7 @@ export default function CreateTeacherPage() {
         { value: "Hindi", label: "Hindi" },
         { value: "Sanskrit", label: "Sanskrit" },
         { value: "Science", label: "Science" }
-        
+
 
 
     ];
@@ -543,22 +543,22 @@ export default function CreateTeacherPage() {
                 newErrors.deductions = "Deductions must be 0 or more";
             if (teacher.salaryInfo.deductions > (Number(teacher.salaryInfo.basic) + Number(teacher.salaryInfo.allowances)))
                 newErrors.deductions = "Deductions cannot exceed Basic + Allowances";
-            if (teacher.salaryInfo.netSalary !== (Number(teacher.salaryInfo.basic) + Number(teacher.salaryInfo.allowances) - Number(teacher.salaryInfo.deductions)))
+            // if (teacher.salaryInfo.netSalary !== (Number(teacher.salaryInfo.basic) + Number(teacher.salaryInfo.allowances) - Number(teacher.salaryInfo.deductions)))
 
 
-                // teacher.parents.forEach((parent, i) => {
-                //     if (!parent.name)
-                //         newErrors[`parent_${i}_name`] = "Parent name is required";
-                //     if (!parent.occupation)
-                //         newErrors[`parent_${i}_occupation`] = "Occupation required";
-                //     if (!parent.phone)
-                //         newErrors[`parent_${i}_phone`] = "Phone is required";
-                //     if (parent.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parent.email))
-                //         newErrors[`parent_${i}_email`] = "Enter valid email";
-                // });
+            // teacher.parents.forEach((parent, i) => {
+            //     if (!parent.name)
+            //         newErrors[`parent_${i}_name`] = "Parent name is required";
+            //     if (!parent.occupation)
+            //         newErrors[`parent_${i}_occupation`] = "Occupation required";
+            //     if (!parent.phone)
+            //         newErrors[`parent_${i}_phone`] = "Phone is required";
+            //     if (parent.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parent.email))
+            //         newErrors[`parent_${i}_email`] = "Enter valid email";
+            // });
 
-                if (!teacher.emergencyContact.name)
-                    newErrors.emergencyContact_name = "Contact name required";
+            if (!teacher.emergencyContact.name)
+                newErrors.emergencyContact_name = "Contact name required";
             if (!teacher.emergencyContact.relation)
                 newErrors.emergencyContact_relation = "Relation required";
             if (!teacher.emergencyContact.phone)
@@ -1054,8 +1054,14 @@ export default function CreateTeacherPage() {
                                         fullWidth
                                         name="designation"
                                         value={teacher.designation}
-                                        onChange={handleChange}
+                                        onChange={(e) => {
+                                            handleChange(e);
+                                            setErrors((prev) => ({ ...prev, designation: "" }));
+                                        }}
                                         inputProps={{ list: "designationExample" }}
+                                        error={!!errors.designation}
+                                        helperText={errors.designation}
+                                        // inputProps={{ list: "designationExample" }}
                                     />
 
                                     <datalist id="designationExample">

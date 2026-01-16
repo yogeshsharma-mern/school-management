@@ -636,7 +636,7 @@ export default function CreateTeacherPage() {
                 newErrors.deductions = "Deductions must be 0 or more";
             if (teacher.salaryInfo.deductions > (Number(teacher.salaryInfo.basic) + Number(teacher.salaryInfo.allowances)))
                 newErrors.deductions = "Deductions cannot exceed Basic + Allowances";
-            if (teacher.salaryInfo.netSalary !== (Number(teacher.salaryInfo.basic) + Number(teacher.salaryInfo.allowances) - Number(teacher.salaryInfo.deductions)))
+            // if (teacher.salaryInfo.netSalary !== (Number(teacher.salaryInfo.basic) + Number(teacher.salaryInfo.allowances) - Number(teacher.salaryInfo.deductions)))
 
 
                 // teacher.parents.forEach((parent, i) => {

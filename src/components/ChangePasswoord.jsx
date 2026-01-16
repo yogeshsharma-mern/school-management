@@ -22,6 +22,37 @@ const ResetPassword = () => {
     new: false,
     confirm: false,
   });
+  const [errors, setErrors] = useState({});
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Old password
+    if (!form.oldPassword.trim()) {
+      newErrors.oldPassword = "Old password is required";
+    }
+
+    // New password
+    if (!form.password.trim()) {
+      newErrors.password = "New password is required";
+    } else if (form.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
+    } else if (!/(?=.*[A-Z])(?=.*[a-z])(?=.*\d)/.test(form.password)) {
+      newErrors.password =
+        "Password must include uppercase, lowercase and a number";
+    }
+
+    // Confirm password
+    if (!form.confirmPassword.trim()) {
+      newErrors.confirmPassword = "Confirm password is required";
+    } else if (form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    setErrors(newErrors);
+
+    // ✅ true = no errors, ❌ false = errors exist
+    return Object.keys(newErrors).length === 0;
+  };
 
   const mutation = useMutation({
     mutationFn: async (data) => {
@@ -44,20 +75,15 @@ const ResetPassword = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!form.oldPassword || !form.password || !form.confirmPassword)
-      return toast.error("Please fill all fields");
-
-    if (form.password.length < 8)
-      return toast.error("New password must be at least 8 characters");
-
-    if (form.password !== form.confirmPassword)
-      return toast.error("New passwords do not match");
+    // 🔴 Stop if validation fails
+    if (!validateForm()) return;
 
     mutation.mutate({
       oldPassword: form.oldPassword,
       newPassword: form.password,
     });
   };
+
 
   return (
     <div className="h-[85vh]  flex items-center justify-center  ">
@@ -82,14 +108,20 @@ const ResetPassword = () => {
           <div className="relative">
             <input
               type={show.old ? "text" : "password"}
-              name="oldPassword"
-              placeholder="Old Password"
               value={form.oldPassword}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, oldPassword: e.target.value }))
-              }
-              className="w-full h-12 border border-gray-300 rounded-xl px-4 pr-10 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              onChange={(e) => {
+                setForm((p) => ({ ...p, oldPassword: e.target.value }));
+                setErrors((p) => ({ ...p, oldPassword: "" }));
+              }}
+              placeholder="******"
+              className={`w-full h-12 border rounded-xl px-4 pr-10
+    ${errors.oldPassword ? "border-red-500" : "border-gray-300"}
+  `}
             />
+            {errors.oldPassword && (
+              <p className="text-red-500 text-xs mt-1">{errors.oldPassword}</p>
+            )}
+
             <button
               type="button"
               onClick={() => setShow((p) => ({ ...p, old: !p.old }))}
@@ -105,16 +137,22 @@ const ResetPassword = () => {
 
           {/* New Password */}
           <div className="relative">
-            <input
-              type={show.new ? "text" : "password"}
-              name="password"
-              placeholder="New Password"
-              value={form.password}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, password: e.target.value }))
-              }
-              className="w-full h-12 border border-gray-300 rounded-xl px-4 pr-10 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-            />
+           <input
+  type={show.new ? "text" : "password"}
+  value={form.password}
+  onChange={(e) => {
+    setForm((p) => ({ ...p, password: e.target.value }));
+    setErrors((p) => ({ ...p, password: "" }));
+  }}
+  placeholder="******"
+  className={`w-full h-12 border rounded-xl px-4 pr-10
+    ${errors.password ? "border-red-500" : "border-gray-300"}
+  `}
+/>
+{errors.password && (
+  <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+)}
+
             <button
               type="button"
               onClick={() => setShow((p) => ({ ...p, new: !p.new }))}
@@ -131,18 +169,23 @@ const ResetPassword = () => {
           {/* Confirm Password */}
           <div className="relative">
             <input
-              type={show.confirm ? "text" : "password"}
-              name="confirmPassword"
-              placeholder="Confirm New Password"
-              value={form.confirmPassword}
-              onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  confirmPassword: e.target.value,
-                }))
-              }
-              className="w-full h-12 border border-gray-300 rounded-xl px-4 pr-10 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-            />
+  type={show.confirm ? "text" : "password"}
+  value={form.confirmPassword}
+  placeholder="******"
+  onChange={(e) => {
+    setForm((p) => ({ ...p, confirmPassword: e.target.value }));
+    setErrors((p) => ({ ...p, confirmPassword: "" }));
+  }}
+  className={`w-full h-12 border rounded-xl px-4 pr-10
+    ${errors.confirmPassword ? "border-red-500" : "border-gray-300"}
+  `}
+/>
+{errors.confirmPassword && (
+  <p className="text-red-500 text-xs mt-1">
+    {errors.confirmPassword}
+  </p>
+)}
+
             <button
               type="button"
               onClick={() => setShow((p) => ({ ...p, confirm: !p.confirm }))}
@@ -161,8 +204,8 @@ const ResetPassword = () => {
             type="submit"
             disabled={mutation.isPending}
             className={`w-full h-12 rounded-xl  font-semibold text-lg transition-all duration-200 shadow-md ${mutation.isPending
-                ? "bg-yellow-400 cursor-not-allowed"
-                : "bg-[image:var(--gradient-primary)] cursor-pointer hover:from-yellow-500 hover:to-yellow-500"
+              ? "bg-yellow-400 cursor-not-allowed"
+              : "bg-[image:var(--gradient-primary)] cursor-pointer hover:from-yellow-500 hover:to-yellow-500"
               }`}
           >
             {mutation.isPending ? "Updating..." : "Change Password"}

@@ -40,6 +40,7 @@ export default function CalendarPage() {
     const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
     const [selectedYear, setSelectedYear] = useState(now.getFullYear());
     const [showModal, setShowModal] = useState(false);
+    const [formErrors, setFormErrors] = useState({});
     const [selectedDate, setSelectedDate] = useState(null);
     const [form, setForm] = useState({ title: "", description: "" });
     const [showConfirm, setShowConfirm] = useState(false);
@@ -65,23 +66,23 @@ export default function CalendarPage() {
 
             // Base success message
             toast.success(res?.message || "Holidays imported successfully ✅");
-                      setShowModal(false);
+            setShowModal(false);
 
 
             // Show success/failure summary
-//             if (summary) {
-//                 toast(
-//                     `📊 Import Summary:
-// Total Records: ${summary.totalProcessed}
-// ✅ Successfully Created: ${summary.successCount}
-// ⚠️ Duplicates: ${summary.duplicateCount}
-// ❌ Errors: ${summary.errorCount}`,
-//                     {
-//                         icon: "📦",
-//                         duration: 6000,
-//                     }
-//                 );
-//             }
+            //             if (summary) {
+            //                 toast(
+            //                     `📊 Import Summary:
+            // Total Records: ${summary.totalProcessed}
+            // ✅ Successfully Created: ${summary.successCount}
+            // ⚠️ Duplicates: ${summary.duplicateCount}
+            // ❌ Errors: ${summary.errorCount}`,
+            //                     {
+            //                         icon: "📦",
+            //                         duration: 6000,
+            //                     }
+            //                 );
+            //             }
 
             // Refresh table and reset form
             queryClient.invalidateQueries({ queryKey: ["eventcalender"] });
@@ -206,7 +207,7 @@ export default function CalendarPage() {
         const ws = XLSX.utils.json_to_sheet(templateRows, { skipHeader: false });
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "CalenderTemplate");
-     XLSX.writeFile(wb, "Calender.csv", { bookType: "csv" });
+        XLSX.writeFile(wb, "Calender.csv", { bookType: "csv" });
 
     };
     const handleExportCSV = () => {
@@ -292,19 +293,41 @@ export default function CalendarPage() {
             toast.error("Failed to export CSV ❌");
         }
     };
+    // const handleSave = (e) => {
+    //     e.preventDefault();
+    //     if (!form.title.trim()) return toast.error("Title is required!");
+
+    //     const monthName = new Date(selectedYear, selectedMonth - 1).toLocaleString("default", { month: "long" });
+    //     const payload = {
+    //         year: selectedYear,
+    //         month: monthName,
+    //         date: selectedDate.iso,
+    //         day: selectedDate.weekday,
+    //         title: form.title,
+    //         description: form.description,
+    //     };
+    //     addOrUpdateMutation.mutate(payload);
+    // };
     const handleSave = (e) => {
         e.preventDefault();
-        if (!form.title.trim()) return toast.error("Title is required!");
 
-        const monthName = new Date(selectedYear, selectedMonth - 1).toLocaleString("default", { month: "long" });
+        // 🔴 STOP if validation fails
+        if (!validateHolidayForm()) return;
+
+        const monthName = new Date(
+            selectedYear,
+            selectedMonth - 1
+        ).toLocaleString("default", { month: "long" });
+
         const payload = {
             year: selectedYear,
             month: monthName,
             date: selectedDate.iso,
             day: selectedDate.weekday,
-            title: form.title,
-            description: form.description,
+            title: form.title.trim(),
+            description: form.description.trim(),
         };
+
         addOrUpdateMutation.mutate(payload);
     };
 
@@ -313,6 +336,31 @@ export default function CalendarPage() {
     };
 
     const monthName = new Date(selectedYear, selectedMonth - 1).toLocaleString("default", { month: "long" });
+    const validateHolidayForm = () => {
+        const errors = {};
+
+        // Title validation
+        if (!form.title.trim()) {
+            errors.title = "Holiday title is required";
+        } else if (!/^[a-zA-Z.\s]+$/.test(form.title)) {
+            errors.title = "Only alphabets and spaces allowed";
+        }
+
+        // Description (optional but validate if present)
+        if (form.description && !/^[a-zA-Z.\s]+$/.test(form.description)) {
+            errors.description = "Only alphabets and spaces allowed";
+        }
+
+        // Date validation
+        if (!selectedDate?.iso) {
+            errors.date = "Holiday date is missing";
+        }
+
+        setFormErrors(errors);
+
+        // ✅ true = no errors, ❌ false = errors exist
+        return Object.keys(errors).length === 0;
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 px-4 sm:px-6 py-10 text-gray-800">
@@ -626,12 +674,18 @@ export default function CalendarPage() {
                                         type="text"
                                         list="holidayList"
                                         value={form.title}
-                                        onChange={(e) =>
-                                            setForm((prev) => ({ ...prev, title: e.target.value }))
-                                        }
-                                        placeholder="Select or type holiday name"
-                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 outline-none"
+                                        onChange={(e) => {
+                                            setForm((prev) => ({ ...prev, title: e.target.value }));
+                                            setFormErrors((prev) => ({ ...prev, title: "" }));
+                                        }}
+                                        className={`w-full border rounded-lg px-3 py-2 outline-none
+    ${formErrors.title ? "border-red-500" : "border-gray-300"}
+  `}
                                     />
+
+                                    {formErrors.title && (
+                                        <p className="text-red-500 text-xs mt-1">{formErrors.title}</p>
+                                    )}
 
                                     {/* Dropdown Options */}
                                     <datalist id="holidayList">
