@@ -150,7 +150,7 @@ instance.interceptors.request.use((config) => {
 
 function apiPost(url, body) {
   let headers = {};
-
+// console.log(url)
   // 👇 Detect if body is FormData
   if (body instanceof FormData) {
     headers["Content-Type"] = "multipart/form-data";

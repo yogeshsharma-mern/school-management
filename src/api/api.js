@@ -8,7 +8,7 @@ export const fetchStudents =async()=>
         const res=await apiGet(apiPath.students);
         return res;
     } catch (error) {
-        
+        console.log(error.message)
     }
 }
 
