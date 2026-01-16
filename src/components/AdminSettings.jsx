@@ -205,6 +205,42 @@ export default function SchoolSettings() {
   //       : `${import.meta.env.VITE_API_BASE_URL}${s.aboutUs.image}`
   //   );
   // }
+  useEffect(() => {
+  const { lunchBreak } = schoolData.periods;
+
+  if (!lunchBreak.isEnabled) return;
+
+  const autoTime = calculateAutoLunchTime(schoolData);
+  if (!autoTime) return;
+
+  if (autoTime !== lunchBreak.time) {
+    handleChange("periods.lunchBreak.time", autoTime);
+  }
+}, [
+  schoolData.periods.totalPeriods,
+  schoolData.periods.periodDuration,
+  schoolData.periods.breakDuration,
+  schoolData.schoolTiming.startTime,
+  schoolData.periods.lunchBreak.isEnabled,
+]);
+useEffect(() => {
+  if (!schoolData.periods.lunchBreak.isEnabled) return;
+
+  const options = getPossibleLunchTimes(schoolData);
+  const exists = options.some(
+    o => o.value === schoolData.periods.lunchBreak.time
+  );
+
+  if (!exists && options.length) {
+    handleChange("periods.lunchBreak.time", options[0].value);
+  }
+}, [
+  schoolData.periods.totalPeriods,
+  schoolData.periods.periodDuration,
+  schoolData.periods.breakDuration,
+  schoolData.schoolTiming.startTime,
+]);
+
   const addSocial = () => {
     setSchoolData(prev => ({
       ...prev,
@@ -375,6 +411,39 @@ export default function SchoolSettings() {
     return "";
   };
 
+const getPossibleLunchTimes = (data) => {
+  const { schoolTiming, periods } = data;
+
+  if (
+    !schoolTiming.startTime ||
+    !periods.totalPeriods ||
+    !periods.periodDuration
+  ) {
+    return [];
+  }
+
+  const totalPeriods = Number(periods.totalPeriods);
+  const periodDuration = Number(periods.periodDuration);
+  const breakDuration = Number(periods.breakDuration || 0);
+
+  let current = timeToMinutes(schoolTiming.startTime);
+  const options = [];
+
+  for (let i = 1; i < totalPeriods; i++) {
+    // finish period
+    current += periodDuration;
+
+    options.push({
+      label: `After Period ${i} (${minutesToTime(current)})`,
+      value: minutesToTime(current),
+    });
+
+    // add break before next period
+    current += breakDuration;
+  }
+
+  return options;
+};
 
   const generateSessionOptions = (startDate, endDate) => {
     if (!startDate || !endDate) return [];
@@ -509,6 +578,13 @@ const timeToMinutes = (time) => {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
 };
+
+const minutesToTime = (mins) => {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+};
+
     const runPeriodsValidation = () => {
   validatePeriodsAgainstSchoolTime(schoolData);
 };
@@ -526,6 +602,38 @@ const validateSchoolTiming = (start, end) => {
   }
 
   return true;
+};
+const calculateAutoLunchTime = (data) => {
+  const { schoolTiming, periods } = data;
+
+  if (
+    !periods.totalPeriods ||
+    !periods.periodDuration ||
+    !schoolTiming.startTime
+  ) {
+    return "";
+  }
+
+  const totalPeriods = Number(periods.totalPeriods);
+  const periodDuration = Number(periods.periodDuration);
+  const breakDuration = Number(periods.breakDuration || 0);
+
+  const lunchAfterPeriod = Math.floor(totalPeriods / 2);
+
+  let current = timeToMinutes(schoolTiming.startTime);
+
+  for (let i = 1; i <= lunchAfterPeriod; i++) {
+    // finish period
+    current += periodDuration;
+
+    // ❌ no break before lunch
+    if (i === lunchAfterPeriod) break;
+
+    // add break
+    current += breakDuration;
+  }
+
+  return minutesToTime(current);
 };
 
 const validatePeriodsAgainstSchoolTime = (data, silent = false) => {
@@ -951,16 +1059,21 @@ const getTimingStatus = (data) => {
               {schoolData.periods.lunchBreak.isEnabled && (
                 <>
                   <Grid item xs={12} sm={6}>
-                    <TextField
-                      type="time"
-                      label="Lunch Time"
-                      value={schoolData.periods.lunchBreak.time || ""}
-                      onChange={(e) =>
-                        handleChange("periods.lunchBreak.time", e.target.value)
-                      }
-                      fullWidth
-                      InputLabelProps={{ shrink: true }}
-                    />
+                  <Select
+  options={getPossibleLunchTimes(schoolData)}
+  value={getPossibleLunchTimes(schoolData).find(
+    o => o.value === schoolData.periods.lunchBreak.time
+  )}
+  onChange={(opt) =>
+    handleChange("periods.lunchBreak.time", opt.value)
+  }
+  placeholder="Select Lunch Time"
+  menuPortalTarget={document.body}
+  styles={{
+    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+  }}
+/>
+
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField

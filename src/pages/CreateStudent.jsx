@@ -375,46 +375,99 @@ export default function CreateStudentPage() {
 
   const validateStep = () => {
     const newErrors = {};
-    if (activeStep === 0) {
-      if (!student.name.trim()) {
-        newErrors.name = "Name is required";
-      } else if (!/^[A-Za-z\s]+$/.test(student.name)) {
-        newErrors.name = "Name must not contain numbers or special characters";
-      }
-
-      // ✅ Date of Birth validation with age restriction (3-25 years)
-      if (!student.dob) {
-        newErrors.dob = "Date of Birth is required";
-      } else {
-        const dob = new Date(student.dob);
-        const today = new Date();
-
-        // Calculate age
-        let age = today.getFullYear() - dob.getFullYear();
-        const monthDiff = today.getMonth() - dob.getMonth();
-
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-          age--;
-        }
-
-        // Check age range
-        if (age < 3) {
-          newErrors.dob = "Student must be at least 3 years old";
-        } else if (age > 25) {
-          newErrors.dob = "Student age should not exceed 25 years";
-        }
-
-        // Optionally, you can also check if dob is not in the future
-        if (dob > today) {
-          newErrors.dob = "Date of Birth cannot be in the future";
-        }
-      }
-
-      // Rest of your validation...
-      if (!student.gender) newErrors.gender = "Gender is required";
-      if (!student.bloodGroup) newErrors.bloodGroup = "Blood group is required";
-      // ... rest of the validation code
+  if (activeStep === 0) {
+    /* ---------------- Name ---------------- */
+    if (!student.name.trim()) {
+      newErrors.name = "Name is required";
+    } else if (!/^[A-Za-z\s]+$/.test(student.name)) {
+      newErrors.name = "Name must not contain numbers or special characters";
     }
+
+    /* ---------------- DOB ---------------- */
+    if (!student.dob) {
+      newErrors.dob = "Date of Birth is required";
+    } else {
+      const dob = new Date(student.dob);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+
+      if (dob > today) {
+        newErrors.dob = "Date of Birth cannot be in the future";
+      } else if (age < 3) {
+        newErrors.dob = "Student must be at least 3 years old";
+      } else if (age > 25) {
+        newErrors.dob = "Student age should not exceed 25 years";
+      }
+    }
+
+    /* ---------------- Gender & Blood ---------------- */
+    if (!student.gender) newErrors.gender = "Gender is required";
+    if (!student.bloodGroup) newErrors.bloodGroup = "Blood group is required";
+
+    /* ---------------- Email ---------------- */
+    if (!student.email) {
+      newErrors.email = "Email is required";
+    } else if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email)
+    ) {
+      newErrors.email = "Enter a valid email address";
+    }
+
+    /* ---------------- Password ---------------- */
+    if (!student.password) {
+      newErrors.password = "Password is required";
+    } else if (student.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
+    } else if (
+      !/(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])/.test(
+        student.password
+      )
+    ) {
+      newErrors.password =
+        "Password must include uppercase, lowercase, number & special character";
+    }
+
+    /* ---------------- Phone ---------------- */
+    if (!student.phone) {
+      newErrors.phone = "Phone number is required";
+    } else if (!/^\d{10,15}$/.test(student.phone.replace(/\D/g, ""))) {
+      newErrors.phone = "Enter a valid phone number";
+    }
+
+    /* ---------------- Address ---------------- */
+    newErrors.address = {};
+
+    if (!student.address?.street?.trim()) {
+      newErrors.address.street = "Street is required";
+    }
+
+    if (!student.address?.city?.trim()) {
+      newErrors.address.city = "City is required";
+    } else if (!/^[A-Za-z\s]+$/.test(student.address.city)) {
+      newErrors.address.city = "City must contain only letters";
+    }
+
+    if (!student.address?.state) {
+      newErrors.address.state = "State is required";
+    }
+
+    if (!student.address?.zip) {
+      newErrors.address.zip = "ZIP code is required";
+    } else if (!/^\d{5,6}$/.test(student.address.zip)) {
+      newErrors.address.zip = "Enter a valid ZIP code";
+    }
+
+    if (!student.address?.country) {
+      newErrors.address.country = "Country is required";
+    }
+
+    // Clean empty address object
+    if (Object.keys(newErrors.address).length === 0) {
+      delete newErrors.address;
+    }
+  }
     else if (activeStep === 1) {
       student.parents.forEach((parent, i) => {
         if (!parent.name)

@@ -431,17 +431,30 @@ export default function CreateStudentPage() {
         if (!newErrors.documents) newErrors.documents = {};
         newErrors.documents.profilePic = "Profile picture is required";
       }
-      // if (!student.address.city.trim()) {
-      //   newErrors.address.city = "City is required";
-      // } else if (!/^[A-Za-z\s]+$/.test(student.address.city)) {
-      //   newErrors.address.city = "City must contain only letters";
-      // }
+      // initialize address errors ONCE
+      newErrors.address = {};
 
-      // if (!student.address.zip.trim()) {
-      //   newErrors.address.zip = "ZIP code is required";
-      // } else if (!/^\d+$/.test(student.address.zip)) {
-      //   newErrors.address.zip = "ZIP code must contain only numbers";
-      // }
+      if (!student.address?.street?.trim()) {
+        newErrors.address.street = "Street is required";
+      }
+
+      if (!student.address?.city?.trim()) {
+        newErrors.address.city = "City is required";
+      } else if (!/^[A-Za-z\s]+$/.test(student.address.city)) {
+        newErrors.address.city = "City must contain only letters";
+      }
+
+      if (!student.address?.zip?.trim()) {
+        newErrors.address.zip = "ZIP code is required";
+      } else if (!/^\d{5,6}$/.test(student.address.zip)) {
+        newErrors.address.zip = "ZIP code must be 5–6 digits";
+      }
+
+      // remove empty address object
+      if (Object.keys(newErrors.address).length === 0) {
+        delete newErrors.address;
+      }
+
 
     }
 
@@ -479,6 +492,10 @@ export default function CreateStudentPage() {
         newErrors.aadharFront = "Aadhaar front is required";
       if (!student.documents.aadharBack)
         newErrors.aadharBack = "Aadhaar back is required";
+    }
+      else if (activeStep === 3) {
+      if (!student.classId) newErrors.classId = "Class is required";
+      if (!student.academicYear) newErrors.academicYear = "Academic year is required";
     }
 
     setErrors(newErrors);
@@ -660,10 +677,15 @@ export default function CreateStudentPage() {
       const res = student._id
         ? await apiPut(`${apiPath.updateStudent}/${student._id}`, formDataToSend)
         : await apiPost(apiPath.studentReg, formDataToSend);
-console.log("res",res);
+      console.log("res", res);
       if (res.success) {
         toast.success(res.message || "Student saved successfully ✅");
         navigate(-1);
+      }
+      else
+      {
+            toast.error(res.message || "Failed to save student ❌");
+
       }
     } catch (err) {
       console.error(err);
@@ -855,7 +877,15 @@ console.log("res",res);
               name="street"
               label="Street"
               value={student.address.street}
-              onChange={(e) => handleChange(e, null, "address")}
+              onChange={(e) => {
+                handleChange(e, null, "address");
+                setErrors((prev) => ({
+                  ...prev,
+                  address: { ...(prev.address || {}), street: "" },
+                }));
+              }}
+              error={!!errors.address?.street}
+              helperText={errors.address?.street}
             /></div>
             <div>
               <TextField
@@ -863,7 +893,15 @@ console.log("res",res);
                 name="city"
                 label="City"
                 value={student.address.city}
-                onChange={(e) => handleChange(e, null, "address")}
+                onChange={(e) => {
+                  handleChange(e, null, "address");
+                  setErrors((prev) => ({
+                    ...prev,
+                    address: { ...(prev.address || {}), city: "" },
+                  }));
+                }}
+                error={!!errors.address?.city}
+                helperText={errors.address?.city}
               />
             </div>
             <div>
@@ -886,7 +924,15 @@ console.log("res",res);
                 name="zip"
                 label="ZIP Code"
                 value={student.address.zip}
-                onChange={(e) => handleChange(e, null, "address")}
+                onChange={(e) => {
+                  handleChange(e, null, "address");
+                  setErrors((prev) => ({
+                    ...prev,
+                    address: { ...(prev.address || {}), zip: "" },
+                  }));
+                }}
+                error={!!errors.address?.zip}
+                helperText={errors.address?.zip}
               />
 
             </div>

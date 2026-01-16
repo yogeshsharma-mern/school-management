@@ -400,7 +400,14 @@ const classes = useMemo(() => {
     );
   }
 
-
+if(classesLoading)
+{
+        return (
+      <div className="flex justify-center items-center min-h-[80vh] bg-opacity-70 z-[99999]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+      </div>
+    );
+}
 
     return (
         <div>

@@ -512,7 +512,7 @@ export default function CalendarPage() {
                     <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl p-6 w-[90%] sm:w-[450px] border border-gray-200 relative transform transition-all scale-100 hover:scale-[1.02]">
                         <button
                             onClick={() => setShowModal(false)}
-                            className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+                            className="absolute top-3 right-3 text-gray-500 cursor-pointer hover:text-gray-700"
                         >
                             <X className="w-5 h-5" />
                         </button>
