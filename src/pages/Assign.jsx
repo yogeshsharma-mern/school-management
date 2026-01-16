@@ -85,6 +85,7 @@ import { PaymentOutlined } from "@mui/icons-material";
 //   return slots;
 // }
 export function generateTimeSlotsFromSettings(settings) {
+  console.log("settings",settings);
   if (!settings?.schoolTiming || !settings?.periods) return [];
 
   const { schoolTiming, periods } = settings;
@@ -119,6 +120,7 @@ export function generateTimeSlotsFromSettings(settings) {
   // Base Times
   // -------------------------
   const schoolStart = parseHM(schoolTiming.startTime);
+  console.log("schoolstart",schoolStart)
   const schoolEnd = parseHM(schoolTiming.endTime);
 
   const lunchStart =

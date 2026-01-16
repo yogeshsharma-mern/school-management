@@ -590,7 +590,7 @@ export default function AttendanceTable() {
   <Modal isOpen={timeModal} onClose={() => setTimeModal(false)}>
     <div className="p-4 max-w-md">
       <button
-        className="absolute top-3 right-3 text-gray-500"
+        className="absolute top-3 right-3 cursor-pointer text-gray-500"
         onClick={() => setTimeModal(false)}
       >
         ✕
