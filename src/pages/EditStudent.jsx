@@ -97,9 +97,9 @@ export default function CreateStudentPage() {
 
   // Update state whenever query data changes
   useEffect(() => {
-    if (!studentData?.results?.length) return;
+    if (!studentData?.results) return;
 
-    const s = studentData.results[0];
+    const s = studentData?.results;
     // console.log("s",s)
     setStudent(prev => ({
       ...prev,

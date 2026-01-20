@@ -420,15 +420,7 @@ export default function CreateStudentPage() {
       newErrors.password = "Password is required";
     } else if (student.password.length < 8) {
       newErrors.password = "Password must be at least 8 characters";
-    } else if (
-      !/(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])/.test(
-        student.password
-      )
-    ) {
-      newErrors.password =
-        "Password must include uppercase, lowercase, number & special character";
-    }
-
+    } 
     /* ---------------- Phone ---------------- */
     if (!student.phone) {
       newErrors.phone = "Phone number is required";
