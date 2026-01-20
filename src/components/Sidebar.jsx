@@ -219,7 +219,7 @@ import {
 import { SiGoogleclassroom } from "react-icons/si";
 import { IoIosSettings } from "react-icons/io";
 import { TbLockPassword } from "react-icons/tb";
-import { IoChevronDown, IoChevronUp } from "react-icons/io5";
+import { IoCalendarOutline, IoChevronDown, IoChevronUp } from "react-icons/io5";
 import { MdAssignmentAdd } from "react-icons/md";
 import { LuNotebookTabs } from "react-icons/lu";
 import { BsPeopleFill, BsClockHistory, BsWallet2 } from "react-icons/bs";
@@ -237,6 +237,7 @@ import { IoMdContacts } from "react-icons/io";
 import { TfiGallery } from "react-icons/tfi";
 import { FaUserTie } from "react-icons/fa";
 import { AiOutlineInsertRowAbove } from "react-icons/ai";
+import { MdAdd } from "react-icons/md";
 
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
@@ -479,7 +480,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                 <BsPeopleFill size={15} />
                 <span>School Setting</span>
               </NavLink>
-   <NavLink
+              <NavLink
                 to="/admin/setting/gallery"
                 className={subItemClass}
                 onClick={handleSubmenuClick}
@@ -495,7 +496,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                 <BsClockHistory size={15} />
                 <span>IP Setting</span>
               </NavLink>
-                     <NavLink
+              <NavLink
                 to="/admin/school/setting/about-us"
                 className={subItemClass}
                 onClick={handleSubmenuClick}
@@ -503,7 +504,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                 <AiOutlineInsertRowAbove size={15} />
                 <span>About Us</span>
               </NavLink>
-                 <NavLink
+              <NavLink
                 to="/admin/school/leadership"
                 className={subItemClass}
                 onClick={handleSubmenuClick}
@@ -511,6 +512,14 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                 <FaUserTie size={15} />
                 <span>LeaderShip</span>
               </NavLink>
+              {/* <NavLink
+                to="/admin/school/exam-schedule"
+                className={subItemClass}
+                onClick={handleSubmenuClick}
+              >
+                <IoCalendarOutline size={15} />
+                <span>Exam Schedule</span>
+              </NavLink> */}
             </motion.div>
           )}
         </AnimatePresence>
@@ -520,7 +529,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           <IoCalendar size={18} />
           {!collapsed && <span>Event Calendar</span>}
         </NavLink>
-               <NavLink to="/admin/inquiry-management" className={navItemClass} onClick={handleMainNavClick}>
+        <NavLink to="/admin/inquiry-management" className={navItemClass} onClick={handleMainNavClick}>
           <IoMdContacts size={18} />
           {!collapsed && <span>Inquiry Management</span>}
         </NavLink>

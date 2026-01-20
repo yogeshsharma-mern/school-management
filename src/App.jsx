@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound.jsx";
 import SalaryDetail from "./pages/SalaryDetail.jsx";
 
 import ScrollToTop from "./ScrollToTop";
+import ExamSchedule from "./pages/ExamSchedule.jsx";
 
 
 
@@ -114,6 +115,8 @@ export default function App() {
             {/* /admin/setting/gallery */}
             <Route path="/admin/setting/gallery" element={<GallerySetting />} />
             <Route path="/admin/school/leadership" element={<LeaderShip />} />
+            <Route path="/admin/school/exam-schedule" element={<ExamSchedule />} />
+
             <Route path="/admin/school/setting/about-us" element={<AboutUs />} />
 
 

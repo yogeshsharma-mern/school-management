@@ -31,79 +31,89 @@ export default function ClassPage() {
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState([]);
-  const [addclassTeacherModal,setClassTeacherModal] = useState(false);
-  const [detailModal,setDetailModal] = useState(false);
-  const [selectedTeacher,setSelectedTeacher] = useState(null);
+  const [addclassTeacherModal, setClassTeacherModal] = useState(false);
+  const [detailModal, setDetailModal] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [subject,setSubject] = useState(null);
+  const [selectedSubjectId,setSelectedSubjectId]= useState(null);
+  const [subjectCode,setSubjectCode]= useState(null);
   const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
-  const [classDetail,setClassDetail] = useState(null);
+  const [classDetail, setClassDetail] = useState(null);
   // console.log("selectedteacher",selectedTeacher);
 
 
-  const handleteacherChange=(item)=>
-  {
-// // console.log("item",item.value);
-setSelectedTeacher(item.value);
+  const handleteacherChange = (item) => {
+    // // console.log("item",item.value);
+    setSelectedTeacher(item.value);
+  }
+  const handleSubjectChange = (item) => {
+    // // console.log("item",item.value);
+    setSelectedSubjectId(item.value);
+    setSubject(item.label);
+setSubjectCode(item.code);
+    
   }
   const handleExportCSV = () => {
-  try {
-    const docs = classesData?.results?.docs || [];
+    try {
+      const docs = classesData?.results?.docs || [];
 
-    if (!docs.length) {
-      toast.error("No data to export");
-      return;
+      if (!docs.length) {
+        toast.error("No data to export");
+        return;
+      }
+
+      // 👉 Map your table rows to a flat CSV-friendly shape
+      const rows = docs.map((cls, idx) => {
+        // status ko normalize: true/'active' -> Active else Inactive
+        const statusNorm =
+          cls?.status === true || cls?.status === "active" ? "Active" : "Inactive";
+
+        // subjects: string[] ya null
+        const subjects =
+          Array.isArray(cls?.classTeacher?.subjectsHandled) ? cls?.classTeacher?.subjectsHandled?.map((c) => c?.subjectName).join(", ") : "N/A";
+
+        return {
+          "S No.": idx + 1,
+          Class: cls?.name || "",
+          Section: cls?.section || "",
+          Students: cls?.studentCount ?? 0,
+          Status: statusNorm,
+          "Teacher Name": cls?.classTeacher?.name || "N/A",
+          "Teacher Email": cls?.classTeacher?.email || "N/A",
+          "Teacher Specialization": cls?.classTeacher?.specialization || "N/A",
+          // "Class Timing": cls?.startTime && cls?.endTime ? `${cls.startTime} - ${cls.endTime}` : "N/A",
+          Subjects: subjects,
+          "Class ID": cls?._id || "",
+        };
+      });
+
+      // 👉 Convert JSON → CSV
+      const csv = Papa.unparse(rows, {
+        quotes: false,        // har field ke around quotes nahi
+        delimiter: ",",       // default comma
+        header: true,         // header row include
+        newline: "\r\n",      // windows/mac friendly new lines
+      });
+
+      // 👉 File name with date
+      const stamp = new Date().toISOString().replace(/[:]/g, "-").split(".")[0]; // 2025-11-10T12-34-56
+      const filename = `Classes_${stamp}.csv`;
+
+      // 👉 Trigger download
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      saveAs(blob, filename);
+
+      toast.success("CSV exported successfully ✅");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to export CSV ❌");
     }
-
-    // 👉 Map your table rows to a flat CSV-friendly shape
-    const rows = docs.map((cls, idx) => {
-      // status ko normalize: true/'active' -> Active else Inactive
-      const statusNorm =
-        cls?.status === true || cls?.status === "active" ? "Active" : "Inactive";
-
-      // subjects: string[] ya null
-      const subjects =
-        Array.isArray(cls?.classTeacher?.subjectsHandled) ? cls?.classTeacher?.subjectsHandled?.map((c)=>c?.subjectName).join(", ") : "N/A";
-
-      return {
-        "S No.": idx + 1,
-        Class: cls?.name || "",
-        Section: cls?.section || "",
-        Students: cls?.studentCount ?? 0,
-        Status: statusNorm,
-        "Teacher Name": cls?.classTeacher?.name || "N/A",
-        "Teacher Email": cls?.classTeacher?.email || "N/A",
-        "Teacher Specialization": cls?.classTeacher?.specialization || "N/A",
-        // "Class Timing": cls?.startTime && cls?.endTime ? `${cls.startTime} - ${cls.endTime}` : "N/A",
-        Subjects: subjects,
-        "Class ID": cls?._id || "",
-      };
-    });
-
-    // 👉 Convert JSON → CSV
-    const csv = Papa.unparse(rows, {
-      quotes: false,        // har field ke around quotes nahi
-      delimiter: ",",       // default comma
-      header: true,         // header row include
-      newline: "\r\n",      // windows/mac friendly new lines
-    });
-
-    // 👉 File name with date
-    const stamp = new Date().toISOString().replace(/[:]/g, "-").split(".")[0]; // 2025-11-10T12-34-56
-    const filename = `Classes_${stamp}.csv`;
-
-    // 👉 Trigger download
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    saveAs(blob, filename);
-
-    toast.success("CSV exported successfully ✅");
-  } catch (err) {
-    console.error(err);
-    toast.error("Failed to export CSV ❌");
-  }
-};
+  };
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
+  console.log("editingclass",editingClass);
   const [formData, setFormData] = useState({
     name: "",
     section: "",
@@ -111,7 +121,7 @@ setSelectedTeacher(item.value);
     endTime: "",
   });
   const [errors, setErrors] = useState({});
-  const debouncedSearch = useDebounce(globalFilter, 500);``
+  const debouncedSearch = useDebounce(globalFilter, 500); ``
 
   // Fetch classes
   const { data: classesData, isLoading, isFetching, error, isError } = useQuery({
@@ -123,41 +133,68 @@ setSelectedTeacher(item.value);
         name: debouncedSearch,
       }),
   });
-    const { data: TeachersData, isLoading:teacherLoading, isFetching:teacherFetching, error :err} = useQuery({
+  const { data: TeachersData, isLoading: teacherLoading, isFetching: teacherFetching, error: err } = useQuery({
     queryKey: ["teachersssss"],
     queryFn: () =>
       apiGet(apiPath.getTeachers),
   });
-// console.log("teacherdata",TeachersData);
-// Get all teacher IDs already assigned as class teachers
-const assignedTeacherIds = classesData?.results?.docs
-  ?.filter(cls => cls.classTeacher?._id)
-  ?.map(cls => cls.classTeacher._id) || [];
-
-// Filter teachers who are NOT already assigned
-const availableTeachers = TeachersData?.results?.docs?.filter(
-  teacher => !assignedTeacherIds.includes(teacher._id)
-);
-
-const teacherOptions = availableTeachers?.map((t) => ({
-  value: t._id,
-  label: t.name,
-}));
 
 
-const assignClassTeacherMutation = useMutation({
-  mutationFn: (payload) => apiPost(apiPath.AddClassTeacher, payload),
-  onSuccess: (data) => {
-    toast.success(data.message || "Class teacher assigned successfully!");
-    queryClient.invalidateQueries({ queryKey: ["classes"] });
-    queryClient.invalidateQueries({ queryKey: ["teacherss"] });
-    setClassTeacherModal(false);
-    setSelectedTeacher(null);
-  },
-  onError: (error) => {
-    toast.error(error?.response?.data?.message || "Failed to assign class teacher.");
-  },
-});
+  const {
+    data: subjectsData,
+    isLoading: subjectsLoading,
+    isFetching: subjectsFetching,
+    error: subjectsError
+  } = useQuery({
+    queryKey: [
+      "subjects",
+      editingClass, // This triggers the query when selectedClassId changes
+    ],
+    // FIX 4: Only enable the query when a class is selected
+    enabled: !!editingClass,
+    queryFn: () =>
+      apiGet(`${apiPath.getSubjectsByClassname}/${editingClass.name}`
+      ),
+  });
+  
+  // console.log("subjectdata",subjectsData);
+  const subjectsFromApi = subjectsData?.results;
+  console.log("subjectfromapi",subjectsFromApi);
+  const subjectOptions = subjectsFromApi?.map((s) => ({
+    value: s._id,
+    label: `${s.name} (${s.code})`,
+    code: s.code,
+  }));
+  console.log("subjectoptions",subjectOptions);
+  // Get all teacher IDs already assigned as class teachers
+  const assignedTeacherIds = classesData?.results?.docs
+    ?.filter(cls => cls.classTeacher?._id)
+    ?.map(cls => cls.classTeacher._id) || [];
+
+  // Filter teachers who are NOT already assigned
+  const availableTeachers = TeachersData?.results?.docs?.filter(
+    teacher => !assignedTeacherIds.includes(teacher._id)
+  );
+
+  const teacherOptions = availableTeachers?.map((t) => ({
+    value: t._id,
+    label: t.name,
+  }));
+
+
+  const assignClassTeacherMutation = useMutation({
+    mutationFn: (payload) => apiPost(apiPath.AddClassTeacher, payload),
+    onSuccess: (data) => {
+      toast.success(data.message || "Class teacher assigned successfully!");
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
+      queryClient.invalidateQueries({ queryKey: ["teacherss"] });
+      setClassTeacherModal(false);
+      setSelectedTeacher(null);
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || "Failed to assign class teacher.");
+    },
+  });
   // Convert 24h -> 12h for API
   const formatTo12Hour = (time) => {
     if (!time) return "";
@@ -178,77 +215,77 @@ const assignClassTeacherMutation = useMutation({
   };
 
   // Handle input changes
-const handleChange = (e) => {
-  const { name, value } = e.target;
-  let newValue = value;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    let newValue = value;
 
-  if (name === "section") {
-    newValue = value.toUpperCase(); // auto uppercase
+    if (name === "section") {
+      newValue = value.toUpperCase(); // auto uppercase
 
-    // Real-time validation
-    if (!/^[A-D]$/.test(newValue) && newValue !== "") {
-      setErrors((prev) => ({ ...prev, section: "Section must be A, B, C, or D" }));
-    } else {
-      setErrors((prev) => ({ ...prev, section: "" }));
+      // Real-time validation
+      if (!/^[A-D]$/.test(newValue) && newValue !== "") {
+        setErrors((prev) => ({ ...prev, section: "Section must be A, B, C, or D" }));
+      } else {
+        setErrors((prev) => ({ ...prev, section: "" }));
+      }
     }
-  }
 
-  setFormData((prev) => ({ ...prev, [name]: newValue }));
+    setFormData((prev) => ({ ...prev, [name]: newValue }));
 
-  // Clear other errors
-  if (name !== "section") {
-    setErrors((prev) => ({ ...prev, [name]: "" }));
-  }
-};
+    // Clear other errors
+    if (name !== "section") {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
 
 
   // Handle submit
-const handleSubmit = (e) => {
-  e.preventDefault();
-  const newErrors = {};
-  const validClasses = [
-    "Prep", "1st", "2nd", "3rd", "4th", "5th", "6th",
-    "7th", "8th", "9th", "10th", "11th", "12th",
-  ];
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newErrors = {};
+    const validClasses = [
+      "Prep", "1st", "2nd", "3rd", "4th", "5th", "6th",
+      "7th", "8th", "9th", "10th", "11th", "12th",
+    ];
 
-  // Class name validation
-  if (!formData.name) newErrors.name = "Class name is required";
-  else if (!validClasses.includes(formData.name.trim()))
-    newErrors.name = "Invalid class name. Must be Prep or 1st to 12th ";
+    // Class name validation
+    if (!formData.name) newErrors.name = "Class name is required";
+    else if (!validClasses.includes(formData.name.trim()))
+      newErrors.name = "Invalid class name. Must be Prep or 1st to 12th ";
 
-  // Section validation (only A-D)
-  if (!formData.section) newErrors.section = "Section is required";
-  else if (!/^[A-D]$/.test(formData.section))
-    newErrors.section = "Section must be A, B, C, or D";
+    // Section validation (only A-D)
+    if (!formData.section) newErrors.section = "Section is required";
+    else if (!/^[A-D]$/.test(formData.section))
+      newErrors.section = "Section must be A, B, C, or D";
 
-  // Start/End time validation
-  // if (!formData.startTime) newErrors.startTime = "Start time is required";
-  // if (!formData.endTime) newErrors.endTime = "End time is required";
+    // Start/End time validation
+    // if (!formData.startTime) newErrors.startTime = "Start time is required";
+    // if (!formData.endTime) newErrors.endTime = "End time is required";
 
-  // if (formData.startTime && formData.endTime) {
-  //   const start = formData.startTime.split(":").map(Number); // [HH, MM]
-  //   const end = formData.endTime.split(":").map(Number);
-  //   const startMinutes = start[0] * 60 + start[1];
-  //   const endMinutes = end[0] * 60 + end[1];
+    // if (formData.startTime && formData.endTime) {
+    //   const start = formData.startTime.split(":").map(Number); // [HH, MM]
+    //   const end = formData.endTime.split(":").map(Number);
+    //   const startMinutes = start[0] * 60 + start[1];
+    //   const endMinutes = end[0] * 60 + end[1];
 
-  //   if (endMinutes <= startMinutes) {
-  //     newErrors.endTime = "End time must be after start time";
-  //   }
-  // }
+    //   if (endMinutes <= startMinutes) {
+    //     newErrors.endTime = "End time must be after start time";
+    //   }
+    // }
 
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors);
-    return;
-  }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
 
-  // Submit mutation
-  classMutation.mutate({
-    name: formData.name.trim(),
-    section: formData.section.trim(),
-    // startTime: formatTo12Hour(formData.startTime),
-    // endTime: formatTo12Hour(formData.endTime),
-  });
-};
+    // Submit mutation
+    classMutation.mutate({
+      name: formData.name.trim(),
+      section: formData.section.trim(),
+      // startTime: formatTo12Hour(formData.startTime),
+      // endTime: formatTo12Hour(formData.endTime),
+    });
+  };
 
 
 
@@ -277,66 +314,68 @@ const handleSubmit = (e) => {
     mutationFn: (id) => apiDelete(`/admins/classes/${id}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["classes"] }),
   });
-const removeClassTeacherMutation = useMutation({
-  mutationFn: (classId) =>
-    apiDelete(`${apiPath.removeClassTeacher}/${classId}`),
+  const removeClassTeacherMutation = useMutation({
+    mutationFn: (classId) =>
+      apiDelete(`${apiPath.removeClassTeacher}/${classId}`),
 
-  onSuccess: (data) => {
-    toast.success(data?.message || "Class teacher removed successfully ✅");
-    queryClient.invalidateQueries({ queryKey: ["classes"] });
-    setDetailModal(false);
-    setClassDetail(null);
-  },
+    onSuccess: (data) => {
+      toast.success(data?.message || "Class teacher removed successfully ✅");
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
+      setDetailModal(false);
+      setClassDetail(null);
+    },
 
-  onError: (error) => {
-    toast.error(
-      error?.response?.data?.message || "Failed to remove class teacher ❌"
-    );
-  },
-});
+    onError: (error) => {
+      toast.error(
+        error?.response?.data?.message || "Failed to remove class teacher ❌"
+      );
+    },
+  });
 
 
   // Table columns
   const columns = useMemo(
     () => [
       {
-                header: "S No.",
-                cell: ({ row }) => row.index + 1,
-            },
+        header: "S No.",
+        cell: ({ row }) => row.index + 1,
+      },
       { accessorKey: "name", header: "Class" },
       { accessorKey: "section", header: "Section" },
       { accessorKey: "studentCount", header: "Students" },
       {
-  header: "Status",
-  accessorKey: "isActive", // backend field
-  cell: ({ row }) => {
-    const cls = row.original;
+        header: "Status",
+        accessorKey: "isActive", // backend field
+        cell: ({ row }) => {
+          const cls = row.original;
 
-    // mutation for toggling active/inactive
-    const toggleMutation = useMutation({
-      mutationFn: (newStatus) =>
-        apiPut(`${apiPath.clssToggle}/${cls._id}`, { status: newStatus }),
-      onSuccess: (data) =>{queryClient.invalidateQueries({ queryKey: ["classes"]      });
-      toast.success(data.message || "Status updated successfully ✅");},
-      onError: (err) => {
-        toast.error(err?.response?.data?.message || "Failed to update status ❌");
+          // mutation for toggling active/inactive
+          const toggleMutation = useMutation({
+            mutationFn: (newStatus) =>
+              apiPut(`${apiPath.clssToggle}/${cls._id}`, { status: newStatus }),
+            onSuccess: (data) => {
+              queryClient.invalidateQueries({ queryKey: ["classes"] });
+              toast.success(data.message || "Status updated successfully ✅");
+            },
+            onError: (err) => {
+              toast.error(err?.response?.data?.message || "Failed to update status ❌");
+            },
+          });
+
+          const handleToggle = () => {
+            const newStatus = cls.status === "active" ? false : true;
+            toggleMutation.mutate(newStatus);
+          }
+
+          return (
+            <ToggleButton
+              isActive={cls.status}
+              onToggle={handleToggle}
+              disabled={toggleMutation.isLoading}
+            />
+          );
+        },
       },
-    });
-
-    const handleToggle = () =>{
-      const newStatus = cls.status === "active" ? false : true;
-      toggleMutation.mutate(newStatus);
-    }
-
-    return (
-      <ToggleButton
-        isActive={cls.status}
-        onToggle={handleToggle}
-        disabled={toggleMutation.isLoading}
-      />
-    );
-  },
-},
       { header: "Teacher Name", accessorFn: (row) => row.classTeacher?.name || "N/A" },
       { header: "Teacher Email", accessorFn: (row) => row.classTeacher?.email || "N/A" },
       // { header: "Teacher Department", accessorFn: (row) => row.classTeacher?.department || "N/A" },
@@ -348,16 +387,16 @@ const removeClassTeacherMutation = useMutation({
       //       ? `${row.startTime} - ${row.endTime}`
       //       : "N/A",
       // },
-  {
-  accessorKey: "classTeacher.subjectsHandled",
-  header: "Subjects",
-  cell: ({ getValue }) => {
-    const subjects = getValue();
-    if (!subjects || subjects.length === 0) return "N/A";
-    return subjects.map((s) => s.subjectName).join(", ");
-  },
-  }
-,
+      {
+        accessorKey: "classTeacher.subjectsHandled",
+        header: "Subjects",
+        cell: ({ getValue }) => {
+          const subjects = getValue();
+          if (!subjects || subjects.length === 0) return "N/A";
+          return subjects.map((s) => s.subjectName).join(", ");
+        },
+      }
+      ,
       {
         header: "Actions",
         cell: ({ row }) => (
@@ -378,32 +417,32 @@ const removeClassTeacherMutation = useMutation({
             >
               <RiImageEditLine />
             </button>
-                  <button
+            <button
               // onClick={() => openDeleteModal(row.original)}
-            onClick={() => {
-  const cls = row.original;
-  setEditingClass(cls);
-  setClassTeacherModal(true);
-}}
+              onClick={() => {
+                const cls = row.original;
+                setEditingClass(cls);
+                setClassTeacherModal(true);
+              }}
 
               className="text-green-600 cursor-pointer text-[20px] hover:text-blue-700"
               title="Delete"
             >
-             <IoIosAddCircleOutline />
+              <IoIosAddCircleOutline />
             </button>
-                       <button
+            <button
               // onClick={() => openDeleteModal(row.original)}
-            onClick={() => {
-  const cls = row.original;
-  console.log("cls",cls)
-setClassDetail(cls);
-  setDetailModal(true);
-}}
+              onClick={() => {
+                const cls = row.original;
+                console.log("cls", cls)
+                setClassDetail(cls);
+                setDetailModal(true);
+              }}
 
               className="text-blue-600 cursor-pointer text-[20px] hover:text-blue-700"
               title="view"
             >
-             <FaEye />
+              <FaEye />
             </button>
           </div>
         ),
@@ -419,7 +458,7 @@ setClassDetail(cls);
     <div>
       <div className="flex justify-between p-6 text-[12px] md:text-[14px] items-center mb-4">
         <h1 className="text-2xl font-bold">Classes</h1>
-        
+
         {/* <button
           onClick={() => {
             setEditingClass(null);
@@ -431,29 +470,29 @@ setClassDetail(cls);
           Add Class
         </button> */}
 
-  <div className="flex gap-3">
-    <button
-      onClick={handleExportCSV}
-      className="px-4 flex gap-1 items-center py-2 px-4 py-2 bg-[image:var(--gradient-primary)]  rounded-lg cursor-pointer hover:bg-blue-700 transition"
-    >
-      <FaFileExport />
+        <div className="flex gap-3">
+          <button
+            onClick={handleExportCSV}
+            className="px-4 flex gap-1 items-center py-2 px-4 py-2 bg-[image:var(--gradient-primary)]  rounded-lg cursor-pointer hover:bg-blue-700 transition"
+          >
+            <FaFileExport />
 
-      Export CSV
-    </button>
+            Export CSV
+          </button>
 
-    <button
-      onClick={() => {
-        setEditingClass(null);
-        setFormData({ name: "", section: "", startTime: "", endTime: "" });
-        setIsModalOpen(true);
-      }}
-      className="px-4 flex items-center gap-1  py-2 bg-[image:var(--gradient-primary)] cursor-pointer rounded-lg hover:opacity-90 transition"
-    >
-<RiAddBoxFill />
-      Add Class
-    </button>
-  </div>
-        
+          <button
+            onClick={() => {
+              setEditingClass(null);
+              setFormData({ name: "", section: "", startTime: "", endTime: "" });
+              setIsModalOpen(true);
+            }}
+            className="px-4 flex items-center gap-1  py-2 bg-[image:var(--gradient-primary)] cursor-pointer rounded-lg hover:opacity-90 transition"
+          >
+            <RiAddBoxFill />
+            Add Class
+          </button>
+        </div>
+
       </div>
 
       <div className={`
@@ -480,129 +519,144 @@ setClassDetail(cls);
         />
         {(isLoading || isFetching) && <Loader />}
       </div>
-<Modal isOpen={addclassTeacherModal} title="Add Class Teacher" onClose={()=>
-  {
-    setClassTeacherModal(false)
-  }
-}>
+      <Modal isOpen={addclassTeacherModal} title="Add Class Teacher" onClose={() => {
+        setClassTeacherModal(false)
+      }
+      }>
 
-       <Select
-              options={teacherOptions}
-              // value={head.type ? { value: head.type, label: head.type } : null}
-              placeholder="Select Teachers"
-              // onChange={(opt) => handleFeeHeadChange(index, "type", opt?.value || "")}
-              onChange={handleteacherChange}
-              // value={setSelectedTeacher}
-              // isDisabled={isMandatory}
-              // className="rounded-md"
-            />
-          <button
-  className="bg-yellow-500 py-2 px-4 rounded-md mt-4 ml-auto block cursor-pointer"
-  disabled={assignClassTeacherMutation.isLoading}
-  onClick={() => {
-    if (!selectedTeacher) {
-      toast.error("Please select a teacher first!");
-      return;
-    }
-
-    if (!editingClass?._id) {
-      toast.error("No class selected for assignment!");
-      return;
-    }
-
-    assignClassTeacherMutation.mutate({
-      teacherId: selectedTeacher,
-      classId: editingClass._id,
-    });
-  }}
->
-  {assignClassTeacherMutation.isLoading ? "Assigning..." : "Submit"}
-</button>
-
-</Modal>
-<Modal
-  isOpen={detailModal}
-  flag={2}
-  title="View Class Detail"
-  onClose={() => setDetailModal(false)}
->
-  {classDetail ? (
-    <div className="space-y-5 text-sm">
-
-      {/* Class Info */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <p className="text-gray-500">Class</p>
-          <p className="font-semibold">{classDetail.name}</p>
+        <Select
+          options={teacherOptions}
+          // value={head.type ? { value: head.type, label: head.type } : null}
+          placeholder="Select Teachers"
+          // onChange={(opt) => handleFeeHeadChange(index, "type", opt?.value || "")}
+          onChange={handleteacherChange}
+        // value={setSelectedTeacher}
+        // isDisabled={isMandatory}
+        // className="rounded-md"
+        />
+        <div className="mt-3">
+           <Select
+          options={subjectOptions}
+          // value={head.type ? { value: head.type, label: head.type } : null}
+          placeholder="Select Subjects"
+          // onChange={(opt) => handleFeeHeadChange(index, "type", opt?.value || "")}
+          onChange={handleSubjectChange}
+        // value={setSelectedTeacher}
+        // isDisabled={isMandatory}
+        // className="rounded-md"
+        />
         </div>
+        <button
+          className="bg-yellow-500 py-2 px-4 rounded-md mt-4 ml-auto block cursor-pointer"
+          disabled={assignClassTeacherMutation.isLoading}
+          onClick={() => {
+            if (!selectedTeacher) {
+              toast.error("Please select a teacher first!");
+              return;
+            }
 
-        <div>
-          <p className="text-gray-500">Section</p>
-          <p className="font-semibold">{classDetail.section}</p>
-        </div>
+            if (!editingClass?._id) {
+              toast.error("No class selected for assignment!");
+              return;
+            }
 
-        <div>
-          <p className="text-gray-500">Status</p>
-          <p className="font-semibold capitalize">
-            {classDetail.status}
-          </p>
-        </div>
+            assignClassTeacherMutation.mutate({
+              teacherId: selectedTeacher,
+              classId: editingClass._id,
+              section: editingClass.section,
+              subjectId:selectedSubjectId,
+              subjectName:subject,
+              subjectCode:subjectCode
+            });
+          }}
+        >
+          {assignClassTeacherMutation.isLoading ? "Assigning..." : "Submit"}
+        </button>
 
-        <div>
-          <p className="text-gray-500">Students</p>
-          <p className="font-semibold">
-            {classDetail.studentCount ?? 0}
-          </p>
-        </div>
-      </div>
+      </Modal>
+      <Modal
+        isOpen={detailModal}
+        flag={2}
+        title="View Class Detail"
+        onClose={() => setDetailModal(false)}
+      >
+        {classDetail ? (
+          <div className="space-y-5 text-sm">
 
-      {/* Divider */}
-      <hr />
+            {/* Class Info */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-gray-500">Class</p>
+                <p className="font-semibold">{classDetail.name}</p>
+              </div>
 
-      {/* Class Teacher */}
-      <div>
-        <h3 className="font-semibold text-base mb-2">Class Teacher</h3>
+              <div>
+                <p className="text-gray-500">Section</p>
+                <p className="font-semibold">{classDetail.section}</p>
+              </div>
 
-        {classDetail.classTeacher ? (
-          <>
-            <p>
-              <span className="text-gray-500">Name:</span>{" "}
-              <span className="font-medium">
-                {classDetail.classTeacher.name}
-              </span>
-            </p>
+              <div>
+                <p className="text-gray-500">Status</p>
+                <p className="font-semibold capitalize">
+                  {classDetail.status}
+                </p>
+              </div>
 
-            <p>
-              <span className="text-gray-500">Email:</span>{" "}
-              <span className="font-medium">
-                {classDetail.classTeacher.email}
-              </span>
-            </p>
-
-            {/* Remove Button */}
-            <div className="flex justify-end pt-4">
-              <button
-                onClick={() =>
-                  removeClassTeacherMutation.mutate(classDetail._id)
-                }
-                disabled={removeClassTeacherMutation.isLoading}
-                className="px-4 py-2 bg-red-600 text-white cursor-pointer rounded-md hover:bg-red-700 transition disabled:opacity-60"
-              >
-                {removeClassTeacherMutation.isLoading
-                  ? "Removing..."
-                  : "Remove Class Teacher"}
-              </button>
+              <div>
+                <p className="text-gray-500">Students</p>
+                <p className="font-semibold">
+                  {classDetail.studentCount ?? 0}
+                </p>
+              </div>
             </div>
-          </>
+
+            {/* Divider */}
+            <hr />
+
+            {/* Class Teacher */}
+            <div>
+              <h3 className="font-semibold text-base mb-2">Class Teacher</h3>
+
+              {classDetail.classTeacher ? (
+                <>
+                  <p>
+                    <span className="text-gray-500">Name:</span>{" "}
+                    <span className="font-medium">
+                      {classDetail.classTeacher.name}
+                    </span>
+                  </p>
+
+                  <p>
+                    <span className="text-gray-500">Email:</span>{" "}
+                    <span className="font-medium">
+                      {classDetail.classTeacher.email}
+                    </span>
+                  </p>
+
+                  {/* Remove Button */}
+                  <div className="flex justify-end pt-4">
+                    <button
+                      onClick={() =>
+                        removeClassTeacherMutation.mutate(classDetail._id)
+                      }
+                      disabled={removeClassTeacherMutation.isLoading}
+                      className="px-4 py-2 bg-red-600 text-white cursor-pointer rounded-md hover:bg-red-700 transition disabled:opacity-60"
+                    >
+                      {removeClassTeacherMutation.isLoading
+                        ? "Removing..."
+                        : "Remove Class Teacher"}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-gray-400">No class teacher assigned</p>
+              )}
+            </div>
+          </div>
         ) : (
-          <p className="text-gray-400">No class teacher assigned</p>
+          <p className="text-center text-gray-400">No data available</p>
         )}
-      </div>
-    </div>
-  ) : (
-    <p className="text-center text-gray-400">No data available</p>
-  )}
-</Modal>
+      </Modal>
 
 
       {/* Modal */}
@@ -612,31 +666,31 @@ setClassDetail(cls);
         onClose={() => setIsModalOpen(false)}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">
-    Class Name <span className="text-red-500">*</span>
-  </label>
-  <InputField
-    name="name"
-    value={formData.name}
-    onChange={handleChange}
-    placeholder="11th"
-    error={errors.name}
-  />
-</div>
-       
-         <div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-    Section <span className="text-red-500">*</span>
-    </label>
-           <InputField
-            name="section"
-            value={formData.section}
-            onChange={handleChange}
-            placeholder="A"
-            error={errors.section}
-          />
-         </div>
+              Class Name <span className="text-red-500">*</span>
+            </label>
+            <InputField
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="11th"
+              error={errors.name}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Section <span className="text-red-500">*</span>
+            </label>
+            <InputField
+              name="section"
+              value={formData.section}
+              onChange={handleChange}
+              placeholder="A"
+              error={errors.section}
+            />
+          </div>
 
           <div className="flex gap-4">
             <div className="flex-1">
