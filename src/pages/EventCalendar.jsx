@@ -487,7 +487,7 @@ export default function CalendarPage() {
                                 <div
                                     key={day}
                                     onClick={() => handleDateClick(day)}
-                                    className={`relative cursor-pointer h-16 sm:h-24 rounded-2xl border shadow-sm flex flex-col items-center justify-center transition-all duration-200 
+                                    className={`relative cursor-pointer h-16 sm:h-24 rounded-full md:rounded-2xl border shadow-sm flex flex-col items-center justify-center transition-all duration-200 
                     ${holiday
                                             ? "bg-gradient-to-br from-yellow-100/80 to-yellow-50/60 border-yellow-300 text-yellow-800 hover:shadow-md"
                                             : isToday

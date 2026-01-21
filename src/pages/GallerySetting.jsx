@@ -762,7 +762,7 @@ const handleFiles = (fileList) => {
 
         {/* IMAGES GRID */}
         <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
+          <div className="md:flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">
               {activeCategory ? `${activeCategory.name} Images` : 'Gallery Images'}
               {activeCategory && (

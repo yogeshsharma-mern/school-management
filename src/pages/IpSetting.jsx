@@ -289,7 +289,7 @@ export default function IpSettings() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 px-6 py-8 text-gray-800">
+        <div className="min-h-screen w-[100vw] md:w-auto bg-gradient-to-b from-gray-50 to-gray-100 px-2 md:px-6 py-8 text-gray-800">
             <h1 className="text-2xl font-bold mb-6">IP Settings</h1>
 <ConfirmBox isOpen={showConfirm} title="Are you sure you want to delete this Ip" onCancel={()=>setShowConfirm(false)} onConfirm={()=>handleDelete(deleteId)}/>
             {/* Tabs */}

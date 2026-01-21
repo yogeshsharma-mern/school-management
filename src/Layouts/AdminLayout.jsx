@@ -75,6 +75,13 @@ export default function AdminLayout() {
     <div className="flex h-screen w-full bg-[var(--color-neutral)]">
       {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+      {sidebarOpen && (
+  <div
+    onClick={toggleSidebar}
+    className="fixed inset-0 bg-black/40 z-[150] md:hidden"
+  />
+)}
+
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
