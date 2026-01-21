@@ -1551,7 +1551,7 @@ export default function CreateStudentPage() {
                                 className="w-full sm:w-[140px] border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
                               />
 
-                              <label className="flex items-center gap-2 text-sm w-auto">
+                              {/* <label className="flex items-center gap-2 text-sm w-auto">
                                 <input
                                   type="checkbox"
                                   checked={head.isOptional}
@@ -1566,7 +1566,7 @@ export default function CreateStudentPage() {
                                   className="h-4 w-4 text-yellow-500 cursor-pointer border-gray-300 rounded focus:ring-yellow-300"
                                 />
                                 Optional
-                              </label>
+                              </label> */}
 
                               {!isMandatory && (
                                 <button
@@ -1581,7 +1581,7 @@ export default function CreateStudentPage() {
                           );
                         })}
 
-                        {formData.feeHeads.length < 4 && (
+                        {/* {formData.feeHeads.length < 4 && (
                           <Button
                             // variant="contained"
                             style={{ background: "var(--gradient-primary)", color: "black" }}
@@ -1591,7 +1591,7 @@ export default function CreateStudentPage() {
                           >
                             Add Optional Fee
                           </Button>
-                        )}
+                        )} */}
                       </>
                     )}
                   </div>

@@ -101,7 +101,6 @@ export default function CalendarPage() {
     const holidays = data?.results || [];
     const handleImportSubmit = (e) => {
         e.preventDefault();
-
         // === Validation checks ===
 
 

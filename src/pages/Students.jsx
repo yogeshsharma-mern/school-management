@@ -451,7 +451,7 @@ export default function StudentPage() {
       {
         accessorKey: "classId.name",
         header: "Class Name",
-        cell: ({ row }) => row.original?.className || "N/A",
+        cell: ({ row }) => `${row?.original?.className} ${row?.original?.section}` || "N/A",
       },
       { accessorKey: "academicYear", header: "Academic Year" },
       {
