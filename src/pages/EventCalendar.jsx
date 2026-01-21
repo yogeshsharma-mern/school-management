@@ -85,13 +85,15 @@ export default function CalendarPage() {
             //             }
 
             // Refresh table and reset form
-            queryClient.invalidateQueries({ queryKey: ["eventcalender"] });
+            queryClient.invalidateQueries({ queryKey: ["holidays"] });
             setShowModal(false);
+            setOpenModal(false);
             setSelectedFile(null);
-            setClassId(null);
+            // setClassId(null);
         },
 
         onError: (err) => {
+            console.error("Import error:", err);
             toast.error(err?.response?.data?.message || "Import failed ❌");
         },
 

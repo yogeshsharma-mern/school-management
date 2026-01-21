@@ -375,8 +375,8 @@ export default function TeacherDetailPage() {
 {activeTab === "salary" && (
   <div className="relative overflow-hidden  p-8">
     {/* Background decoration */}
-    <div className="absolute -top-10 -right-10 w-48 h-48 bg-yellow-300/30 rounded-full blur-3xl"></div>
-    <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-orange-300/20 rounded-full blur-2xl"></div>
+    {/* <div className="absolute -top-10 -right-10 w-48 h-48 bg-yellow-300/30 rounded-full blur-3xl"></div>
+    <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-orange-300/20 rounded-full blur-2xl"></div> */}
 
     <div className="relative z-10">
       {/* Header */}

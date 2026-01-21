@@ -179,7 +179,7 @@ queryClient.clear();
       }));
 
       // Get current cache
-      const currentCache = queryClient.getQueryData(["imagesssss", categoryId]) || {};
+      const currentCache = queryClient.getQueryData(["images", categoryId]) || {};
       const currentImages = currentCache.results?.images || [];
 
       // Check for duplicates before adding
@@ -192,7 +192,7 @@ queryClient.clear();
       }
 
       // Update cache
-      queryClient.setQueryData(["imagesssss", categoryId], {
+      queryClient.setQueryData(["images", categoryId], {
         ...currentCache,
         results: {
           ...currentCache.results,
@@ -207,111 +207,139 @@ queryClient.clear();
       };
     },
 
-    onSuccess: (response, variables, context) => {
-      console.log("Upload success response:", response);
+ onSuccess: (response, variables, context) => {
+  console.log("Upload success response:", response);
 
-      const uploadedImages = response?.results?.images || [];
+  const uploadedImages = response?.results?.images || [];
 
-      if (uploadedImages.length === 0) {
-        console.warn("No images in response");
-        // Remove optimistic images if no response
-        if (context?.addedImages?.length > 0) {
-          const currentCache = queryClient.getQueryData(["images", variables.categoryId]) || {};
-          const currentImages = currentCache.results?.images || [];
-
-          const finalImages = currentImages.filter(img =>
-            !context.addedImages.some(opt => opt._id === img._id)
-          );
-
-          queryClient.setQueryData(["images", variables.categoryId], {
-            ...currentCache,
-            results: {
-              ...currentCache.results,
-              images: finalImages
-            }
-          });
-        }
-        return;
-      }
-
-      // Replace optimistic images with real ones
-      if (context?.addedImages?.length > 0) {
-        const currentCache = queryClient.getQueryData(["images", variables.categoryId]) || {};
-        const currentImages = currentCache.results?.images || [];
-
-        // Create a map of originalName to uploaded image for matching
-        const uploadedMap = new Map();
-        uploadedImages.forEach(img => {
-          if (img.originalName) {
-            uploadedMap.set(img.originalName, img);
-          }
-        });
-
-        // Filter out optimistic images and add real ones
-        const finalImages = currentImages
-          .filter(img => !img.isOptimistic) // Remove all optimistic
-          .concat(uploadedImages) // Add uploaded images
-          .filter((img, index, self) =>
-            // Remove duplicates by _id
-            index === self.findIndex(t => t._id === img._id)
-          );
-
-        queryClient.setQueryData(["images", variables.categoryId], {
-          ...currentCache,
-          results: {
-            ...currentCache.results,
-            images: finalImages
-          }
-        });
-      }
-
-      // Complete progress
-      setUploadProgress(prev => {
-        const newProgress = { ...prev };
-        Object.keys(newProgress).forEach(key => {
-          newProgress[key] = 100;
-        });
-        return newProgress;
+  if (uploadedImages.length === 0) {
+    console.warn("No images in response");
+    // Complete progress and clear previews
+    setUploadProgress(prev => {
+      const newProgress = { ...prev };
+      Object.keys(newProgress).forEach(key => {
+        newProgress[key] = 100;
       });
+      return newProgress;
+    });
+    
+    setTimeout(() => {
+      setLocalPreviews([]);
+      setUploadProgress({});
+    }, 1000);
+    return;
+  }
 
-      // Clear previews after delay
-      setTimeout(() => {
-        setLocalPreviews([]);
-        setUploadProgress({});
-      }, 1000);
-    },
+  // Complete progress for all previews
+  setUploadProgress(prev => {
+    const newProgress = { ...prev };
+    Object.keys(newProgress).forEach(key => {
+      newProgress[key] = 100;
+    });
+    return newProgress;
+  });
 
-    onError: (error, variables, context) => {
-      console.error("Upload error:", error);
-
-      // Remove only the optimistic images we added
-      if (context?.addedImages?.length > 0) {
-        const currentCache = queryClient.getQueryData(["images", variables.categoryId]) || {};
-        const currentImages = currentCache.results?.images || [];
-
-        const addedIds = new Set(context.addedImages.map(img => img._id));
-        const finalImages = currentImages.filter(img => !addedIds.has(img._id));
-
-        queryClient.setQueryData(["images", variables.categoryId], {
-          ...currentCache,
-          results: {
-            ...currentCache.results,
-            images: finalImages
-          }
-        });
-      }
-
-      // Reset progress
-      setUploadProgress(prev => {
-        const newProgress = { ...prev };
-        Object.keys(newProgress).forEach(key => {
-          newProgress[key] = 0;
-        });
-        return newProgress;
-      });
-
-      alert(`Upload failed: ${error.message}`);
+  // Create a mapping of original names to uploaded images
+  const uploadedMap = new Map();
+  uploadedImages.forEach(img => {
+    if (img.originalName) {
+      uploadedMap.set(img.originalName, img);
     }
+  });
+
+  // Match previews with uploaded images and update progress
+  setLocalPreviews(prevPreviews => {
+    const updatedPreviews = prevPreviews.map(preview => {
+      const uploadedImg = uploadedMap.get(preview.originalName);
+      if (uploadedImg) {
+        return {
+          ...preview,
+          isUploaded: true,
+          serverId: uploadedImg._id
+        };
+      }
+      return preview;
+    });
+
+    // Clear after a delay
+    setTimeout(() => {
+      setLocalPreviews([]);
+      setUploadProgress({});
+    }, 1000);
+
+    return updatedPreviews;
+  });
+
+  // Update cache with real uploaded images
+  if (context?.addedImages?.length > 0) {
+    const currentCache = queryClient.getQueryData(["images", variables.categoryId]) || {};
+    const currentImages = currentCache.results?.images || [];
+
+    // Filter out optimistic images and add real ones
+    const finalImages = currentImages
+      .filter(img => !img.isOptimistic) // Remove all optimistic
+      .concat(uploadedImages) // Add uploaded images
+      .filter((img, index, self) =>
+        // Remove duplicates by _id
+        index === self.findIndex(t => t._id === img._id)
+      );
+
+    queryClient.setQueryData(["images", variables.categoryId], {
+      ...currentCache,
+      results: {
+        ...currentCache.results,
+        images: finalImages
+      }
+    });
+  }
+
+  toast.success(`Successfully uploaded ${uploadedImages.length} image(s)`);
+},
+
+ onError: (error, variables, context) => {
+  console.error("Upload error:", error);
+
+  // Reset progress to 0
+  setUploadProgress(prev => {
+    const newProgress = { ...prev };
+    Object.keys(newProgress).forEach(key => {
+      newProgress[key] = 0;
+    });
+    return newProgress;
+  });
+
+  // Mark previews as failed
+  setLocalPreviews(prev => prev.map(preview => ({
+    ...preview,
+    error: true,
+    errorMessage: error.message
+  })));
+
+  // Remove optimistic images after delay
+  setTimeout(() => {
+    if (context?.addedImages?.length > 0) {
+      const currentCache = queryClient.getQueryData(["images", variables.categoryId]) || {};
+      const currentImages = currentCache.results?.images || [];
+
+      const addedIds = new Set(context.addedImages.map(img => img._id));
+      const finalImages = currentImages.filter(img => !addedIds.has(img._id));
+
+      queryClient.setQueryData(["images", variables.categoryId], {
+        ...currentCache,
+        results: {
+          ...currentCache.results,
+          images: finalImages
+        }
+      });
+    }
+    
+    // Clear previews
+    setLocalPreviews([]);
+    setUploadProgress({});
+  }, 2000);
+
+  toast.error(`Upload failed: ${error.message}`);
+}
   });
 
 
@@ -387,53 +415,68 @@ queryClient.clear();
   });
 
   // File handling functions
-  const handleFiles = (fileList) => {
-    if (!fileList || fileList.length === 0 || !activeCategory) return;
+// Replace your handleFiles function with this:
+const handleFiles = (fileList) => {
+  if (!fileList || fileList.length === 0 || !activeCategory) return;
 
-    const files = Array.from(fileList);
+  const files = Array.from(fileList);
 
-    // Validate file types and sizes
-    const validFiles = files.filter(file => {
-      const isValidType = file.type.startsWith('image/');
-      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB limit
-      return isValidType && isValidSize;
-    });
+  // Validate file types and sizes
+  const validFiles = files.filter(file => {
+    const isValidType = file.type.startsWith('image/');
+    const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB limit
+    return isValidType && isValidSize;
+  });
 
-    if (validFiles.length === 0) {
-      alert('Please select valid image files (max 10MB each)');
-      return;
-    }
+  if (validFiles.length === 0) {
+    alert('Please select valid image files (max 10MB each)');
+    return;
+  }
 
-    // Create local previews
-    const previews = validFiles.map((file, index) => ({
-      id: `preview_${Date.now()}_${index}`,
+  // Create local previews with unique IDs
+  const previews = validFiles.map((file, index) => {
+    const previewId = `preview_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`;
+    return {
+      id: previewId,
       file,
       url: URL.createObjectURL(file),
       name: file.name,
       size: file.size,
       progress: 0,
-    }));
+      originalName: file.name, // Keep original name for matching
+    };
+  });
 
-    setLocalPreviews(previews);
+  setLocalPreviews(previews);
 
-    // Simulate upload progress
-    previews.forEach((preview, index) => {
-      const interval = setInterval(() => {
-        setUploadProgress(prev => ({
-          ...prev,
-          [preview.id]: Math.min((prev[preview.id] || 0) + 10, 90)
-        }));
-      }, 100);
+  // Initialize progress for each file
+  const initialProgress = {};
+  previews.forEach(preview => {
+    initialProgress[preview.id] = 0;
+  });
+  setUploadProgress(initialProgress);
 
-      setTimeout(() => clearInterval(interval), 1000);
-    });
+  // Simulate upload progress up to 90%
+  previews.forEach((preview) => {
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      if (progress >= 90) {
+        clearInterval(interval);
+      }
+      setUploadProgress(prev => ({
+        ...prev,
+        [preview.id]: progress
+      }));
+    }, 200);
+  });
 
-    // Upload files
-    uploadMutation.mutate({
-      categoryId: activeCategory._id,
-      files: validFiles
-    });
-  };
+  // Upload files
+  uploadMutation.mutate({
+    categoryId: activeCategory._id,
+    files: validFiles
+  });
+};
 
   const handleDrop = (e) => {
     e.preventDefault();
