@@ -33,20 +33,20 @@ export default function Subject() {
     const [columnFilters, setColumnFilters] = useState([]);
     const [viewModal, setViewModal] = useState(false);
     const [viewData, setViewData] = useState([]);
-    
+
     // FIX 1: Initialize as null instead of '1st'
     const [selectedClassId, setSelectedClassId] = useState(null);
-    
+
     const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
 
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingClass, setEditingClass] = useState(null);
-    const [formData, setFormData] = useState({ 
-        name: "", 
-        code: "", 
-        description: "", 
-        credits: "" 
+    const [formData, setFormData] = useState({
+        name: "",
+        code: "",
+        description: "",
+        credits: ""
     });
     const [errors, setErrors] = useState({});
     const debouncedSearch = useDebounce(globalFilter, 500);
@@ -56,44 +56,44 @@ export default function Subject() {
     const [deleteId, setDeleteId] = useState(null);
 
     // Fetch classes for dropdown
-    const { 
-        data: classesData, 
-        isLoading: classesLoading, 
-        isError: classesError 
+    const {
+        data: classesData,
+        isLoading: classesLoading,
+        isError: classesError
     } = useQuery({
         queryKey: ["classes"],
         queryFn: () => apiGet(`${apiPath.classesByNames}` || "/api/admins/classes"),
     });
 
-// FIX 2: Process classes data properly (SAFE & STABLE)
-const classes = useMemo(() => {
-  if (!classesData?.results) return [];
+    // FIX 2: Process classes data properly (SAFE & STABLE)
+    const classes = useMemo(() => {
+        if (!classesData?.results) return [];
 
-  const raw = classesData.results;
+        const raw = classesData.results;
 
-  // Case 1: Backend already returns array
-  if (Array.isArray(raw)) {
-    return raw.filter((c) => typeof c === "string");
-  }
+        // Case 1: Backend already returns array
+        if (Array.isArray(raw)) {
+            return raw.filter((c) => typeof c === "string");
+        }
 
-  // Case 2: Backend returns object → convert to array
-  if (typeof raw === "object") {
-    return Object.values(raw).filter((c) => typeof c === "string");
-  }
+        // Case 2: Backend returns object → convert to array
+        if (typeof raw === "object") {
+            return Object.values(raw).filter((c) => typeof c === "string");
+        }
 
-  return [];
-}, [classesData]);
+        return [];
+    }, [classesData]);
 
 
-//     useEffect(() => {
-//     return () => {
-//         // Invalidate all queries
-//         queryClient.invalidateQueries();
-        
-//         // Optional: Cancel any ongoing requests
-//         queryClient.cancelQueries();
-//     };
-// }, [queryClient]);
+    //     useEffect(() => {
+    //     return () => {
+    //         // Invalidate all queries
+    //         queryClient.invalidateQueries();
+
+    //         // Optional: Cancel any ongoing requests
+    //         queryClient.cancelQueries();
+    //     };
+    // }, [queryClient]);
 
     // FIX 3: Set initial class when classes load
     useEffect(() => {
@@ -103,11 +103,11 @@ const classes = useMemo(() => {
     }, [classes, selectedClassId]);
 
     // Fetch subjects for selected class
-    const { 
-        data: subjectsData, 
-        isLoading: subjectsLoading, 
-        isFetching: subjectsFetching, 
-        error: subjectsError 
+    const {
+        data: subjectsData,
+        isLoading: subjectsLoading,
+        isFetching: subjectsFetching,
+        error: subjectsError
     } = useQuery({
         queryKey: [
             "subjects",
@@ -184,9 +184,15 @@ const classes = useMemo(() => {
         let newValue = value;
 
         switch (name) {
-            case "name":
-                newValue = value.replace(/[^A-Za-z\s,]/g, "");
+            case "name": {
+                // allow only letters & spaces
+                const cleaned = value.replace(/[^A-Za-z\s]/g, "");
+
+                // capitalize first letter only
+                newValue =
+                    cleaned.charAt(0).toUpperCase() + cleaned.slice(1).toLowerCase();
                 break;
+            }
             case "code":
                 newValue = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
                 break;
@@ -198,14 +204,14 @@ const classes = useMemo(() => {
         setErrors((prev) => ({ ...prev, [name]: "" }));
     };
     const noSubjectsFound =
-  selectedClassId &&
-  !subjectsLoading &&
-  !subjectsFetching &&
-  subjectsData &&
-  Array.isArray(subjectsData.results) &&
-  subjectsData.results.length === 0;
+        selectedClassId &&
+        !subjectsLoading &&
+        !subjectsFetching &&
+        subjectsData &&
+        Array.isArray(subjectsData.results) &&
+        subjectsData.results.length === 0;
 
- const handleExportCSV = () => {
+    const handleExportCSV = () => {
         try {
             const docs = subjectsData?.results || [];
 
@@ -228,9 +234,9 @@ const classes = useMemo(() => {
                         minute: "2-digit",
                     });
                 };
-                
-                const statusNorm = subject?.status === true || subject?.status === "active" 
-                    ? "Active" 
+
+                const statusNorm = subject?.status === true || subject?.status === "active"
+                    ? "Active"
                     : "Inactive";
 
                 return {
@@ -300,7 +306,7 @@ const classes = useMemo(() => {
                 accessorKey: "status",
                 cell: ({ row }) => {
                     const subject = row.original;
-                    
+
                     const handleToggle = () => {
                         toggleMutation.mutate({
                             id: subject._id,
@@ -348,7 +354,7 @@ const classes = useMemo(() => {
                         >
                             <RiImageEditLine />
                         </button>
-                        <button 
+                        <button
                             onClick={() => {
                                 setViewModal(true);
                                 setViewData(row.original);
@@ -392,28 +398,27 @@ const classes = useMemo(() => {
             </div>
         );
     }
-      if (subjectsLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[80vh] bg-opacity-70 z-[99999]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
-      </div>
-    );
-  }
-
-if(classesLoading)
-{
+    if (subjectsLoading) {
         return (
-      <div className="flex justify-center items-center min-h-[80vh] bg-opacity-70 z-[99999]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
-      </div>
-    );
-}
+            <div className="flex justify-center items-center min-h-[80vh] bg-opacity-70 z-[99999]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+            </div>
+        );
+    }
+
+    if (classesLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-[80vh] bg-opacity-70 z-[99999]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+            </div>
+        );
+    }
 
     return (
         <div>
-            <Modal 
-                isOpen={viewModal} 
-                title="Subject Details" 
+            <Modal
+                isOpen={viewModal}
+                title="Subject Details"
                 onClose={() => setViewModal(false)}
             >
                 {viewData && (
@@ -466,7 +471,7 @@ if(classesLoading)
                         <option value="">-- Select a class --</option>
                         {classes.map((className, index) => (
                             <option key={index} value={className}>
-                                {String (className)}
+                                {String(className)}
                             </option>
                         ))}
                     </select>
@@ -506,50 +511,50 @@ if(classesLoading)
                 </div>
             )} */}
             {!selectedClassId ? (
-  <div className="p-6 text-center text-gray-500">
-    Please select a class to view subjects
-  </div>
-) : noSubjectsFound ? (
-  <div
-    className="ml-6"
-  >
-    <p className="text-gray-500 text-lg font-medium">
-      ❌ No subject found for this class
-    </p>
-  </div>
-) : (
-  <div
-    className={`
+                <div className="p-6 text-center text-gray-500">
+                    Please select a class to view subjects
+                </div>
+            ) : noSubjectsFound ? (
+                <div
+                    className="ml-6"
+                >
+                    <p className="text-gray-500 text-lg font-medium">
+                        ❌ No subject found for this class
+                    </p>
+                </div>
+            ) : (
+                <div
+                    className={`
       overflow-x-auto transition-all duration-300 w-[98vw]
       ${collapsed ? "md:w-[95vw]" : "md:w-[82vw]"}
     `}
-  >
-    <ReusableTable
-      columns={columns}
-      data={tableData}
-      paginationState={pagination}
-      setPaginationState={setPagination}
-      sortingState={sorting}
-      setSortingState={setSorting}
-      globalFilter={globalFilter}
-      setGlobalFilter={setGlobalFilter}
-      columnFilters={columnFilters}
-      setColumnFilters={setColumnFilters}
-      totalCount={totalPages || 1}
-      tablePlaceholder="Search subjects..."
-      error={subjectsError}
-      isError={!!subjectsError}
-      fetching={subjectsFetching}
-      loading={subjectsLoading}
-    />
-  </div>
-)}
+                >
+                    <ReusableTable
+                        columns={columns}
+                        data={tableData}
+                        paginationState={pagination}
+                        setPaginationState={setPagination}
+                        sortingState={sorting}
+                        setSortingState={setSorting}
+                        globalFilter={globalFilter}
+                        setGlobalFilter={setGlobalFilter}
+                        columnFilters={columnFilters}
+                        setColumnFilters={setColumnFilters}
+                        totalCount={totalPages || 1}
+                        tablePlaceholder="Search subjects..."
+                        error={subjectsError}
+                        isError={!!subjectsError}
+                        fetching={subjectsFetching}
+                        loading={subjectsLoading}
+                    />
+                </div>
+            )}
 
 
             {/* Confirm Delete Modal */}
-            <ConfirmBox 
-                message="Are you sure you want to delete this subject? This action cannot be undone." 
-                isOpen={confirmOpen} 
+            <ConfirmBox
+                message="Are you sure you want to delete this subject? This action cannot be undone."
+                isOpen={confirmOpen}
                 onCancel={() => setConfirmOpen(false)}
                 onConfirm={() => {
                     if (deleteId) {
@@ -557,7 +562,7 @@ if(classesLoading)
                         setConfirmOpen(false);
                     }
                 }}
-                loading={deleteMutation.isLoading} 
+                loading={deleteMutation.isLoading}
             />
 
             {/* Add/Edit Subject Modal */}
@@ -579,7 +584,7 @@ if(classesLoading)
                             error={errors.name}
                         />
                     </div>
-                    
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Code <span className="text-red-500">*</span>
@@ -595,7 +600,7 @@ if(classesLoading)
                             Format: 2-4 uppercase letters followed by 2-3 numbers (e.g., MATH101, PHY101)
                         </p>
                     </div>
-                    
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Description
@@ -608,13 +613,13 @@ if(classesLoading)
                             error={errors.description}
                         />
                     </div>
-                    
+
                     {selectedClassId && (
                         <div className="text-sm text-gray-600">
                             This subject will be added to: <strong>{selectedClassId}</strong>
                         </div>
                     )}
-                    
+
                     <button
                         type="submit"
                         disabled={subjectMutation.isPending || !selectedClassId}

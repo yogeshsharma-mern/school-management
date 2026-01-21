@@ -21,6 +21,7 @@ export default function AdminProfile() {
   });
 
   const profile = data?.results || {};
+  console.log("profile",profile);
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
