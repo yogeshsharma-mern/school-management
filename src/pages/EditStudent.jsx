@@ -226,8 +226,11 @@ export default function CreateStudentPage() {
 
     // ✅ Disallow letters/symbols in ZIP Code
     if (name === "zip") {
-      sanitizedValue = value.replace(/\D/g, ""); // only digits allowed
+      sanitizedValue = value
+        .replace(/\D/g, "")   // remove non-digits
+        .slice(0, 6);         // limit to 6 digits
     }
+
 
     // ✅ Common name fields (for parents, guardians, etc.)
     const isNameField = name.toLowerCase().includes("name") && name !== "username";
@@ -493,7 +496,7 @@ export default function CreateStudentPage() {
       if (!student.documents.aadharBack)
         newErrors.aadharBack = "Aadhaar back is required";
     }
-      else if (activeStep === 3) {
+    else if (activeStep === 3) {
       if (!student.classId) newErrors.classId = "Class is required";
       if (!student.academicYear) newErrors.academicYear = "Academic year is required";
     }
@@ -682,9 +685,8 @@ export default function CreateStudentPage() {
         toast.success(res.message || "Student saved successfully ✅");
         navigate(-1);
       }
-      else
-      {
-            toast.error(res.message || "Failed to save student ❌");
+      else {
+        toast.error(res.message || "Failed to save student ❌");
 
       }
     } catch (err) {
