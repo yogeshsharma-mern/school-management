@@ -527,35 +527,35 @@ export default function AttendanceTable() {
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     saveAs(blob, filename);
   };
-const validateAttendanceModal = () => {
-  const errors = {};
+  const validateAttendanceModal = () => {
+    const errors = {};
 
-  // 1️⃣ Date validation
-  if (!modalDate) {
-    errors.date = "Please select a date";
-  } else {
-    const selected = new Date(modalDate);
-    if (
-      selected.getMonth() !== selectedMonth ||
-      selected.getFullYear() !== selectedYear
-    ) {
-      errors.date = "Selected date must be within current month/year";
+    // 1️⃣ Date validation
+    if (!modalDate) {
+      errors.date = "Please select a date";
+    } else {
+      const selected = new Date(modalDate);
+      if (
+        selected.getMonth() !== selectedMonth ||
+        selected.getFullYear() !== selectedYear
+      ) {
+        errors.date = "Selected date must be within current month/year";
+      }
     }
-  }
 
-  // 2️⃣ Status validation
-  if (!modalStatus) {
-    errors.status = "Please select attendance status";
-  }
+    // 2️⃣ Status validation
+    if (!modalStatus) {
+      errors.status = "Please select attendance status";
+    }
 
-  // 3️⃣ Specific mode validation
-  if (modalMode === "specific" && selectedTeacherIds.length === 0) {
-    errors.teachers = "Please select at least one teacher";
-  }
+    // 3️⃣ Specific mode validation
+    if (modalMode === "specific" && selectedTeacherIds.length === 0) {
+      errors.teachers = "Please select at least one teacher";
+    }
 
-  setModalErrors(errors);
-  return Object.keys(errors).length === 0;
-};
+    setModalErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   // ---------- loading UI (hooks already declared above) ----------
   if (isLoading) {
@@ -607,21 +607,21 @@ const validateAttendanceModal = () => {
   //   if (modalMode === "specific") payload.teachers = selectedTeacherIds;
   //   updateMutation.mutate(payload);
   // };
-const handleModalSubmit = () => {
-  if (!validateAttendanceModal()) return;
+  const handleModalSubmit = () => {
+    if (!validateAttendanceModal()) return;
 
-  const payload = {
-    date: modalDate,
-    status: modalStatus,
-    applyTo: modalMode,
+    const payload = {
+      date: modalDate,
+      status: modalStatus,
+      applyTo: modalMode,
+    };
+
+    if (modalMode === "specific") {
+      payload.teachers = selectedTeacherIds;
+    }
+
+    updateMutation.mutate(payload);
   };
-
-  if (modalMode === "specific") {
-    payload.teachers = selectedTeacherIds;
-  }
-
-  updateMutation.mutate(payload);
-};
 
   //         <div className={`
   //   overflow-x-auto transition-all duration-300 w-[98vw]
@@ -630,100 +630,100 @@ const handleModalSubmit = () => {
 
   return (
     <div className={`min-h-screen w-[99vw] ${collapsed ? "md:w-[94vw]" : "md:w-[83vw]"} bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 sm:px-8 py-8 text-gray-800 font-['Inter']`}>
-    {timeModal && (
-  <Modal isOpen={timeModal} onClose={() => setTimeModal(false)}>
-    <div className="p-4 max-w-md">
-      <button
-        className="absolute top-3 right-3 cursor-pointer text-gray-500"
-        onClick={() => setTimeModal(false)}
-      >
-        ✕
-      </button>
+      {timeModal && (
+        <Modal isOpen={timeModal} onClose={() => setTimeModal(false)}>
+          <div className="p-4 max-w-md">
+            <button
+              className="absolute top-3 right-3 cursor-pointer text-gray-500"
+              onClick={() => setTimeModal(false)}
+            >
+              ✕
+            </button>
 
-      {!timeDetail ? (
-        <div className="text-center py-6 text-gray-600">No data for selected date</div>
-      ) : (
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold">{timeDetail.teacherName}</h3>
-          <div className="text-sm text-gray-500">{timeDetail.teacherEmail}</div>
+            {!timeDetail ? (
+              <div className="text-center py-6 text-gray-600">No data for selected date</div>
+            ) : (
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold">{timeDetail.teacherName}</h3>
+                <div className="text-sm text-gray-500">{timeDetail.teacherEmail}</div>
 
-          <div className="pt-2">
-            <div className="flex justify-between items-center">
-              <div className="text-sm text-gray-600">Date</div>
-              <div className="font-medium">{timeDetail.date}</div>
-            </div>
+                <div className="pt-2">
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm text-gray-600">Date</div>
+                    <div className="font-medium">{timeDetail.date}</div>
+                  </div>
 
-            <div className="flex justify-between items-center mt-2">
-              <div className="text-sm text-gray-600">Status</div>
-              <div className="font-medium">{timeDetail.status}</div>
-            </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <div className="text-sm text-gray-600">Status</div>
+                    <div className="font-medium">{timeDetail.status}</div>
+                  </div>
 
-            <div className="flex justify-between items-center mt-2">
-              <div className="text-sm text-gray-600">Clock In</div>
-              <div className="font-medium">{timeDetail.clockIn || "-"}</div>
-            </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <div className="text-sm text-gray-600">Clock In</div>
+                    <div className="font-medium">{timeDetail.clockIn || "-"}</div>
+                  </div>
 
-            <div className="flex justify-between items-center mt-2">
-              <div className="text-sm text-gray-600">Clock Out</div>
-              <div className="font-medium">{timeDetail.clockOut || "-"}</div>
-            </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <div className="text-sm text-gray-600">Clock Out</div>
+                    <div className="font-medium">{timeDetail.clockOut || "-"}</div>
+                  </div>
 
-            {timeDetail.ipAddress && (
-              <div className="flex justify-between items-center mt-2">
-                <div className="text-sm text-gray-600">IP</div>
-                <div className="font-medium">{timeDetail.ipAddress}</div>
+                  {timeDetail.ipAddress && (
+                    <div className="flex justify-between items-center mt-2">
+                      <div className="text-sm text-gray-600">IP</div>
+                      <div className="font-medium">{timeDetail.ipAddress}</div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
-        </div>
+        </Modal>
       )}
-    </div>
-  </Modal>
-)}
-{/* 2) Replace the onClick that sets timeDetail with this robust version (it normalizes dates and logs what it finds)
+      {/* 2) Replace the onClick that sets timeDetail with this robust version (it normalizes dates and logs what it finds)
 Find the table cell onClick and replace the body with:
 
 jsx
 Copy code */}
-{() => {
-  // helper: normalize date to yyyy-MM-dd
-  const normalize = (date) => {
-    if (!date) return "";
-    // if it's already yyyy-mm-dd, return that
-    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
-    const dObj = new Date(date);
-    if (isNaN(dObj)) return date; // fallback
-    const y = dObj.getFullYear();
-    const m = String(dObj.getMonth() + 1).padStart(2, "0");
-    const dd = String(dObj.getDate()).padStart(2, "0");
-    return `${y}-${m}-${dd}`;
-  };
+      {() => {
+        // helper: normalize date to yyyy-MM-dd
+        const normalize = (date) => {
+          if (!date) return "";
+          // if it's already yyyy-mm-dd, return that
+          if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
+          const dObj = new Date(date);
+          if (isNaN(dObj)) return date; // fallback
+          const y = dObj.getFullYear();
+          const m = String(dObj.getMonth() + 1).padStart(2, "0");
+          const dd = String(dObj.getDate()).padStart(2, "0");
+          return `${y}-${m}-${dd}`;
+        };
 
-  // collect all attendance entries for teacher
-  const allAttendance = (item.attendanceRecords || []).reduce((acc, rec) => {
-    (rec.attendance || []).forEach(a => acc.push(a));
-    return acc;
-  }, []);
+        // collect all attendance entries for teacher
+        const allAttendance = (item.attendanceRecords || []).reduce((acc, rec) => {
+          (rec.attendance || []).forEach(a => acc.push(a));
+          return acc;
+        }, []);
 
-  // Try to find a matching record: compare normalized strings
-  const dayAttendance = allAttendance.find(a => normalize(a.date) === d.dateString);
+        // Try to find a matching record: compare normalized strings
+        const dayAttendance = allAttendance.find(a => normalize(a.date) === d.dateString);
 
-  // debug logs — keep them while testing, remove later
-  // eslint-disable-next-line no-console
-  console.log("CLICK: teacher", item._id, "dateCell", d.dateString, "attendanceRecords", allAttendance, "matched", dayAttendance);
+        // debug logs — keep them while testing, remove later
+        // eslint-disable-next-line no-console
+        console.log("CLICK: teacher", item._id, "dateCell", d.dateString, "attendanceRecords", allAttendance, "matched", dayAttendance);
 
-  setTimeDetail({
-    teacherName: item.name,
-    teacherEmail: item.email,
-    date: d.dateString,
-    status: dayAttendance?.status || "Absent",
-    clockIn: dayAttendance?.clockIn || "-",
-    clockOut: dayAttendance?.clockOut || "-",
-    ipAddress: dayAttendance?.ipAddress || "",
-  });
+        setTimeDetail({
+          teacherName: item.name,
+          teacherEmail: item.email,
+          date: d.dateString,
+          status: dayAttendance?.status || "Absent",
+          clockIn: dayAttendance?.clockIn || "-",
+          clockOut: dayAttendance?.clockOut || "-",
+          ipAddress: dayAttendance?.ipAddress || "",
+        });
 
-  setTimeModal(true);
-}}
+        setTimeModal(true);
+      }}
       {/* Header Section */}
       <div className=" md:flex items-center md: flex-row justify-between items-start mb-6 gap-4">
         <h2 className="text-2xl font-semibold text-gray-900">
@@ -904,48 +904,46 @@ Copy code */}
 
             {/* Date + Status */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-             <div>
-  <label className="text-sm text-gray-600">Select Date</label>
-  <input
-    type="date"
-    className={`mt-2 border px-3 py-2 rounded w-full ${
-      modalErrors.date ? "border-red-500" : "border-gray-300"
-    }`}
-    value={modalDate}
-    onChange={(e) => {
-      setModalDate(e.target.value);
-      setModalErrors((prev) => ({ ...prev, date: "" }));
-    }}
-  />
-  {modalErrors.date && (
-    <p className="text-red-500 text-xs mt-1">{modalErrors.date}</p>
-  )}
-</div>
+              <div>
+                <label className="text-sm text-gray-600">Select Date</label>
+                <input
+                  type="date"
+                  className={`mt-2 border px-3 py-2 rounded w-full ${modalErrors.date ? "border-red-500" : "border-gray-300"
+                    }`}
+                  value={modalDate}
+                  onChange={(e) => {
+                    setModalDate(e.target.value);
+                    setModalErrors((prev) => ({ ...prev, date: "" }));
+                  }}
+                />
+                {modalErrors.date && (
+                  <p className="text-red-500 text-xs mt-1">{modalErrors.date}</p>
+                )}
+              </div>
 
 
               <div>
-  <label className="text-sm text-gray-600">Select Status</label>
-  <select
-    className={`mt-2 border px-3 py-2 rounded w-full ${
-      modalErrors.status ? "border-red-500" : "border-gray-300"
-    }`}
-    value={modalStatus}
-    onChange={(e) => {
-      setModalStatus(e.target.value);
-      setModalErrors((prev) => ({ ...prev, status: "" }));
-    }}
-  >
-    <option value="">-- Choose status --</option>
-    <option value="Present">Present</option>
-    <option value="Absent">Absent</option>
-    <option value="Late">Late</option>
-    <option value="Holiday">Holiday</option>
-    <option value="Half Day">Half Day</option>
-  </select>
-  {modalErrors.status && (
-    <p className="text-red-500 text-xs mt-1">{modalErrors.status}</p>
-  )}
-</div>
+                <label className="text-sm text-gray-600">Select Status</label>
+                <select
+                  className={`mt-2 border px-3 py-2 rounded w-full ${modalErrors.status ? "border-red-500" : "border-gray-300"
+                    }`}
+                  value={modalStatus}
+                  onChange={(e) => {
+                    setModalStatus(e.target.value);
+                    setModalErrors((prev) => ({ ...prev, status: "" }));
+                  }}
+                >
+                  <option value="">-- Choose status --</option>
+                  <option value="Present">Present</option>
+                  <option value="Absent">Absent</option>
+                  <option value="Late">Late</option>
+                  <option value="Holiday">Holiday</option>
+                  <option value="Half Day">Half Day</option>
+                </select>
+                {modalErrors.status && (
+                  <p className="text-red-500 text-xs mt-1">{modalErrors.status}</p>
+                )}
+              </div>
 
             </div>
 
@@ -988,7 +986,7 @@ Copy code */}
             {/* Buttons */}
             <div className="flex justify-end gap-3">
               <button onClick={() => setModalOpen(false)} className="px-4 py-2 rounded cursor-pointer bg-gray-200">Cancel</button>
-              <button onClick={handleModalSubmit}  className="px-4 py-2 rounded bg-yellow-500 cursor-pointer text-white">
+              <button onClick={handleModalSubmit} className="px-4 py-2 rounded bg-yellow-500 cursor-pointer text-white">
                 {updateMutation.isPending ? "Applying..." : "Apply"}
               </button>
             </div>

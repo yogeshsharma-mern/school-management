@@ -62,7 +62,7 @@ export default function StudentPage() {
   const [errors, setErrors] = useState({});
   const debouncedSearch = useDebounce(globalFilter, 500);
   const currentYear = new Date().getFullYear();
-    const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
+  const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
   const nextYear = currentYear + 1;
   const [formData, setFormData] = useState({
     academicYear: `${currentYear}-${nextYear}`,
@@ -103,7 +103,7 @@ export default function StudentPage() {
     },
 
     onError: (err) => {
-      toast.error(err?.response?.data?.message || "Import failed ❌");
+      toast.error(err?.response?.data?.message || "Import failed, (Invalid fields) ❌");
     },
   });
   const addFeeHead = () =>
@@ -225,33 +225,33 @@ export default function StudentPage() {
   //     }),
   // });
   const {
-  data: studentsData,
-  isLoading,
-  isFetching,
-  error,
-} = useQuery({
-  queryKey: [
-    "students",
-    classFilter || "all",   // 👈 important for caching
-    pagination.pageIndex,
-    pagination.pageSize,
-    debouncedSearch,
-    academicYearFilter,
-  ],
-  queryFn: () => {
-    // 🔹 URL decide karo
-    const url = classFilter
-      ? `${apiPath.getStudents}/${classFilter}` // /students/:id
-      : apiPath.getStudents;                   // /students (all)
+    data: studentsData,
+    isLoading,
+    isFetching,
+    error,
+  } = useQuery({
+    queryKey: [
+      "students",
+      classFilter || "all",   // 👈 important for caching
+      pagination.pageIndex,
+      pagination.pageSize,
+      debouncedSearch,
+      academicYearFilter,
+    ],
+    queryFn: () => {
+      // 🔹 URL decide karo
+      const url = classFilter
+        ? `${apiPath.getStudents}/${classFilter}` // /students/:id
+        : apiPath.getStudents;                   // /students (all)
 
-    return apiGet(url, {
-      page: pagination.pageIndex + 1,
-      limit: pagination.pageSize,
-      search: debouncedSearch || undefined,
-      academicYear: academicYearFilter || undefined,
-    });
-  },
-});
+      return apiGet(url, {
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        search: debouncedSearch || undefined,
+        academicYear: academicYearFilter || undefined,
+      });
+    },
+  });
 
   const handleExportCSV = () => {
     try {
@@ -264,15 +264,15 @@ export default function StudentPage() {
 
       // 👉 Map your table rows to a flat CSV-friendly shape
       const rows = docs.map((cls, idx) => {
-  const formatDate = (dateString) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0"); // 01-12
-  const day = String(date.getDate()).padStart(2, "0"); // 01-31
-  return `${year}/${month}/${day}`; // → "2013/02/05"
-};
-        
+        const formatDate = (dateString) => {
+          if (!dateString) return "";
+          const date = new Date(dateString);
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0"); // 01-12
+          const day = String(date.getDate()).padStart(2, "0"); // 01-31
+          return `${year}/${month}/${day}`; // → "2013/02/05"
+        };
+
         // status ko normalize: true/'active' -> Active else Inactive
         const statusNorm =
           cls?.status === true || cls?.status === "active" ? "Active" : "Inactive";
@@ -282,7 +282,7 @@ export default function StudentPage() {
         //     Array.isArray(cls?.classTeacher?.subjectsHandled) ? cls?.classTeacher?.subjectsHandled?.map((c)=>c?.subjectName).join(", ") : "N/A";
 
         return {
-          
+
           // "S No.": idx + 1,
           // "Subject Name": cls?.name || "",
           // Description: cls?.description || "",
@@ -292,9 +292,9 @@ export default function StudentPage() {
           // "Updated At": formatDate(cls?.updatedAt),
           "Name": cls?.name,
           "email": cls?.email,           // e.g., 10th
-          "phone": cls?.phone,    
-          "classname":cls?.className,     // e.g., A
-         "dob": formatDate(cls?.dob),
+          "phone": cls?.phone,
+          "classname": cls?.className,     // e.g., A
+          "dob": formatDate(cls?.dob),
           "gender": cls?.gender,
           "bloodGroup": cls?.bloodGroup,          // Male/Female/Other
           "parent1Name": cls?.parents[0]?.name,             // 2025-11-10 or 10/11/2025
@@ -393,8 +393,8 @@ export default function StudentPage() {
         "parent1Phone": "8767673647",
         "parent1Email": "doe@gmail.coom",    // active/inactive (optional)
         "parent2Name": "Fiza",
-        "parent2Occupation":"teacher",
-        "parent2Phone":"9867867567",
+        "parent2Occupation": "teacher",
+        "parent2Phone": "9867867567",
         "parent2Email": "fiza@gmail.com",
         "guardianName": "amily",
         "guardianRelation": "sister",
@@ -408,10 +408,10 @@ export default function StudentPage() {
         "state": "Rajasthan",
         "zip": "304040",
         "country": "India",
-         "class":"1st",
+        "class": "1st",
         "aadharFront": "",
         "aadharBack": "",
- 
+
 
 
 
@@ -421,7 +421,7 @@ export default function StudentPage() {
     const ws = XLSX.utils.json_to_sheet(templateRows, { skipHeader: false });
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "StudentsTemplate");
-    XLSX.writeFile(wb, "Students_Template.csv",{bookType:"csv"});
+    XLSX.writeFile(wb, "Students_Template.csv", { bookType: "csv" });
   };
 
 
@@ -517,7 +517,7 @@ export default function StudentPage() {
 
           <div className="grid mt-2 grid-cols-2 text-[10px] md:text-[14px] md:flex gap-3">
             {/* Template download (optional but recommended) */}
-          
+
             <Modal isOpen={showModel} title="Import Students (Excel)" onClose={() => setShowModal(false)}>
               <form onSubmit={handleImportSubmit} className="space-y-5">
                 {/* <div>
@@ -783,7 +783,7 @@ export default function StudentPage() {
 
             {/* Excel Import */}
             <label onClick={() => setShowModal(true)} className="px-3 flex gap-1 items-center md:justify-center py-2 rounded-md bg-[image:var(--gradient-primary)]  cursor-pointer">
-          <RiImportFill />
+              <RiImportFill />
 
 
 
@@ -798,7 +798,7 @@ export default function StudentPage() {
 
               Export CSV
             </button>
-              <button
+            <button
               onClick={downloadStudentTemplate}
               className="px-3 flex gap-1 items-center md:justify-center py-2 rounded-md bg-[image:var(--gradient-primary)]   cursor-pointer"
             >
@@ -813,7 +813,7 @@ export default function StudentPage() {
               <IoAddCircle />
               Add Student
             </button>
-            
+
           </div>
         </div>
       </div>
@@ -835,17 +835,17 @@ export default function StudentPage() {
             }
           />
           <div className="flex justify-end gap-2">
-         <button
-  type="button"
-  onClick={confirmDelete}
-  disabled={deleteMutation.isLoading}
-  className={`w-full flex items-center cursor-pointer justify-center gap-2 
+            <button
+              type="button"
+              onClick={confirmDelete}
+              disabled={deleteMutation.isLoading}
+              className={`w-full flex items-center cursor-pointer justify-center gap-2 
     bg-[image:var(--gradient-primary)] py-2 rounded-lg transition
     ${deleteMutation.isLoading ? "opacity-75 cursor-not-allowed" : ""}
   `}
->
-  {deleteMutation.isLoading ? "Deleting..." : "Delete"}
-</button>
+            >
+              {deleteMutation.isLoading ? "Deleting..." : "Delete"}
+            </button>
 
 
           </div>

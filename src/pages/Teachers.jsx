@@ -256,7 +256,7 @@ export default function StudentPage() {
 
     onError: (err) => {
       console.log("err", err);
-      toast.error(err?.response?.data?.message || "Import failed ❌");
+      toast.error(err?.response?.data?.message || "Import failed, (Invalid fields) ❌");
     },
   });
   const handleImportSubmit = (e) => {
@@ -510,6 +510,7 @@ export default function StudentPage() {
             <FaFileExport />
 
             Import CSV
+
           </button>
           <button
             onClick={downloadStudentTemplate}

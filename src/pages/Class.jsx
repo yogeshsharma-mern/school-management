@@ -19,6 +19,7 @@ import { useSelector } from "react-redux";
 import { GiBrassEye } from "react-icons/gi";
 import { set } from "react-hook-form";
 import { FaEye } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 
 
@@ -34,13 +35,13 @@ export default function ClassPage() {
   const [addclassTeacherModal, setClassTeacherModal] = useState(false);
   const [detailModal, setDetailModal] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
-  const [subject,setSubject] = useState(null);
-  const [selectedSubjectId,setSelectedSubjectId]= useState(null);
-  const [subjectCode,setSubjectCode]= useState(null);
+  const [subject, setSubject] = useState(null);
+  const [selectedSubjectId, setSelectedSubjectId] = useState(null);
+  const [subjectCode, setSubjectCode] = useState(null);
   const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
   const [classDetail, setClassDetail] = useState(null);
   // console.log("selectedteacher",selectedTeacher);
-
+  const navigate = useNavigate();
 
   const handleteacherChange = (item) => {
     // // console.log("item",item.value);
@@ -50,8 +51,8 @@ export default function ClassPage() {
     // // console.log("item",item.value);
     setSelectedSubjectId(item.value);
     setSubject(item.label);
-setSubjectCode(item.code);
-    
+    setSubjectCode(item.code);
+
   }
   const handleExportCSV = () => {
     try {
@@ -113,7 +114,7 @@ setSubjectCode(item.code);
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
-  console.log("editingclass",editingClass);
+  console.log("editingclass", editingClass);
   const [formData, setFormData] = useState({
     name: "",
     section: "",
@@ -121,7 +122,7 @@ setSubjectCode(item.code);
     endTime: "",
   });
   const [errors, setErrors] = useState({});
-  const debouncedSearch = useDebounce(globalFilter, 500); ``
+  const debouncedSearch = useDebounce(globalFilter, 500);
 
   // Fetch classes
   const { data: classesData, isLoading, isFetching, error, isError } = useQuery({
@@ -156,16 +157,16 @@ setSubjectCode(item.code);
       apiGet(`${apiPath.getSubjectsByClassname}/${editingClass.name}`
       ),
   });
-  
+
   // console.log("subjectdata",subjectsData);
   const subjectsFromApi = subjectsData?.results;
-  console.log("subjectfromapi",subjectsFromApi);
+  console.log("subjectfromapi", subjectsFromApi);
   const subjectOptions = subjectsFromApi?.map((s) => ({
     value: s._id,
     label: `${s.name} (${s.code})`,
     code: s.code,
   }));
-  console.log("subjectoptions",subjectOptions);
+  console.log("subjectoptions", subjectOptions);
   // Get all teacher IDs already assigned as class teachers
   const assignedTeacherIds = classesData?.results?.docs
     ?.filter(cls => cls.classTeacher?._id)
@@ -535,16 +536,16 @@ setSubjectCode(item.code);
         // className="rounded-md"
         />
         <div className="mt-3">
-           <Select
-          options={subjectOptions}
-          // value={head.type ? { value: head.type, label: head.type } : null}
-          placeholder="Select Subjects"
-          // onChange={(opt) => handleFeeHeadChange(index, "type", opt?.value || "")}
-          onChange={handleSubjectChange}
-        // value={setSelectedTeacher}
-        // isDisabled={isMandatory}
-        // className="rounded-md"
-        />
+          <Select
+            options={subjectOptions}
+            // value={head.type ? { value: head.type, label: head.type } : null}
+            placeholder="Select Subjects"
+            // onChange={(opt) => handleFeeHeadChange(index, "type", opt?.value || "")}
+            onChange={handleSubjectChange}
+          // value={setSelectedTeacher}
+          // isDisabled={isMandatory}
+          // className="rounded-md"
+          />
         </div>
         <button
           className="bg-yellow-500 py-2 px-4 rounded-md mt-4 ml-auto block cursor-pointer"
@@ -564,9 +565,9 @@ setSubjectCode(item.code);
               teacherId: selectedTeacher,
               classId: editingClass._id,
               section: editingClass.section,
-              subjectId:selectedSubjectId,
-              subjectName:subject,
-              subjectCode:subjectCode
+              subjectId: selectedSubjectId,
+              subjectName: subject,
+              subjectCode: subjectCode
             });
           }}
         >
