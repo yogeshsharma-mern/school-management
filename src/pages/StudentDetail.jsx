@@ -47,7 +47,7 @@ export default function StudentDetailPage() {
 
   const [showFeesModal, setShowFeesModal] = useState(false);
 console.log("data",data);
-  const student = data?.results[0];
+  const student = data?.results;
   // console.log("studentdata", student);
 
   // ✅ Function to download single image as PDF

@@ -343,9 +343,10 @@ export default function CalendarPage() {
         // Title validation
         if (!form.title.trim()) {
             errors.title = "Holiday title is required";
-        } else if (!/^[a-zA-Z.\s]+$/.test(form.title)) {
-            errors.title = "Only alphabets and spaces allowed";
-        }
+        } 
+        // else if (!/^[a-zA-Z.\s]+$/.test(form.title)) {
+        //     errors.title = "Only alphabets and spaces allowed";
+        // }
 
         // Description (optional but validate if present)
         if (form.description && !/^[a-zA-Z.\s]+$/.test(form.description)) {
