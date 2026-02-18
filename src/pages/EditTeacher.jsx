@@ -30,7 +30,30 @@ import {
     Divider
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-
+    const designationDataExample = [
+        "Principal",
+        "Vice Principal",
+        "Headmaster",
+        "Headmistress",
+        "Senior Teacher",
+        "Junior Teacher",
+        "Subject Teacher",
+        "Assistant Teacher",
+        "Pre-Primary Teacher",
+        "Primary Teacher",
+        "Middle School Teacher",
+        "High School Teacher",
+        "Maths Teacher",
+        "Science Teacher",
+        "English Teacher",
+        "Computer Teacher",
+        "Social Studies Teacher",
+        "Physical Education Teacher",
+        //   "Art Teacher",
+        //   "Music Teacher",
+        //   "Dance Teacher",
+        //   "Lab Assistant",
+    ];
 const customSelectStyles = {
     control: (provided, state) => ({
         ...provided,
@@ -1112,6 +1135,7 @@ export default function CreateTeacherPage() {
                                     <label className="block text-gray-700 font-medium mb-2">
                                         Designation
                                     </label>
+                                           
                                     <TextField
                                         fullWidth
                                         size="medium"
@@ -1121,10 +1145,17 @@ export default function CreateTeacherPage() {
                                         onChange={handleChange}
                                         error={!!errors.designation}
                                         helperText={errors.designation}
+                                         inputProps={{ list: "designationExample" }}  
                                         InputProps={{
                                             style: { height: "56px", borderRadius: "8px" },
                                         }}
+                                        
                                     />
+                                     <datalist id="designationExample">
+                                        {designationDataExample.map((item, index) => (
+                                            <option key={index} value={item} />
+                                        ))}
+                                    </datalist>
                                 </Grid>
 
                                 {/* Qualifications */}

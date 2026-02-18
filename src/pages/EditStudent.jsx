@@ -74,7 +74,7 @@ export default function CreateStudentPage() {
   // console.log("profileppic", previews.profilePic);
   // console.log("studentinfo", student);
   const states = [
-    { value: "Rajasthan", label: "Maharashtra" },
+    { value: "Rajasthan", label: "Rajasthan" },
     // { value: "Karnataka", label: "Karnataka" },
     // { value: "Tamil Nadu", label: "Tamil Nadu" },
     { value: "Delhi", label: "Delhi" },

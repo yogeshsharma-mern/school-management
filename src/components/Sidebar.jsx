@@ -488,14 +488,14 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                 <TfiGallery size={15} />
                 <span>Gallery Setting</span>
               </NavLink>
-              <NavLink
+              {/* <NavLink
                 to="/admin/school/ip-setting"
                 className={subItemClass}
                 onClick={handleSubmenuClick}
               >
                 <BsClockHistory size={15} />
                 <span>IP Setting</span>
-              </NavLink>
+              </NavLink> */}
               <NavLink
                 to="/admin/school/setting/about-us"
                 className={subItemClass}
