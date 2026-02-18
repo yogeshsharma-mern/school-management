@@ -56,6 +56,16 @@ export default function CalendarPage() {
         queryFn: () =>
             apiGet(`${apiPath.getHolidays}?month=${selectedMonth}&year=${selectedYear}`),
     });
+    const isPastDate = (isoDate) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // remove time
+
+    const selected = new Date(isoDate);
+    selected.setHours(0, 0, 0, 0);
+
+    return selected < today;
+};
+
     const importMutation = useMutation({
         mutationFn: async (formData) =>
             apiPost(apiPath.importCalander, formData, {
@@ -182,17 +192,41 @@ export default function CalendarPage() {
         },
     });
 
-    const handleDateClick = (day) => {
-        const date = new Date(selectedYear, selectedMonth - 1, day);
-        const iso = `${date.getFullYear()}-${String(selectedMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-        const weekday = date.toLocaleDateString("en-US", { weekday: "long" });
-        const existing = getHolidayForDate(day);
+    // const handleDateClick = (day) => {
+    //     const date = new Date(selectedYear, selectedMonth - 1, day);
+    //     const iso = `${date.getFullYear()}-${String(selectedMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    //     const weekday = date.toLocaleDateString("en-US", { weekday: "long" });
+    //     const existing = getHolidayForDate(day);
 
-        setForm(existing ? { title: existing.title, description: existing.description } : { title: "", description: "" });
-        setEditId(existing?._id || null);
-        setSelectedDate({ iso, weekday, display: day });
-        setShowModal(true);
-    };
+    //     setForm(existing ? { title: existing.title, description: existing.description } : { title: "", description: "" });
+    //     setEditId(existing?._id || null);
+    //     setSelectedDate({ iso, weekday, display: day });
+    //     setShowModal(true);
+    // };
+  const handleDateClick = (day) => {
+    const date = new Date(selectedYear, selectedMonth - 1, day);
+
+    const iso = `${date.getFullYear()}-${String(selectedMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+    // 🔴 Block past dates
+    if (isPastDate(iso)) {
+        toast.error("Past dates cannot be modified ❌");
+        return;
+    }
+
+    const weekday = date.toLocaleDateString("en-US", { weekday: "long" });
+    const existing = getHolidayForDate(day);
+
+    setForm(existing
+        ? { title: existing.title, description: existing.description }
+        : { title: "", description: "" }
+    );
+
+    setEditId(existing?._id || null);
+    setSelectedDate({ iso, weekday, display: day });
+    setShowModal(true);
+};
+
     const downloadStudentTemplate = () => {
         // Columns you want the admin to fill
         const templateRows = [

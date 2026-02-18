@@ -372,7 +372,7 @@ export default function StudentPage() {
         header: "Profile Pic",
         cell: ({ row }) => (
           <img
-            src={`${row.original.profilePic?.fileUrl}` || "/default-avatar.png"}
+            src={`${row.original.profilePic?.secure_url}` || "/default-avatar.png"}
             alt={row.original.name}
             className="w-10 h-10 rounded-full object-cover border"
           />
@@ -382,29 +382,29 @@ export default function StudentPage() {
       { accessorKey: "email", header: "Email" },
       { accessorKey: "phone", header: "Phone" },
       { accessorKey: "gender", header: "Gender" },
-   {
-  accessorKey: "classTeacherOf",
-  header: "Class Teacher",
-  cell: ({ getValue }) => {
-    const value = getValue();
-    const label = value && value.trim() ? value : "Not decided";
+      {
+        accessorKey: "classTeacherOf",
+        header: "Class Teacher",
+        cell: ({ getValue }) => {
+          const value = getValue();
+          const label = value && value.trim() ? value : "Not decided";
 
-    return (
-      <span
-        style={{
-          padding: "4px 10px",
-          borderRadius: "12px",
-          fontSize: "12px",
-          fontWeight: 500,
-          backgroundColor: value ? "#E6F4EA" : "#FDECEC",
-          color: value ? "#137333" : "#B3261E",
-        }}
-      >
-        {label}
-      </span>
-    );
-  },
-},
+          return (
+            <span
+              style={{
+                padding: "4px 10px",
+                borderRadius: "12px",
+                fontSize: "12px",
+                fontWeight: 500,
+                backgroundColor: value ? "#E6F4EA" : "#FDECEC",
+                color: value ? "#137333" : "#B3261E",
+              }}
+            >
+              {label}
+            </span>
+          );
+        },
+      },
 
 
       // { accessorKey: "bloodGroup", header: "Blood Group" },

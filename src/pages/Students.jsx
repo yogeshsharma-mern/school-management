@@ -51,6 +51,9 @@ export default function StudentPage() {
   const [classId, setClassId] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [academicYear, setAcademicYear] = useState(null);
+  const [selectedStudents, setSelectedStudents] = useState([]);
+  console.log("selectedstudetns",selectedStudents);
+
   console.log("classid", classId);
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -72,6 +75,8 @@ export default function StudentPage() {
     ],
     totalAmount: 0,
   });
+
+
   // 🔹 Import Mutation
   const importMutation = useMutation({
     mutationFn: async (formData) =>
@@ -426,8 +431,84 @@ export default function StudentPage() {
 
 
   // --- Table Columns ---
+
+
+  const tableData = useMemo(
+    () => studentsData?.results?.docs || [],
+    [studentsData]
+  );
+  console.log("tabledata",tableData);
+  const totalPages = studentsData?.results?.totalPages || 1;
+  const handleUpdateSession = () => {
+    if (!selectedStudents.length) {
+      toast.error("Please select students");
+      return;
+    }
+
+    if (!classId) {
+      toast.error("ClassId missing");
+      return;
+    }
+
+    if (!feesData?.results?._id) {
+      toast.error("Fee structure missing");
+      return;
+    }
+
+    const payload = {
+      studentIds: selectedStudents,
+      classId: classId,
+      feeStructureId: feesData.results._id,
+    };
+
+    console.log("Payload", payload);
+
+    updateMutation.mutate(payload);
+  };
+const allStudentIds = tableData.map(s => s._id);
+console.log("allstudentids",allStudentIds);
+
+const isAllSelected =
+  allStudentIds.length > 0 &&
+  allStudentIds.every(id => selectedStudents.includes(id));
+
+const toggleSelectAll = () => {
+  if (isAllSelected) {
+    setSelectedStudents([]); // unselect all
+  } else {
+    setSelectedStudents(allStudentIds); // select all visible rows
+  }
+};
+
+const toggleStudent = (id) => {
+  setSelectedStudents(prev =>
+    prev.includes(id)
+      ? prev.filter(sid => sid !== id)
+      : [...prev, id]
+  );
+};
+
   const columns = useMemo(
     () => [
+      {
+        id: 'select',
+        header: () => (
+          <Checkbox
+            checked={isAllSelected}
+            indeterminate={
+              selectedStudents.length > 0 && !isAllSelected
+            }
+            onChange={toggleSelectAll}
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={selectedStudents.includes(row.original._id)}
+            onChange={() => toggleStudent(row.original._id)}
+          />
+        ),
+        size: 50,
+      },
       {
         header: "S No.",
         cell: ({ row }) => row.index + 1,
@@ -482,15 +563,9 @@ export default function StudentPage() {
         ),
       },
     ],
-    []
+    [classFilter,selectedStudents,
+      isAllSelected]
   );
-
-  const tableData = useMemo(
-    () => studentsData?.results?.docs || [],
-    [studentsData]
-  );
-  const totalPages = studentsData?.results?.totalPages || 1;
-
   return (
     <div>
       {/* Header + Filters */}

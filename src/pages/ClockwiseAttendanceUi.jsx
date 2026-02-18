@@ -791,18 +791,20 @@ Copy code */}
 
       {/* Search + Limit */}
       <div className="flex items-center justify-between mb-4">
-        <input
-          type="text"
-          placeholder="Search teachers"
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setPage(1);
-          }}
-          autoFocus
-          className="border px-3 py-2 border-gray-300 rounded-md mb-2"
-          style={{ width: "200px" }}
-        />
+<input
+  type="text"
+  placeholder="Search teachers"
+  value={searchTerm}
+  onChange={(e) => {
+    const cleaned = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+    setSearchTerm(cleaned);
+    setPage(1);
+  }}
+  autoFocus
+  className="border px-3 py-2 border-gray-300 rounded-md mb-2"
+  style={{ width: "200px" }}
+/>
+
         <div className="flex items-center gap-2">
           <select
             className="border px-3 py-2 border-gray-300 rounded-md mb-2"
