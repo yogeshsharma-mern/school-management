@@ -6,11 +6,13 @@ import "react-phone-input-2/lib/style.css";
 import apiPath from "../api/apiPath";
 import { useQuery } from "@tanstack/react-query";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import Select from "react-select";
-import countryList from "react-select-country-list";
+// import Select from "react-select";
+// import countryList from "react-select-country-list";
 import { AddCircleOutline, DeleteOutline } from "@mui/icons-material";
 import { useRef } from "react";
 import { useLayoutEffect } from "react";
+import { Country, State, City } from "country-state-city";
+
 
 
 import {
@@ -31,36 +33,101 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
+import Select from 'react-select';
 
+// Custom styles for React Select
 const customSelectStyles = {
     control: (provided, state) => ({
         ...provided,
-        minHeight: "56px", // Match MUI TextField height
-        height: "56px",
-        borderColor: state.isFocused ? "#1976d2" : "#c8cbbfff",
-        boxShadow: state.isFocused ? "0 0 0 1px #1976d2" : "none",
-        "&:hover": { borderColor: "#1976d2" },
-        borderRadius: "8px",
-        fontSize: "0.95rem",
+        minHeight: '56px',
+        borderRadius: '8px',
+        borderColor: state.isFocused ? '#3b82f6' : '#d1d5db',
+        boxShadow: state.isFocused ? '0 0 0 2px rgba(59, 130, 246, 0.1)' : 'none',
+        '&:hover': {
+            borderColor: '#3b82f6',
+        },
+        backgroundColor: state.isDisabled ? '#f9fafb' : 'white',
+        cursor: state.isDisabled ? 'not-allowed' : 'pointer',
+        transition: 'all 0.2s ease',
     }),
-    valueContainer: (provided) => ({
+    menu: (provided) => ({
         ...provided,
-        height: "56px",
-        padding: "0 8px",
+        borderRadius: '8px',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        zIndex: 50,
+        marginTop: '4px',
     }),
-    input: (provided) => ({
+    option: (provided, state) => ({
         ...provided,
-        margin: "0",
-        padding: "0",
-    }),
-    indicatorsContainer: (provided) => ({
-        ...provided,
-        height: "56px",
+        backgroundColor: state.isSelected 
+            ? '#3b82f6' 
+            : state.isFocused 
+            ? '#eff6ff' 
+            : 'white',
+        color: state.isSelected ? 'white' : '#1f2937',
+        cursor: 'pointer',
+        padding: '12px 16px',
+        fontSize: '0.95rem',
+        '&:active': {
+            backgroundColor: state.isSelected ? '#2563eb' : '#dbeafe',
+        },
     }),
     placeholder: (provided) => ({
         ...provided,
-        color: "#757575",
+        color: '#9ca3af',
+        fontSize: '0.95rem',
     }),
+    singleValue: (provided) => ({
+        ...provided,
+        color: '#1f2937',
+        fontSize: '0.95rem',
+    }),
+    input: (provided) => ({
+        ...provided,
+        color: '#1f2937',
+        fontSize: '0.95rem',
+    }),
+    indicatorSeparator: () => ({
+        display: 'none',
+    }),
+    dropdownIndicator: (provided, state) => ({
+        ...provided,
+        color: '#9ca3af',
+        transform: state.selectProps.menuIsOpen ? 'rotate(180deg)' : 'none',
+        transition: 'transform 0.2s ease',
+    }),
+    clearIndicator: (provided) => ({
+        ...provided,
+        color: '#9ca3af',
+        cursor: 'pointer',
+        '&:hover': {
+            color: '#ef4444',
+        },
+    }),
+};
+
+// Then use it in your component
+const YourComponent = () => {
+    return (
+        <Select
+            options={countryOptions}
+            styles={customSelectStyles}  // <-- Apply styles here
+            value={countryOptions.find(c => c.value === teacher.address.country)}
+            onChange={(selected) => {
+                setteacher(prev => ({
+                    ...prev,
+                    address: {
+                        ...prev.address,
+                        country: selected.value,
+                        state: "",
+                        city: "",
+                    },
+                }));
+                setErrors(prev => ({ ...prev, address_country: "" }));
+            }}
+            placeholder="Select Country"
+        />
+    );
 };
 export default function CreateTeacherPage() {
     const navigate = useNavigate();
@@ -96,14 +163,14 @@ export default function CreateTeacherPage() {
 
     ];
 
-    const countries = countryList().getData();
-    const states = [
-        { value: "Rajasthan", label: "Rajasthan" },
-        // { value: "Karnataka", label: "Karnataka" },
-        // { value: "Tamil Nadu", label: "Tamil Nadu" },
-        { value: "Delhi", label: "Delhi" },
-        { value: "Gujarat", label: "Gujarat" },
-    ];
+    // const countries = countryList().getData();
+    // const states = [
+    //     { value: "Rajasthan", label: "Rajasthan" },
+    //     // { value: "Karnataka", label: "Karnataka" },
+    //     // { value: "Tamil Nadu", label: "Tamil Nadu" },
+    //     { value: "Delhi", label: "Delhi" },
+    //     { value: "Gujarat", label: "Gujarat" },
+    // ];
 
     const [teacher, setteacher] = useState({
         name: "",
@@ -190,6 +257,24 @@ export default function CreateTeacherPage() {
     // console.log("classess", classes);
     const steps = ["Personal Details", "Professional Information", "Academic & Documents"];
 
+    const countryOptions = Country.getAllCountries().map(country => ({
+        value: country.isoCode,
+        label: country.name,
+    }));
+
+    const stateOptions = teacher.address.country
+        ? State.getStatesOfCountry(teacher.address.country).map(state => ({
+            value: state.isoCode,
+            label: state.name,
+        }))
+        : [];
+
+    const cityOptions = (teacher.address.country && teacher.address.state)
+        ? City.getCitiesOfState(teacher.address.country, teacher.address.state).map(city => ({
+            value: city.name,
+            label: city.name,
+        }))
+        : [];
 
 
     const designationDataExample = [
@@ -726,289 +811,387 @@ export default function CreateTeacherPage() {
 
             <form onSubmit={handleSubmit} className="mt-8 space-y-8">
                 {/* Step 1 */}
-                {activeStep === 0 && (
-                    <div className="grid md:grid-cols-2 gap-6">
+          {activeStep === 0 && (
+    <div className="space-y-8">
+        {/* Personal Information Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-blue-500 rounded-full"></span>
+                Personal Information
+            </h3>
+            <div className="grid md:grid-cols-2 gap-6">
+                {/* Full Name */}
+                <TextField
+                    fullWidth
+                    label="Full Name"
+                    name="name"
+                    value={teacher.name}
+                    onChange={handleChange}
+                    error={!!errors.name}
+                    helperText={errors.name}
+                    variant="outlined"
+                    className="w-full"
+                />
 
-                        {/* Full Name */}
-                        <TextField
-                            fullWidth
-                            label="Full Name"
-                            name="name"
-                            value={teacher.name}
-                            onChange={handleChange}
-                            error={!!errors.name}
-                            helperText={errors.name}
-                        />
+                {/* Date of Birth */}
+                <TextField
+                    fullWidth
+                    type="date"
+                    name="dob"
+                    value={teacher.dob}
+                    onChange={handleChange}
+                    label="Date of Birth"
+                    InputLabelProps={{ shrink: true }}
+                    inputProps={{
+                        max: new Date(
+                            new Date().setFullYear(new Date().getFullYear() - 18)
+                        ).toISOString().split("T")[0],
+                        min: new Date(
+                            new Date().setFullYear(new Date().getFullYear() - 65)
+                        ).toISOString().split("T")[0],
+                    }}
+                    error={!!errors.dob}
+                    helperText={errors.dob}
+                    variant="outlined"
+                />
 
-                        {/* Date of Birth */}
-                        <TextField
-                            fullWidth
-                            type="date"
-                            name="dob"
-                            value={teacher.dob}
-                            onChange={handleChange}
-                            label="Date of Birth"
-                            InputLabelProps={{ shrink: true }}
-                            inputProps={{
-                                max: new Date(
-                                    new Date().setFullYear(new Date().getFullYear() - 18)
-                                ).toISOString().split("T")[0], // 🎯 at least 18 years old (yesterday)
-                                min: new Date(
-                                    new Date().setFullYear(new Date().getFullYear() - 65)
-                                ).toISOString().split("T")[0], // 🎯 at most 65 years old
-                            }}
-                            error={!!errors.dob}
-                            helperText={errors.dob}
-                        />
+                {/* Gender */}
+                <TextField
+                    select
+                    fullWidth
+                    name="gender"
+                    label="Gender"
+                    value={teacher.gender}
+                    onChange={(e) => {
+                        setteacher({ ...teacher, gender: e.target.value });
+                        setErrors((prev) => ({ ...prev, gender: "" }));
+                    }}
+                    error={!!errors.gender}
+                    helperText={errors.gender}
+                    variant="outlined"
+                >
+                    <MenuItem value="">Select Gender</MenuItem>
+                    <MenuItem value="Male">Male</MenuItem>
+                    <MenuItem value="Female">Female</MenuItem>
+                    <MenuItem value="Other">Other</MenuItem>
+                </TextField>
 
+                {/* Blood Group */}
+                <TextField
+                    select
+                    fullWidth
+                    name="bloodGroup"
+                    label="Blood Group"
+                    value={teacher.bloodGroup}
+                    onChange={(e) => {
+                        setteacher({ ...teacher, bloodGroup: e.target.value });
+                        setErrors((prev) => ({ ...prev, bloodGroup: "" }));
+                    }}
+                    error={!!errors.bloodGroup}
+                    helperText={errors.bloodGroup}
+                    variant="outlined"
+                >
+                    {["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"].map((bg) => (
+                        <MenuItem key={bg} value={bg}>
+                            {bg}
+                        </MenuItem>
+                    ))}
+                </TextField>
+            </div>
+        </div>
 
-                        {/* Gender */}
-                        <TextField
-                            select
-                            fullWidth
-                            name="gender"
-                            label="Gender"
-                            value={teacher.gender}
-                            onChange={(e) => {
-                                setteacher({ ...teacher, gender: e.target.value });
-                                setErrors((prev) => ({ ...prev, gender: "" }));
-                            }}
-                            error={!!errors.gender}
-                            helperText={errors.gender}
-                        >
-                            <MenuItem value="">Select Gender</MenuItem>
-                            <MenuItem value="Male">Male</MenuItem>
-                            <MenuItem value="Female">Female</MenuItem>
-                            <MenuItem value="Other">Other</MenuItem>
-                        </TextField>
+        {/* Contact Information Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-green-500 rounded-full"></span>
+                Contact Information
+            </h3>
+            <div className="grid md:grid-cols-2 gap-6">
+                {/* Email */}
+                <TextField
+                    fullWidth
+                    type="email"
+                    name="email"
+                    label="Email Address"
+                    value={teacher.email}
+                    onChange={handleChange}
+                    error={!!errors.email}
+                    helperText={errors.email}
+                    variant="outlined"
+                />
 
-                        {/* Blood Group */}
-                        <TextField
-                            select
-                            fullWidth
-                            name="bloodGroup"
-                            label="Blood Group"
-                            value={teacher.bloodGroup}
-                            onChange={(e) => {
-                                setteacher({ ...teacher, bloodGroup: e.target.value });
-                                setErrors((prev) => ({ ...prev, bloodGroup: "" }));
-                            }}
-                            error={!!errors.bloodGroup}
-                            helperText={errors.bloodGroup}
-                        >
-                            {["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"].map((bg) => (
-                                <MenuItem key={bg} value={bg}>
-                                    {bg}
-                                </MenuItem>
-                            ))}
-                        </TextField>
+                {/* Password */}
+                <TextField
+                    fullWidth
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    label="Password"
+                    value={teacher.password}
+                    onChange={handleChange}
+                    error={!!errors.password}
+                    helperText={errors.password}
+                    variant="outlined"
+                    InputProps={{
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                                </IconButton>
+                            </InputAdornment>
+                        ),
+                    }}
+                />
 
-                        {/* Email */}
-                        <TextField
-                            fullWidth
-                            type="email"
-                            name="email"
-                            label="Email"
-                            value={teacher.email}
-                            onChange={handleChange}
-                            error={!!errors.email}
-                            helperText={errors.email}
-                        />
+                {/* Phone */}
+                <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Phone Number <span className="text-red-500">*</span>
+                    </label>
+                    <PhoneInput
+                        country="in"
+                        enableSearch
+                        value={teacher.phone}
+                        onChange={(phone) => {
+                            setteacher({ ...teacher, phone });
+                            setErrors((p) => ({ ...p, phone: "" }));
+                        }}
+                        inputClass="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors"
+                    />
+                    {errors.phone && (
+                        <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                            <span>⚠️</span> {errors.phone}
+                        </p>
+                    )}
+                </div>
+            </div>
+        </div>
 
-                        {/* Password */}
-                        <TextField
-                            fullWidth
-                            type={showPassword ? "text" : "password"}
-                            name="password"
-                            label="Password"
-                            value={teacher.password}
-                            onChange={handleChange}
-                            error={!!errors.password}
-                            helperText={errors.password}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton onClick={() => setShowPassword(!showPassword)}>
-                                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
+        {/* Address Information Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-purple-500 rounded-full"></span>
+                Address Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Country */}
+                <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                        Country <span className="text-red-500">*</span>
+                    </label>
+                    <Select
+                        options={countryOptions}
+                        styles={customSelectStyles}
+                        value={countryOptions.find(c => c.value === teacher.address.country)}
+                        onChange={(selected) => {
+                            setteacher(prev => ({
+                                ...prev,
+                                address: {
+                                    ...prev.address,
+                                    country: selected.value,
+                                    state: "",
+                                    city: "",
+                                },
+                            }));
+                            setErrors(prev => ({ ...prev, address_country: "" }));
+                        }}
+                        placeholder="Select Country"
+                        className="w-full"
+                    />
+                    {errors.address_country && (
+                        <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                            <span>⚠️</span> {errors.address_country}
+                        </p>
+                    )}
+                </div>
 
-                        {/* Phone */}
-                        <div>
-                            {/* <label className="block text-gray-600 font-medium mb-1">Phone</label> */}
-                            <PhoneInput
-                                country="in"
-                                enableSearch
-                                value={teacher.phone}
-                                onChange={(phone) =>
-                                    setteacher({ ...teacher, phone }) ||
-                                    setErrors((p) => ({ ...p, phone: "" }))
+                {/* State */}
+                <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                        State <span className="text-red-500">*</span>
+                    </label>
+                    <Select
+                        options={stateOptions}
+                        styles={customSelectStyles}
+                        value={stateOptions.find(s => s.value === teacher.address.state)}
+                        onChange={(selected) => {
+                            setteacher(prev => ({
+                                ...prev,
+                                address: {
+                                    ...prev.address,
+                                    state: selected.value,
+                                    city: "",
+                                },
+                            }));
+                            setErrors(prev => ({ ...prev, address_state: "" }));
+                        }}
+                        placeholder={!teacher.address.country ? "Select Country First" : "Select State"}
+                        isDisabled={!teacher.address.country}
+                        className="w-full"
+                    />
+                    {errors.address_state && (
+                        <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                            <span>⚠️</span> {errors.address_state}
+                        </p>
+                    )}
+                </div>
+
+                {/* City */}
+                <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                        City <span className="text-red-500">*</span>
+                    </label>
+                    <Select
+                        options={cityOptions}
+                        styles={customSelectStyles}
+                        value={cityOptions.find(c => c.value === teacher.address.city)}
+                        onChange={(selected) => {
+                            setteacher(prev => ({
+                                ...prev,
+                                address: {
+                                    ...prev.address,
+                                    city: selected.value,
+                                },
+                            }));
+                            setErrors(prev => ({ ...prev, address_city: "" }));
+                        }}
+                        placeholder={!teacher.address.state ? "Select State First" : "Select City"}
+                        isDisabled={!teacher.address.state}
+                        className="w-full"
+                    />
+                    {errors.address_city && (
+                        <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                            <span>⚠️</span> {errors.address_city}
+                        </p>
+                    )}
+                </div>
+
+                {/* ZIP Code */}
+                <div className="space-y-2">
+                    <TextField
+                        fullWidth
+                        name="zip"
+                        label="ZIP / Postal Code"
+                        value={teacher.address.zip}
+                        onChange={(e) => handleChange(e, null, "address")}
+                        error={!!errors.address_zip}
+                        helperText={errors.address_zip}
+                        variant="outlined"
+                    />
+                </div>
+
+                {/* Street Address */}
+                <div className="md:col-span-2">
+                    <TextField
+                        fullWidth
+                        name="street"
+                        label="Street Address"
+                        value={teacher.address.street}
+                        onChange={(e) => handleChange(e, null, "address")}
+                        error={!!errors.address_street}
+                        helperText={errors.address_street}
+                        variant="outlined"
+                        multiline
+                        rows={2}
+                        placeholder="House number, street name, landmark, etc."
+                    />
+                </div>
+            </div>
+        </div>
+
+        {/* Additional Information Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-orange-500 rounded-full"></span>
+                Additional Information
+            </h3>
+            <div className="grid md:grid-cols-2 gap-6">
+                {/* Physical Disability */}
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={teacher.physicalDisability}
+                                onChange={(e) =>
+                                    setteacher({
+                                        ...teacher,
+                                        physicalDisability: e.target.checked,
+                                    })
                                 }
-                                inputClass="w-full p-3 rounded-lg border border-gray-300"
+                                name="physicalDisability"
+                                color="primary"
                             />
-                            {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
-                        </div>
-
-                        {/* Address: Street */}
+                        }
+                        label={
+                            <span className="font-medium text-gray-700">Physical Disability</span>
+                        }
+                    />
+                    {teacher.physicalDisability && (
                         <TextField
                             fullWidth
-                            name="street"
-                            label="Street"
-                            value={teacher.address.street}
-                            onChange={(e) => handleChange(e, null, "address")}
-                            error={!!errors.address_street}
-                            helperText={errors.address_street}
+                            multiline
+                            rows={3}
+                            name="disabilityDetails"
+                            label="Disability Details"
+                            value={teacher.disabilityDetails}
+                            onChange={handleChange}
+                            variant="outlined"
+                            className="mt-3"
+                            placeholder="Please provide details about the disability..."
                         />
+                    )}
+                </div>
 
-                        {/* Address: City */}
-                        <TextField
-                            fullWidth
-                            name="city"
-                            label="City"
-                            value={teacher.address.city}
-                            onChange={(e) => handleChange(e, null, "address")}
-                            error={!!errors.address_city}
-                            helperText={errors.address_city}
-                        />
-
-                        {/* Address: State */}
-                        <Select
-                            name="state"
-                            options={states}
-                            value={states.find((s) => s.value === teacher.address.state)}
-                            onChange={(selected) => {
-                                setteacher((prev) => ({
-                                    ...prev,
-                                    address: { ...prev.address, state: selected.value },
-                                }));
-                                setErrors((prev) => ({ ...prev, address_state: "" }));
-                            }}
-                            placeholder="Select State"
-                        />
-                        {errors.address_state && (
-                            <p className="text-red-500 text-sm mt-1">{errors.address_state}</p>
+                {/* Profile Picture Upload */}
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <label className="block text-gray-700 font-medium mb-3">
+                        Profile Picture
+                    </label>
+                    <div className="flex flex-col items-center">
+                        <label className="w-full flex flex-col items-center px-4 py-6 bg-white rounded-lg border-2 border-dashed border-gray-300 cursor-pointer hover:border-blue-500 transition-colors duration-200">
+                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <p className="mt-2 text-sm text-gray-600">Click to upload</p>
+                            <p className="text-xs text-gray-500">JPG, PNG, GIF up to 5MB</p>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                    handleFileUpload(e, "profilePic", "documents");
+                                    setErrors((prev) => ({
+                                        ...prev,
+                                        documents: { ...prev.documents, profilePic: "" },
+                                    }));
+                                }}
+                            />
+                        </label>
+                        {errors?.documents?.profilePic && (
+                            <p className="text-red-500 text-sm mt-2">{errors.documents.profilePic}</p>
                         )}
-
-                        {/* Address: ZIP */}
-                        <TextField
-                            fullWidth
-                            name="zip"
-                            label="ZIP Code"
-                            value={teacher.address.zip}
-                            onChange={(e) => handleChange(e, null, "address")}
-                            error={!!errors.address_zip}
-                            helperText={errors.address_zip}
-                        />
-
-                        {/* Address: Country */}
-                        <Select
-                            name="country"
-                            options={countries}
-                            value={countries.find((c) => c.label === teacher.address.country)}
-                            onChange={(selected) => {
-                                setteacher((prev) => ({
-                                    ...prev,
-                                    address: { ...prev.address, country: selected.label },
-                                }));
-                                setErrors((prev) => ({ ...prev, address_country: "" }));
-                            }}
-                            placeholder="Select Country"
-                        />
-                        {errors.address_country && (
-                            <p className="text-red-500 text-sm mt-1">{errors.address_country}</p>
-                        )}
-
-                        {/* Physical Disability */}
-                        <div className="bg-gray-50 p-1 rounded-2xl shadow-sm border border-gray-100">
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        checked={teacher.physicalDisability}
-                                        onChange={(e) =>
-                                            setteacher({
-                                                ...teacher,
-                                                physicalDisability: e.target.checked,
-                                            })
-                                        }
-                                        name="physicalDisability"
+                        {previews.profilePic && (
+                            <div className="mt-4">
+                                {previews.profilePic.type?.includes("pdf") ? (
+                                    <iframe
+                                        src={previews.profilePic.url}
+                                        title="profile-preview"
+                                        className="w-24 h-24 rounded-full border-2 border-gray-300 shadow-sm"
                                     />
-                                }
-                                label="Physical Disability"
-                            />
-                            {teacher.physicalDisability && (
-                                <TextField
-                                    fullWidth
-                                    multiline
-                                    rows={3}
-                                    name="disabilityDetails"
-                                    label="Disability Details"
-                                    value={teacher.disabilityDetails}
-                                    onChange={handleChange}
-                                    className="mt-3"
-                                />
-                            )}
-                        </div>
-
-                        {/* Profile Picture Upload */}
-                        <div className="bg-white p-3 w-full rounded-2xl shadow-md border border-gray-200 mx-auto">
-                            <label className="block text-gray-700 font-semibold mb-3">
-                                Profile Picture
-                            </label>
-                            <label className="flex items-center justify-center w-full p-3 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 transition-colors duration-200">
-                                <div className="text-center">
-                                    <p className="text-gray-500 mb-2">Click to upload</p>
-                                    <p className="text-gray-400 text-sm">(JPG, PNG, GIF)</p>
-                                </div>
-                                <input
-                                    type="file"
-                                    // accept="image/*"
-                                    accept="image/*,application/pdf"
-                                    className="hidden"
-                                    onChange={(e) => {
-                                        handleFileUpload(e, "profilePic", "documents");
-                                        setErrors((prev) => ({
-                                            ...prev,
-                                            documents: { ...prev.documents, profilePic: "" },
-                                        }));
-                                    }}
-                                />
-                            </label>
-                            {errors?.documents?.profilePic && (
-                                <p className="text-red-500 text-sm mt-2">{errors.documents.profilePic}</p>
-                            )}
-                            {/* {previews.profilePic && (
-                                <div className="mt-4 flex justify-center">
+                                ) : (
                                     <img
-                                        src={previews.profilePic}
+                                        src={previews.profilePic.url}
                                         alt="preview"
-                                        className="w-28 h-28 rounded-full object-cover border border-gray-300 shadow-sm"
+                                        className="w-24 h-24 rounded-full object-cover border-2 border-gray-300 shadow-sm"
                                     />
-                                </div>
-                            )} */}
-                            {previews.profilePic && (
-                                <div className="mt-4 flex justify-center">
-                                    {previews.profilePic.type?.includes("pdf") ? (
-                                        <iframe
-                                            src={previews.profilePic.url}
-                                            className="w-28 h-28 rounded border shadow-sm"
-                                        />
-                                    ) : (
-                                        <img
-                                            src={previews.profilePic.url}
-                                            alt="preview"
-                                            className="w-28 h-28 rounded-full object-cover border border-gray-300 shadow-sm"
-                                        />
-                                    )}
-                                </div>
-                            )}
-
-                        </div>
+                                )}
+                            </div>
+                        )}
                     </div>
-                )}
-
+                </div>
+            </div>
+        </div>
+    </div>
+)}
 
                 {/* Step 2 */}
                 {activeStep === 1 && (
@@ -1061,7 +1244,7 @@ export default function CreateTeacherPage() {
                                         inputProps={{ list: "designationExample" }}
                                         error={!!errors.designation}
                                         helperText={errors.designation}
-                                        // inputProps={{ list: "designationExample" }}
+                                    // inputProps={{ list: "designationExample" }}
                                     />
 
                                     <datalist id="designationExample">

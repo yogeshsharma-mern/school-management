@@ -410,9 +410,9 @@ export default function StudentPage() {
         "emergencyContactPhone": "9867475748",
         "street": "first",
         "city": "jaipur",
-        "state": "Rajasthan",
+        "state": "RJ",
         "zip": "304040",
-        "country": "India",
+        "country": "IN",
         "class": "1st",
         "aadharFront": "",
         "aadharBack": "",
@@ -490,25 +490,25 @@ const toggleStudent = (id) => {
 
   const columns = useMemo(
     () => [
-      {
-        id: 'select',
-        header: () => (
-          <Checkbox
-            checked={isAllSelected}
-            indeterminate={
-              selectedStudents.length > 0 && !isAllSelected
-            }
-            onChange={toggleSelectAll}
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={selectedStudents.includes(row.original._id)}
-            onChange={() => toggleStudent(row.original._id)}
-          />
-        ),
-        size: 50,
-      },
+      // {
+      //   id: 'select',
+      //   header: () => (
+      //     <Checkbox
+      //       checked={isAllSelected}
+      //       indeterminate={
+      //         selectedStudents.length > 0 && !isAllSelected
+      //       }
+      //       onChange={toggleSelectAll}
+      //     />
+      //   ),
+      //   cell: ({ row }) => (
+      //     <Checkbox
+      //       checked={selectedStudents.includes(row.original._id)}
+      //       onChange={() => toggleStudent(row.original._id)}
+      //     />
+      //   ),
+      //   size: 50,
+      // },
       {
         header: "S No.",
         cell: ({ row }) => row.index + 1,

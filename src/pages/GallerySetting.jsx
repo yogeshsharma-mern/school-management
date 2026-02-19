@@ -2,11 +2,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  FiUploadCloud, FiTrash2, FiPlus, FiCheck, FiX,
+  FiUploadCloud, FiTrash2, FiCheck, FiX,
   FiEdit2, FiSave, FiImage, FiFolderPlus
 } from "react-icons/fi";
 import { MdPhotoLibrary, MdCategory } from "react-icons/md";
-import { TbEdit } from "react-icons/tb";
 import { mockApi } from "../services/api";
 import ToggleButton from "../components/ToggleButton";
 import ConfirBox from "../components/ConfirmBox";
@@ -18,15 +17,12 @@ export default function AdminGalleryUpload() {
   const [activeCategory, setActiveCategory] = useState(null);
   const [delteImageModal, setDeleteImagemodal] = useState(false);
   const [deleteCategoryModal, setCategoryModal] = useState(false);
-  console.log("activecategory", activeCategory);
-  console.log("activecategory", activeCategory);
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [catId, setCatId] = useState(null);
   const [deleteImageId, setDeleteImageId] = useState(null);
   const [catImageId, setCatImageId] = useState(null);
   const [description, setDescription] = useState("");
   const [editingCategory, setEditingCategory] = useState(null);
-  console.log("editingcategory", editingCategory);
   const [editingImage, setEditingImage] = useState(null);
   const [newCategory, setNewCategory] = useState("");
   const [dragOver, setDragOver] = useState(false);
@@ -46,8 +42,7 @@ export default function AdminGalleryUpload() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
   const categoryList = categories?.results?.data || [];
-  console.log("categories", categories);
-  console.log("categoryList", categoryList)
+  console.log("categoryList",categoryList);
   // Auto-select first category
   useEffect(() => {
     if (categoryList.length > 0 && !activeCategory) {
@@ -137,7 +132,7 @@ export default function AdminGalleryUpload() {
 
     onSuccess: (res, id) => {
       queryClient.invalidateQueries({ queryKey: ["categoriessss"] });
-queryClient.clear();
+      // queryClient.clear();
 
 
 
@@ -207,139 +202,64 @@ queryClient.clear();
       };
     },
 
- onSuccess: (response, variables, context) => {
-  console.log("Upload success response:", response);
+    onSuccess: (response, variables, context) => {
+      const uploadedImages = response?.results?.images || [];
 
-  const uploadedImages = response?.results?.images || [];
-
-  if (uploadedImages.length === 0) {
-    console.warn("No images in response");
-    // Complete progress and clear previews
-    setUploadProgress(prev => {
-      const newProgress = { ...prev };
-      Object.keys(newProgress).forEach(key => {
-        newProgress[key] = 100;
+      queryClient.invalidateQueries({
+        queryKey: ["images", variables.categoryId],
       });
-      return newProgress;
-    });
-    
-    setTimeout(() => {
+
+      toast.success(`Successfully uploaded ${uploadedImages.length} image(s)`);
       setLocalPreviews([]);
-      setUploadProgress({});
-    }, 1000);
-    return;
-  }
+    },
 
-  // Complete progress for all previews
-  setUploadProgress(prev => {
-    const newProgress = { ...prev };
-    Object.keys(newProgress).forEach(key => {
-      newProgress[key] = 100;
-    });
-    return newProgress;
-  });
 
-  // Create a mapping of original names to uploaded images
-  const uploadedMap = new Map();
-  uploadedImages.forEach(img => {
-    if (img.originalName) {
-      uploadedMap.set(img.originalName, img);
-    }
-  });
+    onError: (error, variables, context) => {
+      console.error("Upload error:", error);
 
-  // Match previews with uploaded images and update progress
-  setLocalPreviews(prevPreviews => {
-    const updatedPreviews = prevPreviews.map(preview => {
-      const uploadedImg = uploadedMap.get(preview.originalName);
-      if (uploadedImg) {
-        return {
-          ...preview,
-          isUploaded: true,
-          serverId: uploadedImg._id
-        };
-      }
-      return preview;
-    });
+      // Reset progress to 0
+      setUploadProgress(prev => {
+        const newProgress = { ...prev };
+        Object.keys(newProgress).forEach(key => {
+          newProgress[key] = 0;
+        });
+        return newProgress;
+      });
 
-    // Clear after a delay
-    setTimeout(() => {
-      setLocalPreviews([]);
-      setUploadProgress({});
-    }, 1000);
+      // Mark previews as failed
+      setLocalPreviews(prev => prev.map(preview => ({
+        ...preview,
+        error: true,
+        errorMessage: error.message
+      })));
 
-    return updatedPreviews;
-  });
+      // Remove optimistic images after delay
+      setTimeout(() => {
+        if (context?.addedImages?.length > 0) {
+          const currentCache = queryClient.getQueryData(["images", variables.categoryId]) || {};
+          const currentImages = currentCache.results?.images || [];
 
-  // Update cache with real uploaded images
-  if (context?.addedImages?.length > 0) {
-    const currentCache = queryClient.getQueryData(["images", variables.categoryId]) || {};
-    const currentImages = currentCache.results?.images || [];
+          const addedIds = new Set(context.addedImages.map(img => img._id));
+          const finalImages = currentImages.filter(
+            img => !img._id.startsWith("opt_")
+          );
 
-    // Filter out optimistic images and add real ones
-    const finalImages = currentImages
-      .filter(img => !img.isOptimistic) // Remove all optimistic
-      .concat(uploadedImages) // Add uploaded images
-      .filter((img, index, self) =>
-        // Remove duplicates by _id
-        index === self.findIndex(t => t._id === img._id)
-      );
-
-    queryClient.setQueryData(["images", variables.categoryId], {
-      ...currentCache,
-      results: {
-        ...currentCache.results,
-        images: finalImages
-      }
-    });
-  }
-
-  toast.success(`Successfully uploaded ${uploadedImages.length} image(s)`);
-},
-
- onError: (error, variables, context) => {
-  console.error("Upload error:", error);
-
-  // Reset progress to 0
-  setUploadProgress(prev => {
-    const newProgress = { ...prev };
-    Object.keys(newProgress).forEach(key => {
-      newProgress[key] = 0;
-    });
-    return newProgress;
-  });
-
-  // Mark previews as failed
-  setLocalPreviews(prev => prev.map(preview => ({
-    ...preview,
-    error: true,
-    errorMessage: error.message
-  })));
-
-  // Remove optimistic images after delay
-  setTimeout(() => {
-    if (context?.addedImages?.length > 0) {
-      const currentCache = queryClient.getQueryData(["images", variables.categoryId]) || {};
-      const currentImages = currentCache.results?.images || [];
-
-      const addedIds = new Set(context.addedImages.map(img => img._id));
-      const finalImages = currentImages.filter(img => !addedIds.has(img._id));
-
-      queryClient.setQueryData(["images", variables.categoryId], {
-        ...currentCache,
-        results: {
-          ...currentCache.results,
-          images: finalImages
+          queryClient.setQueryData(["images", variables.categoryId], {
+            ...currentCache,
+            results: {
+              ...currentCache.results,
+              images: finalImages
+            }
+          });
         }
-      });
-    }
-    
-    // Clear previews
-    setLocalPreviews([]);
-    setUploadProgress({});
-  }, 2000);
 
-  toast.error(`Upload failed: ${error.message}`);
-}
+        // Clear previews
+        setLocalPreviews([]);
+        setUploadProgress({});
+      }, 2000);
+
+      toast.error(`Upload failed: ${error.message}`);
+    }
   });
 
 
@@ -347,6 +267,7 @@ queryClient.clear();
   const deleteImage = useMutation({
     mutationFn: ({ categoryId, imageId }) =>
       mockApi.deleteImage({ categoryId, imageId }),
+
     onSuccess: (res) => {
       toast.success(res.message || "Image deleted successfully");
     },
@@ -415,68 +336,68 @@ queryClient.clear();
   });
 
   // File handling functions
-// Replace your handleFiles function with this:
-const handleFiles = (fileList) => {
-  if (!fileList || fileList.length === 0 || !activeCategory) return;
+  // Replace your handleFiles function with this:
+  const handleFiles = (fileList) => {
+    if (!fileList || fileList.length === 0 || !activeCategory) return;
 
-  const files = Array.from(fileList);
+    const files = Array.from(fileList);
 
-  // Validate file types and sizes
-  const validFiles = files.filter(file => {
-    const isValidType = file.type.startsWith('image/');
-    const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB limit
-    return isValidType && isValidSize;
-  });
+    // Validate file types and sizes
+    const validFiles = files.filter(file => {
+      const isValidType = file.type.startsWith('image/');
+      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB limit
+      return isValidType && isValidSize;
+    });
 
-  if (validFiles.length === 0) {
-    alert('Please select valid image files (max 10MB each)');
-    return;
-  }
+    if (validFiles.length === 0) {
+      alert('Please select valid image files (max 10MB each)');
+      return;
+    }
 
-  // Create local previews with unique IDs
-  const previews = validFiles.map((file, index) => {
-    const previewId = `preview_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`;
-    return {
-      id: previewId,
-      file,
-      url: URL.createObjectURL(file),
-      name: file.name,
-      size: file.size,
-      progress: 0,
-      originalName: file.name, // Keep original name for matching
-    };
-  });
+    // Create local previews with unique IDs
+    const previews = validFiles.map((file, index) => {
+      const previewId = `preview_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`;
+      return {
+        id: previewId,
+        file,
+        url: URL.createObjectURL(file),
+        name: file.name,
+        size: file.size,
+        progress: 0,
+        originalName: file.name, // Keep original name for matching
+      };
+    });
 
-  setLocalPreviews(previews);
+    setLocalPreviews(previews);
 
-  // Initialize progress for each file
-  const initialProgress = {};
-  previews.forEach(preview => {
-    initialProgress[preview.id] = 0;
-  });
-  setUploadProgress(initialProgress);
+    // Initialize progress for each file
+    const initialProgress = {};
+    previews.forEach(preview => {
+      initialProgress[preview.id] = 0;
+    });
+    setUploadProgress(initialProgress);
 
-  // Simulate upload progress up to 90%
-  previews.forEach((preview) => {
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10;
-      if (progress >= 90) {
-        clearInterval(interval);
-      }
-      setUploadProgress(prev => ({
-        ...prev,
-        [preview.id]: progress
-      }));
-    }, 200);
-  });
+    // Simulate upload progress up to 90%
+    previews.forEach((preview) => {
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 10;
+        if (progress >= 90) {
+          clearInterval(interval);
+        }
+        setUploadProgress(prev => ({
+          ...prev,
+          [preview.id]: progress
+        }));
+      }, 200);
+    });
 
-  // Upload files
-  uploadMutation.mutate({
-    categoryId: activeCategory._id,
-    files: validFiles
-  });
-};
+    // Upload files
+    uploadMutation.mutate({
+      categoryId: activeCategory._id,
+      files: validFiles
+    });
+  };
 
   const handleDrop = (e) => {
     e.preventDefault();
@@ -589,7 +510,7 @@ const handleFiles = (fileList) => {
               <div className="inline-flex ml-3 gap-3 items-center min-w-full">
                 {categoryList.map((cat) => (
 
-                  <div key={cat.id} className="relative group">
+                  <div key={cat._id} className="relative group">
                     <button
                       onClick={() => handleCategoryClick(cat)}
                       className={`px-6 py-4 rounded-xl font-medium transition-all duration-300 whitespace-nowrap flex items-center gap-3 
@@ -598,12 +519,12 @@ const handleFiles = (fileList) => {
                           : 'bg-white text-gray-700 border-2 border-amber-100 hover:border-amber-300 '
                         }`}
                     >
-                      <div className={`p-2 rounded-lg ${activeCategory?.id === cat.id ? 'bg-white/20' : 'bg-amber-100'}`}>
-                        <FiImage className={activeCategory?.id === cat.id ? 'text-black' : 'text-amber-600'} />
+                      <div className={`p-2 rounded-lg ${activeCategory?._id === cat._id ? 'bg-white/20' : 'bg-amber-100'}`}>
+                        <FiImage className={activeCategory?.id === cat._id ? 'text-black' : 'text-amber-600'} />
                       </div>
                       <div className="text-left">
                         <div className="font-semibold text-sm text-black">{cat.name}</div>
-                        <div className={`text-xs  ${activeCategory?.id === cat.id ? 'text-black/70' : 'text-gray-500'}`}>
+                        <div className={`text-xs  ${activeCategory?._id === cat._id ? 'text-black/70' : 'text-gray-500'}`}>
                           {cat.count} images
                         </div>
                       </div>
@@ -827,7 +748,7 @@ const handleFiles = (fileList) => {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               {imagesList.map((img) => (
                 <div
-                  key={img.id}
+                  key={img._id}
                   className="group relative rounded-2xl overflow-hidden bg-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
                 >
                   <div className="relative aspect-square overflow-hidden">
@@ -890,13 +811,9 @@ const handleFiles = (fileList) => {
                                   setDeleteImagemodal(true);
                                   setDeleteImageId(img._id);
                                   setCatImageId(activeCategory._id);
-                                  // if (window.confirm('Delete this image?')) {
-                                  //   deleteImage.mutate({
-                                  //     categoryId: activeCategory._id,
-                                  //     imageId: img._id
-                                  //   });
-                                  // }
                                 }}
+
+
                                 className="p-2 bg-white/90 cursor-pointer rounded-lg hover:bg-white hover:scale-110 transition-transform"
                                 title="Delete"
                               >

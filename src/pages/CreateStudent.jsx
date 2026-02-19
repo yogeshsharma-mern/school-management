@@ -12,8 +12,65 @@ import { Edit, School } from "@mui/icons-material";
 import Select from "react-select";
 import { FaPlusCircle } from "react-icons/fa";
 import { useEffect, useRef, useLayoutEffect } from "react";
+import { Country, State, City } from "country-state-city";
 
-
+const customSelectStyles = {
+    control: (provided, state) => ({
+        ...provided,
+        minHeight: "56px",
+        height: "56px",
+        borderColor: state.isFocused ? "#1976d2" : "#e5e7eb",
+        boxShadow: state.isFocused ? "0 0 0 2px rgba(25, 118, 210, 0.2)" : "none",
+        "&:hover": { borderColor: "#1976d2" },
+        borderRadius: "8px",
+        fontSize: "0.95rem",
+        backgroundColor: state.isDisabled ? "#f9fafb" : "white",
+        cursor: state.isDisabled ? "not-allowed" : "pointer",
+    }),
+    valueContainer: (provided) => ({
+        ...provided,
+        height: "56px",
+        padding: "0 12px",
+    }),
+    input: (provided) => ({
+        ...provided,
+        margin: "0",
+        padding: "0",
+    }),
+    indicatorsContainer: (provided) => ({
+        ...provided,
+        height: "56px",
+    }),
+    placeholder: (provided) => ({
+        ...provided,
+        color: "#9ca3af",
+    }),
+    menu: (provided) => ({
+        ...provided,
+        borderRadius: "8px",
+        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+        zIndex: 9999,
+    }),
+    menuPortal: (provided) => ({
+        ...provided,
+        zIndex: 9999,
+    }),
+    option: (provided, state) => ({
+        ...provided,
+        backgroundColor: state.isSelected 
+            ? "#1976d2" 
+            : state.isFocused 
+            ? "#e8f0fe" 
+            : "white",
+        color: state.isSelected ? "white" : "#1f2937",
+        cursor: "pointer",
+        padding: "10px 12px",
+        fontSize: "0.95rem",
+        "&:active": {
+            backgroundColor: "#1565c0",
+        },
+    }),
+};
 import {
   InputAdornment,
   IconButton,
@@ -262,7 +319,24 @@ export default function CreateStudentPage() {
     });
     setIsModalOpen(true);
   };
+    const countryOptions = Country.getAllCountries().map(country => ({
+        value: country.isoCode,
+        label: country.name,
+    }));
 
+    const stateOptions = student.address.country
+        ? State.getStatesOfCountry(student.address.country).map(state => ({
+            value: state.isoCode,
+            label: state.name,
+        }))
+        : [];
+
+    const cityOptions = (student.address.country && student.address.state)
+        ? City.getCitiesOfState(student.address.country, student.address.state).map(city => ({
+            value: city.name,
+            label: city.name,
+        }))
+        : [];
 
 
   // const handleFileUpload = (e, field, section = null) => {
@@ -630,296 +704,388 @@ export default function CreateStudentPage() {
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-8">
         {/* Step 1 */}
-        {activeStep === 0 && (
-          <div className="grid md:grid-cols-2 gap-6">
-            <TextField
-              fullWidth
-              label="Full Name *"
-              name="name"
-              value={student.name}
-              onChange={handleChange}
-              error={!!errors.name}
-              helperText={errors.name}
-            />
-            <TextField
-              fullWidth
-              type="date"
-              name="dob"
-              value={student.dob}
-              onChange={handleChange}
-              InputLabelProps={{ shrink: true }}
-              label="Date of Birth *"
-              error={!!errors.dob}
-              helperText={errors.dob}
-              inputProps={{
-                max: new Date(Date.now() - 86400000 * 365 * 3).toISOString().split("T")[0], // Max: yesterday
-                min: new Date(Date.now() - 86400000 * 365 * 25 - 86400000).toISOString().split("T")[0], // Min: 25 years ago (yesterday)
-              }}
-            />
-
-            <TextField
-              select
-              fullWidth
-              name="gender"
-              label="Gender *"
-              value={student.gender}
-              // onChange={handleChange}
-              //              onChange={(e)=>
-              // //         {
-              // //           setStudent({...student,gender:e.target.value});
-              // //           setErrors((prev)=>({...prev,gender:""}));
-              // //         }
-              onChange={(e) => {
-                setStudent({ ...student, gender: e.target.value });
-                setErrors((prev) => ({ ...prev, gender: "" }))
-              }
-              }
-              error={!!errors.gender}
-              helperText={errors.gender}
-            >
-              <MenuItem value="">Select Gender</MenuItem>
-              <MenuItem value="Male">Male</MenuItem>
-              <MenuItem value="Female">Female</MenuItem>
-              <MenuItem value="Other">Other</MenuItem>
-            </TextField>
-            <TextField
-              select
-              fullWidth
-              name="bloodGroup"
-              label="Blood Group *"
-              value={student.bloodGroup}
-              // onChange={handleChange}
-              onChange={(e) => {
-                setStudent({ ...student, bloodGroup: e.target.value });
-                setErrors((prev) => ({ ...prev, bloodGroup: "" }))
-              }
-              }
-              error={!!errors.bloodGroup}
-              helperText={errors.bloodGroup}
-            >
-              {["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"].map((bg) => (
-                <MenuItem key={bg} value={bg}>
-                  {bg}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              fullWidth
-              type="email"
-              name="email"
-              label="Email *"
-              value={student.email}
-              onChange={handleChange}
-              error={!!errors.email}
-              helperText={errors.email}
-            />
-            <TextField
-              fullWidth
-              type={showPassword ? "text" : "password"}
-              name="password"
-              label="Password *"
-              value={student.password}
-              onChange={handleChange}
-              error={!!errors.password}
-              helperText={errors.password}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <div>
-              {/* <label className="block text-gray-600 font-medium mb-1">Phone</label> */}
-              <div className="mb-4">
-                {/* <label className="block text-sm font-medium text-gray-700 mb-1">
-    Phone Number <span className="text-red-500">*</span>
-  </label> */}
-
-                <PhoneInput
-                  country="in"
-                  enableSearch
-                  value={student.phone}
-                  onChange={(phone) => {
-                    setStudent({ ...student, phone });
-                    setErrors((p) => ({ ...p, phone: "" }));
-                  }}
-                  inputClass="w-full p-3 rounded-lg border border-gray-300"
+   {activeStep === 0 && (
+    <div className="space-y-8">
+        {/* Personal Information Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-blue-500 rounded-full"></span>
+                Personal Information
+            </h3>
+            <div className="grid md:grid-cols-2 gap-6">
+                <TextField
+                    fullWidth
+                    label="Full Name *"
+                    name="name"
+                    value={student.name}
+                    onChange={handleChange}
+                    error={!!errors.name}
+                    helperText={errors.name}
+                    variant="outlined"
                 />
-
-                {errors.phone && (
-                  <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-                )}
-              </div>
-
-            </div>
-            <div className="w-full ">
-              <label className="block text-gray-700 font-semibold mb-2">Profile Picture *</label>
-
-              <div className="relative w-full">
-                {/* Upload Box */}
-                <label
-                  htmlFor="profilePic"
-                  className="flex flex-col items-center w-full justify-center w-full py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-yellow-300 transition-colors bg-gray-50"
-                >
-                  {previews.profilePic ? (
-                    previews.profilePic.type === "application/pdf" ? (
-                      <div className="flex flex-col items-center">
-                        <embed
-                          src={previews.profilePic.url}
-                          type="application/pdf"
-                          className="w-[100px] h-[100px] border rounded-md"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">PDF Preview</p>
-                      </div>
-                    ) : (
-                      <img
-                        src={previews.profilePic.url}
-                        alt="preview"
-                        className="rounded-full w-[100px] h-[100px] object-cover"
-                      />
-                    )
-                  ) : (
-                    <div className="text-center text-gray-400">
-                      <BsCloudUpload size={26} className="mx-auto text-blue-500" />
-                      <span className="text-sm">Click  to upload</span>
-                    </div>
-                  )}
-                  <input
-                    id="profilePic"
-                    type="file"
-                    accept="image/*,application/pdf"
-                    className="hidden"
+                <TextField
+                    fullWidth
+                    type="date"
+                    name="dob"
+                    value={student.dob}
+                    onChange={handleChange}
+                    InputLabelProps={{ shrink: true }}
+                    label="Date of Birth *"
+                    error={!!errors.dob}
+                    helperText={errors.dob}
+                    inputProps={{
+                        max: new Date(Date.now() - 86400000 * 365 * 3).toISOString().split("T")[0],
+                        min: new Date(Date.now() - 86400000 * 365 * 25 - 86400000).toISOString().split("T")[0],
+                    }}
+                    variant="outlined"
+                />
+                <TextField
+                    select
+                    fullWidth
+                    name="gender"
+                    label="Gender *"
+                    value={student.gender}
                     onChange={(e) => {
-                      handleFileUpload(e, "profilePic", "documents");
-                      setErrors((prev) => ({
-                        ...prev,
-                        documents: {
-                          ...(prev.documents || {}),
-                          profilePic: "",
-                        },
-                      }));
+                        setStudent({ ...student, gender: e.target.value });
+                        setErrors((prev) => ({ ...prev, gender: "" }));
                     }}
-                  />
-                </label>
-
-                {/* Remove button */}
-                {previews.profilePic && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPreviews((p) => ({ ...p, profilePic: null }));
-                      setStudent((s) => ({
-                        ...s,
-                        documents: { ...s.documents, profilePic: null },
-                      }));
+                    error={!!errors.gender}
+                    helperText={errors.gender}
+                    variant="outlined"
+                >
+                    <MenuItem value="">Select Gender</MenuItem>
+                    <MenuItem value="Male">Male</MenuItem>
+                    <MenuItem value="Female">Female</MenuItem>
+                    <MenuItem value="Other">Other</MenuItem>
+                </TextField>
+                <TextField
+                    select
+                    fullWidth
+                    name="bloodGroup"
+                    label="Blood Group *"
+                    value={student.bloodGroup}
+                    onChange={(e) => {
+                        setStudent({ ...student, bloodGroup: e.target.value });
+                        setErrors((prev) => ({ ...prev, bloodGroup: "" }));
                     }}
-                    className="absolute cursor-pointer -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-
-              {/* Error Message */}
-              {errors?.documents?.profilePic && (
-                <p className="text-red-500 text-sm mt-1">{errors.documents.profilePic}</p>
-              )}
+                    error={!!errors.bloodGroup}
+                    helperText={errors.bloodGroup}
+                    variant="outlined"
+                >
+                    {["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"].map((bg) => (
+                        <MenuItem key={bg} value={bg}>
+                            {bg}
+                        </MenuItem>
+                    ))}
+                </TextField>
             </div>
-            <TextField
-              fullWidth
-              name="street"
-              label="Street *"
-              value={student.address.street}
-              onChange={(e) => {
-                handleChange(e, null, "address");
-                setErrors((prev) => ({
-                  ...prev,
-                  address: { ...(prev.address || {}), street: "" },
-                }));
-              }}
-              error={!!errors.address?.street}
-              helperText={errors.address?.street}
-            />
-            <TextField
-              fullWidth
-              name="city"
-              label="City *"
-              value={student.address.city}
-              onChange={(e) => {
-                handleChange(e, null, "address");
-                setErrors((prev) => ({
-                  ...prev,
-                  address: { ...(prev.address || {}), city: "" },
-                }));
-              }}
-              error={!!errors.address?.city}
-              helperText={errors.address?.city}
-            />
-            <div>
-              <Select
-                name="state"
-                options={states}
-                value={states.find((s) => s.value === student.address.state)}
-                onChange={(selected) => {
-                  setStudent((prev) => ({
-                    ...prev,
-                    address: { ...prev.address, state: selected.value },
-                  }));
-                  setErrors((prev) => ({
-                    ...prev,
-                    address: { ...(prev.address || {}), state: "" },
-                  }));
-                }}
-                placeholder="Select State *"
-              />
-              {errors.address?.state && (
-                <p className="text-red-500 text-sm mt-1">{errors.address.state}</p>
-              )}
+        </div>
 
+        {/* Contact Information Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-green-500 rounded-full"></span>
+                Contact Information
+            </h3>
+            <div className="grid md:grid-cols-2 gap-6">
+                <TextField
+                    fullWidth
+                    type="email"
+                    name="email"
+                    label="Email *"
+                    value={student.email}
+                    onChange={handleChange}
+                    error={!!errors.email}
+                    helperText={errors.email}
+                    variant="outlined"
+                />
+                <TextField
+                    fullWidth
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    label="Password *"
+                    value={student.password}
+                    onChange={handleChange}
+                    error={!!errors.password}
+                    helperText={errors.password}
+                    variant="outlined"
+                    InputProps={{
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                                </IconButton>
+                            </InputAdornment>
+                        ),
+                    }}
+                />
+                <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Phone Number <span className="text-red-500">*</span>
+                    </label>
+                    <PhoneInput
+                        country="in"
+                        enableSearch
+                        value={student.phone}
+                        onChange={(phone) => {
+                            setStudent({ ...student, phone });
+                            setErrors((p) => ({ ...p, phone: "" }));
+                        }}
+                        inputClass="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors"
+                    />
+                    {errors.phone && (
+                        <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                            <span>⚠️</span> {errors.phone}
+                        </p>
+                    )}
+                </div>
             </div>
-            <TextField
-              fullWidth
-              name="zip"
-              label="ZIP Code *"
-              value={student.address.zip}
-              onChange={(e) => {
-                handleChange(e, null, "address");
-                setErrors((prev) => ({
-                  ...prev,
-                  address: { ...(prev.address || {}), zip: "" },
-                }));
-              }}
-              error={!!errors.address?.zip}
-              helperText={errors.address?.zip}
-            />
-            <div>
-              <Select
-                name="country"
-                options={countries}
-                value={countries.find((c) => c.label === student.address.country)}
-                onChange={(selected) => {
-                  setStudent((prev) => ({
-                    ...prev,
-                    address: { ...prev.address, country: selected.label },
-                  }));
-                  setErrors((prev) => ({
-                    ...prev,
-                    address: { ...(prev.address || {}), country: "" },
-                  }));
-                }}
-                placeholder="Select Country *"
-              />
-              {errors.address?.country && (
-                <p className="text-red-500 text-sm mt-1">{errors.address.country}</p>
-              )}
-            </div>
-          </div>
+        </div>
 
-        )}
+        {/* Address Information Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-purple-500 rounded-full"></span>
+                Address Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Country */}
+                <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                        Country <span className="text-red-500">*</span>
+                    </label>
+                    <Select
+                        options={countryOptions}
+                        styles={customSelectStyles}
+                        value={countryOptions.find(c => c.value === student.address.country) || null}
+                        onChange={(selected) => {
+                            setStudent(prev => ({
+                                ...prev,
+                                address: {
+                                    ...prev.address,
+                                    country: selected?.value || "",
+                                    state: "",
+                                    city: "",
+                                },
+                            }));
+                            setErrors(prev => ({
+                                ...prev,
+                                address: { ...prev.address, country: "" }
+                            }));
+                        }}
+                        placeholder="Select Country"
+                        className="w-full"
+                        isClearable
+                        menuPortalTarget={document.body}
+                        menuPosition="fixed"
+                        menuShouldBlockScroll={true}
+                    />
+                    {errors.address?.country && (
+                        <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                            <span>⚠️</span> {errors.address.country}
+                        </p>
+                    )}
+                </div>
+
+                {/* State */}
+                <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                        State <span className="text-red-500">*</span>
+                    </label>
+                    <Select
+                        options={stateOptions}
+                        styles={customSelectStyles}
+                        value={stateOptions.find(s => s.value === student.address.state) || null}
+                        onChange={(selected) => {
+                            setStudent(prev => ({
+                                ...prev,
+                                address: {
+                                    ...prev.address,
+                                    state: selected?.value || "",
+                                    city: "",
+                                },
+                            }));
+                            setErrors(prev => ({
+                                ...prev,
+                                address: { ...prev.address, state: "" }
+                            }));
+                        }}
+                        placeholder={!student.address.country ? "Select Country First" : "Select State"}
+                        isDisabled={!student.address.country}
+                        className="w-full"
+                        isClearable
+                        isLoading={!stateOptions.length && !!student.address.country}
+                        menuPortalTarget={document.body}
+                        menuPosition="fixed"
+                        menuShouldBlockScroll={true}
+                    />
+                    {errors.address?.state && (
+                        <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                            <span>⚠️</span> {errors.address.state}
+                        </p>
+                    )}
+                </div>
+
+                {/* City */}
+                <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                        City <span className="text-red-500">*</span>
+                    </label>
+                    <Select
+                        options={cityOptions}
+                        styles={customSelectStyles}
+                        value={cityOptions.find(c => c.value === student.address.city) || null}
+                        onChange={(selected) => {
+                            setStudent(prev => ({
+                                ...prev,
+                                address: {
+                                    ...prev.address,
+                                    city: selected?.value || "",
+                                },
+                            }));
+                            setErrors(prev => ({
+                                ...prev,
+                                address: { ...prev.address, city: "" }
+                            }));
+                        }}
+                        placeholder={!student.address.state ? "Select State First" : "Select City"}
+                        isDisabled={!student.address.state}
+                        className="w-full"
+                        isClearable
+                        isLoading={!cityOptions.length && !!student.address.state}
+                        menuPortalTarget={document.body}
+                        menuPosition="fixed"
+                        menuShouldBlockScroll={true}
+                    />
+                    {errors.address?.city && (
+                        <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                            <span>⚠️</span> {errors.address.city}
+                        </p>
+                    )}
+                </div>
+
+                {/* ZIP Code */}
+                <div className="space-y-2">
+                    <TextField
+                        fullWidth
+                        name="zip"
+                        label="ZIP / Postal Code *"
+                        value={student.address.zip}
+                        onChange={(e) => {
+                            handleChange(e, null, "address");
+                            setErrors((prev) => ({
+                                ...prev,
+                                address: { ...(prev.address || {}), zip: "" },
+                            }));
+                        }}
+                        error={!!errors.address?.zip}
+                        helperText={errors.address?.zip}
+                        variant="outlined"
+                        placeholder="Enter ZIP code"
+                        InputProps={{
+                            className: "bg-white",
+                        }}
+                    />
+                </div>
+
+                {/* Street Address */}
+                <div className="md:col-span-2">
+                    <TextField
+                        fullWidth
+                        name="street"
+                        label="Street Address *"
+                        value={student.address.street}
+                        onChange={(e) => {
+                            handleChange(e, null, "address");
+                            setErrors((prev) => ({
+                                ...prev,
+                                address: { ...(prev.address || {}), street: "" },
+                            }));
+                        }}
+                        error={!!errors.address?.street}
+                        helperText={errors.address?.street}
+                        variant="outlined"
+                        multiline
+                        rows={2}
+                        placeholder="House number, street name, landmark, etc."
+                        InputProps={{
+                            className: "bg-white",
+                        }}
+                    />
+                </div>
+            </div>
+        </div>
+
+        {/* Profile Picture Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-orange-500 rounded-full"></span>
+                Profile Picture
+            </h3>
+            <div className="grid md:grid-cols-1 gap-6">
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <label className="block text-gray-700 font-medium mb-3">
+                        Profile Picture <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex flex-col items-center">
+                        <label className="w-full flex flex-col items-center px-4 py-6 bg-white rounded-lg border-2 border-dashed border-gray-300 cursor-pointer hover:border-blue-500 transition-colors duration-200">
+                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <p className="mt-2 text-sm text-gray-600">Click to upload</p>
+                            <p className="text-xs text-gray-500">JPG, PNG, GIF up to 5MB</p>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                    handleFileUpload(e, "profilePic", "documents");
+                                    setErrors((prev) => ({
+                                        ...prev,
+                                        documents: { ...prev.documents, profilePic: "" },
+                                    }));
+                                }}
+                            />
+                        </label>
+                        {errors?.documents?.profilePic && (
+                            <p className="text-red-500 text-sm mt-2">{errors.documents.profilePic}</p>
+                        )}
+                        {previews.profilePic && (
+                            <div className="mt-4 relative">
+                                {previews.profilePic.type === "application/pdf" ? (
+                                    <embed
+                                        src={previews.profilePic.url}
+                                        type="application/pdf"
+                                        className="w-24 h-24 rounded-full border-2 border-gray-300 shadow-sm"
+                                    />
+                                ) : (
+                                    <img
+                                        src={previews.profilePic.url}
+                                        alt="preview"
+                                        className="w-24 h-24 rounded-full object-cover border-2 border-gray-300 shadow-sm"
+                                    />
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setPreviews((p) => ({ ...p, profilePic: null }));
+                                        setStudent((s) => ({
+                                            ...s,
+                                            documents: { ...s.documents, profilePic: null },
+                                        }));
+                                    }}
+                                    className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 cursor-pointer"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+)}
 
         {/* Step 2 */}
         {activeStep === 1 && (

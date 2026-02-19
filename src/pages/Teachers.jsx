@@ -70,9 +70,9 @@ export default function StudentPage() {
         maritalStatus: "Married",   // Married / Single / Divorced / Widowed
         street: "45 MG Road",
         city: "Delhi",
-        state: "Delhi",
+        state: "RJ",
         zip: "110001",
-        country: "India",
+        country: "IN",
         bloodGroup: "B+",           // A+, A-, B+, B-, AB+, AB-, O+, O-
         physicalDisability: "FALSE",     // TRUE / FALSE
         disabilityDetails: "",           // Leave empty if FALSE

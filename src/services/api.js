@@ -95,6 +95,7 @@ export const mockApi = {
         'Content-Type': 'multipart/form-data',
       },
     });
+    
   },
 
   updateImage: async (id, updates) => {
