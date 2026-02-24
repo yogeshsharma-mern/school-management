@@ -1,468 +1,3 @@
-// import React, { useState } from "react";
-// import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-// import Select from "react-select";
-// import ConfirmBox from "../components/ConfirmBox";
-// import {
-//   Card,
-//   CardContent,
-//   CardHeader,
-//   Typography,
-//   Button,
-//   IconButton,
-//   Divider,
-//   Tooltip,
-//   CircularProgress,
-// } from "@mui/material";
-// import { Edit, School } from "@mui/icons-material";
-// import { FaPlusCircle } from "react-icons/fa";
-// import toast from "react-hot-toast";
-
-// import { apiGet, apiPost, apiPut, apiDelete, apiPatch } from "../api/apiFetch";
-// import apiPath from "../api/apiPath";
-// import Modal from "../components/Modal";
-// import ToggleButton from "../components/ToggleButton";
-
-// export default function FeesStructure() {
-//   const queryClient = useQueryClient();
-
-//   const [selectedClass, setSelectedClass] = useState(null);
-//   const [isModalOpen, setIsModalOpen] = useState(false);
-//   const [editData, setEditData] = useState(null);
-// const [confirmModal,setConfirmModal] = useState(false);
-// const [DeleteId,setDeleteId] = useState(null);
-
-//   const currentYear = new Date().getFullYear();
-//   const nextYear = currentYear + 1;
-
-//   const [formData, setFormData] = useState({
-//     academicYear: `${currentYear}-${nextYear}`,
-//     feeHeads: [
-//       { type: "Tuition Fee", amount: 0, isOptional: false },
-//       { type: "Exam Fee", amount: 0, isOptional: false },
-//     ],
-//     totalAmount: 0,
-//   });
-
-//   // Fetch classes
-//   const { data: classData, isLoading: classLoading } = useQuery({
-//     queryKey: ["classesdata"],
-//     queryFn: () => apiGet(apiPath.classes),
-//   });
-
-//   // Fetch fees structure
-//   const { data: feesData, isLoading: feesLoading } = useQuery({
-//     queryKey: ["feesStructure", selectedClass],
-//     queryFn: () =>
-//       apiGet(`${apiPath.getFeesStructure}?classIdentifier=${selectedClass}`),
-//     enabled: !!selectedClass,
-//   });
-
-//   // Mutations
-//   const mutation = useMutation({
-//     mutationFn: async (payload) => {
-//       if (editData) return apiPut(`${apiPath.updateFeesStructure}/${editData._id}`, payload);
-//       return apiPost(apiPath.createFeesStructure, payload);
-//     },
-//     onSuccess: (data) => {
-//       queryClient.invalidateQueries(["feesStructure", selectedClass]);
-//       toast.success(data.message || "Fees structure saved successfully");
-//       setIsModalOpen(false);
-//       setEditData(null);
-//       resetForm();
-//     },
-//     onError: (error) => toast.error(error?.response?.data?.message || "Something went wrong"),
-//   });
-
-//   const deleteMutation = useMutation({
-//     mutationFn: async (id) => apiDelete(`${apiPath.deleteFeesStructure}/${id}`),
-//     onSuccess: () => {
-//       // Force refresh of selected class's fees
-//       queryClient.invalidateQueries(["feesStructure", selectedClass]);
-//       toast.success("Fees structure deleted successfully");
-//     },
-//     onError: (err) => toast.error(err?.response?.data?.message || "Delete failed"),
-//   });
-
-//   const toggleMutation = useMutation({
-//     mutationFn: async ({ id, newStatus }) =>
-//       apiPatch(`${apiPath.feestoggleFeesStructure}/${id}`, { status: newStatus }),
-//     onSuccess: (data) => {
-//       queryClient.invalidateQueries(["feesStructure", selectedClass]),
-//         toast.success(data.message || "Status updated successfully");
-//     }
-//   });
-
-//   const resetForm = () =>
-//     setFormData({
-//       academicYear: `${currentYear}-${nextYear}`,
-//       feeHeads: [
-//         { type: "Tuition Fee", amount: 0, isOptional: false },
-//         { type: "Exam Fee", amount: 0, isOptional: false },
-//       ],
-//       totalAmount: 0,
-//     });
-
-//   const handleEdit = () => {
-//     const data = feesData?.results;
-//     if (!data) return;
-
-//     setEditData(data);
-//     setFormData({
-//       academicYear: data.academicYear || `${currentYear}-${nextYear}`,
-//       feeHeads: data.feeHeads || [
-//         { type: "Tuition Fee", amount: 0, isOptional: false },
-//         { type: "Exam Fee", amount: 0, isOptional: false },
-//       ],
-//       totalAmount: data.totalAmount || 0,
-//     });
-//     setIsModalOpen(true);
-//   };
-
-//   const handleAdd = () => {
-//     resetForm();
-//     setEditData(null);
-//     setIsModalOpen(true);
-//   };
-
-//   const handleFeeHeadChange = (index, field, value) => {
-//     const newHeads = [...formData.feeHeads];
-//     newHeads[index][field] = value;
-//     setFormData({ ...formData, feeHeads: newHeads });
-//   };
-
-//   const addFeeHead = () =>
-//     setFormData({
-//       ...formData,
-//       feeHeads: [...formData.feeHeads, { type: "", amount: 0, isOptional: false }],
-//     });
-
-//   const removeFeeHead = (index) =>
-//     setFormData({
-//       ...formData,
-//       feeHeads: formData.feeHeads.filter((_, i) => i !== index),
-//     });
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     const totalAmount = formData.feeHeads.reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
-//     mutation.mutate({ ...formData, classIdentifier: selectedClass, totalAmount });
-//   };
-
-//   // Deduplicate class list (ignore section)
-//   const classOptions = (() => {
-//     if (!classData?.results?.docs) return [];
-
-//     const uniqueMap = new Map();
-
-//     classData.results.docs.forEach((cls) => {
-//       // Extract base class name (e.g., "10th" from "10th A" or "10th-B")
-//       const baseName = cls.name.split(" ")[0].trim();
-
-//       if (!uniqueMap.has(baseName)) {
-//         uniqueMap.set(baseName, {
-//           value: baseName, // or cls.classIdentifier if consistent
-//           label: baseName,
-//         });
-//       }
-//     });
-
-//     return Array.from(uniqueMap.values());
-//   })();
-
-
-//   const selectedClassLabel =
-//     classOptions.find((cls) => cls.value === selectedClass)?.label || "N/A";
-
-//   return (
-//     <div className="p-8  min-h-screen">
-//       <Typography
-//         variant="h5"
-//         align="center"
-//         gutterBottom
-//         className="text-black font-extrabold drop-shadow-md"
-//       >
-//         🏫 Fees Structure Management
-//       </Typography>
-
-//       <div className="max-w-4xl mx-auto mt-10">
-//         {/* Class Selector */}
-//         <div className="mb-6">
-//           <label className="block text-gray-800 mb-2 font-medium">Select Class</label>
-//           <Select
-//             options={classOptions}
-//             isLoading={classLoading}
-//             placeholder="Choose class..."
-//             onChange={(opt) => setSelectedClass(opt.value)}
-//             className="shadow-md rounded-md"
-//             theme={(theme) => ({
-//               ...theme,
-//               colors: {
-//                 ...theme.colors,
-//                 primary25: "#fef08a", // light yellow on hover
-//                 primary: "#facc15",   // main yellow (border, selected)
-//               },
-//             })}
-//           />
-//         </div>
-
-//         {/* Fees Structure Display */}
-//         {feesLoading ? (
-//           <div className="text-center py-10">
-//           <div className="h-[10vh] inset-0 flex items-center justify-center  bg-opacity-70 z-50">
-//         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
-//       </div>
-//             <p className="mt-2 text-gray-600">Loading fees structure...</p>
-//           </div>
-//         ) : feesData?.results ? (
-//           <Card className="shadow-2xl border border-yellow-300 rounded-xl">
-//             <CardHeader
-//               title={
-//                 <div className="flex items-center gap-2 text-yellow-800 font-bold">
-//                   <School fontSize="large" />
-//                   <Typography variant="h6">{selectedClassLabel}</Typography>
-//                 </div>
-//               }
-//               action={
-//                 <div className="flex items-center gap-3">
-//                   <Tooltip title="Edit Fees Structure">
-//                     <IconButton onClick={handleEdit} className="text-yellow-700">
-//                       <Edit />
-//                     </IconButton>
-//                   </Tooltip>
-//                   <Tooltip title="Delete Fees Structure">
-//                     <IconButton
-//                       onClick={() => {
-              
-//                          setDeleteId(feesData.results._id);
-//                          setConfirmModal(true);
-                        
-//                       }}
-//                       className="text-red-500"
-//                     >
-//                       🗑️
-//                     </IconButton>
-//                   </Tooltip>
-//                 </div>
-//               }
-//             />
-//             <Divider />
-//             <CardContent>
-//               <Typography className="mb-4 text-gray-700 font-medium">
-//                 Academic Year: <b>{feesData.results.academicYear}</b>
-//               </Typography>
-
-//               <div className="bg-yellow-50 p-4 rounded-xl shadow-inner">
-//                 {feesData.results.feeHeads.map((head, idx) => (
-//                   <div
-//                     key={idx}
-//                     className="flex flex-wrap justify-between items-center p-3 mb-2 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow"
-//                   >
-//                     <Typography className="w-1/3 font-semibold text-black">{head.type}</Typography>
-//                     <Typography className="w-1/3 text-center text-gray-600">₹{head.amount}</Typography>
-//                     <Typography
-//                       className={`w-1/3 text-right font-medium ${head.isOptional ? "text-blue-500" : "text-green-600"
-//                         }`}
-//                     >
-//                       {head.isOptional ? "Optional" : "Mandatory"}
-//                     </Typography>
-//                   </div>
-//                 ))}
-//               </div>
-
-//               {/* Total + Toggle */}
-//               <div className="flex justify-between items-center mt-6 bg-yellow-100 p-3 rounded-lg shadow-md">
-//                 <Typography variant="h6" className="text-yellow-900 font-bold">
-//                   Total: ₹{feesData.results.totalAmount}
-//                 </Typography>
-
-//                 <div className="flex items-center gap-3">
-//                   <Typography className="text-gray-700 text-sm font-medium">
-//                     {feesData.results.status === "active" ? "Active" : "Inactive"}
-//                   </Typography>
-//                   <ToggleButton
-//                     isActive={feesData.results.status}
-//                     onToggle={() =>
-//                       toggleMutation.mutate({
-//                         id: feesData.results._id,
-//                         newStatus: feesData.results.status === "active" ? false : true,
-//                       })
-//                     }
-//                     disabled={toggleMutation.isPending}
-//                   />
-//                 </div>
-//               </div>
-//             </CardContent>
-//           </Card>
-//         ) : (
-//           <div className="text-center text-gray-600 mt-10">
-//             No fees structure found.
-//             {selectedClass && (
-//               <button
-//                 onClick={handleAdd}
-//                 className="text-yellow-700 underline font-semibold ml-2 hover:text-yellow-900"
-//               >
-//                 Add New
-//               </button>
-//             )}
-//           </div>
-//         )}
-//       </div>
-
-//       {/* Modal */}
-//       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editData ? "Edit Fees Structure" : "Add Fees Structure"}>
-//         <form
-//           onSubmit={(e) => {
-//             e.preventDefault();
-//             const tuition = formData.feeHeads.find((f) => f.type === "Tuition Fee");
-//             const exam = formData.feeHeads.find((f) => f.type === "Exam Fee");
-
-//             if (!tuition?.amount || !exam?.amount) {
-//               toast.error("Tuition Fee and Exam Fee are required!");
-//               return;
-//             }
-//             handleSubmit(e);
-//           }}
-//           className="space-y-4"
-//         >
-//           {/* Academic Year */}
-//           <div>
-//             <label className="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
-//             <input
-//               type="text"
-//               value={formData.academicYear}
-//               readOnly
-//               className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-sm text-gray-700 cursor-not-allowed"
-//             />
-//           </div>
-
-//           {/* Fee Heads */}
-//           <div>
-//             <label className="block text-sm font-medium text-gray-700 mb-2">Fee Heads</label>
-
-//             {formData.feeHeads.map((head, index) => {
-//               const feeTypeOptions = [
-//                 { value: "Tuition Fee", label: "Tuition Fee" },
-//                 { value: "Exam Fee", label: "Exam Fee" },
-//                 { value: "Transport Fee", label: "Transport Fee" },
-//                 { value: "Miscellaneous", label: "Miscellaneous" },
-//               ];
-//               const selectedTypes = formData.feeHeads.map((f) => f.type);
-//               const availableOptions = feeTypeOptions.map((opt) => ({
-//                 ...opt,
-//                 isDisabled: selectedTypes.includes(opt.value) && opt.value !== head.type,
-//               }));
-//               const isMandatory = head.type === "Tuition Fee" || head.type === "Exam Fee";
-
-//               return (
-//                 <div key={index} className="flex flex-wrap items-center gap-3 border p-3 rounded-md mb-2 bg-yellow-50 text-black shadow-sm hover:shadow-md transition-shadow">
-//                   <div className="w-full sm:w-[260px]">
-//                     <Select
-//                       options={availableOptions}
-//                       value={head.type ? { value: head.type, label: head.type } : null}
-//                       placeholder="Select Fee Type"
-//                       onChange={(opt) => handleFeeHeadChange(index, "type", opt?.value || "")}
-//                       isDisabled={isMandatory}
-//                       className="text-black"
-//                     />
-//                   </div>
-
-//                   <input
-//                     type="number"
-//                     placeholder="Enter 6-digit amount"
-//                     value={head.amount}
-//                     onChange={(e) => {
-//                       const value = e.target.value;
-
-//                       // ✅ Allow only up to 6 digits
-//                       if (value.length > 6) {
-//                         toast.error("Fee amount cannot exceed 6 digits");
-//                         return;
-//                       }
-
-//                       // ✅ Allow only numeric input
-//                       if (!/^\d*$/.test(value)) return;
-
-//                       handleFeeHeadChange(index, "amount", Number(value));
-//                     }}
-//                     className="w-full sm:w-[140px] border border-gray-300 rounded-md px-2 py-1 text-xs"
-//                     required
-//                   />
-
-
-//                   {/* <label className="flex items-center gap-1 text-sm w-auto">
-//                     <input
-//                       type="checkbox"
-//                       checked={head.isOptional}
-//                       onChange={(e) => handleFeeHeadChange(index, "isOptional", e.target.checked)}
-//                       disabled={isMandatory}
-//                     />
-//                     Optional
-//                   </label> */}
-
-//                   {!isMandatory && (
-//                     <button
-//                       type="button"
-//                       onClick={() => removeFeeHead(index)}
-//                       className="text-red-500 hover:text-red-700 text-xs"
-//                     >
-//                       ✕
-//                     </button>
-//                   )}
-//                 </div>
-//               );
-//             })}
-
-//             {/* {formData.feeHeads.length < 4 && (
-//               <Button
-//                 variant="outlined"
-//                 startIcon={<FaPlusCircle />}
-//                 onClick={addFeeHead}
-//                 className="text-yellow-700 border-yellow-400 hover:bg-yellow-100 mt-2"
-//               >
-//                 Add Optional Fee
-//               </Button>
-//             )} */}
-//           </div>
-
-//           {/* Save / Cancel */}
-//           <div className="flex justify-end gap-3 pt-4">
-//             <Button onClick={() => setIsModalOpen(false)} variant="outlined" color="inherit">
-//               Cancel
-//             </Button>
-//             <Button
-//               type="submit"
-//               variant="contained"
-//               disabled={mutation.isPending}
-//               sx={{
-//                 '--gradient-primary': 'linear-gradient(to right, #facc15, #eab308)',
-//                 background: 'var(--gradient-primary)',
-//                 color: '#333',
-//               }}
-//             >
-//               {mutation.isPending ? "Saving..." : "Save"}
-//             </Button>
-//           </div>
-//         </form>
-//       </Modal>
-//       <ConfirmBox
-//         isOpen={confirmModal}
-//         title="Confirm Deletion"
-//         message="Are you sure you want to delete this fees structure? This action cannot be undone."
-//         onConfirm={() => {
-//           deleteMutation.mutate(DeleteId);
-//           setConfirmModal(false);
-//         }}
-//         onCancel={() => setConfirmModal(false)}
-//         loading={deleteMutation.isPending}
-//       />
-//     </div>
-//   );
-// }
-
-
-
-
-
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Select from "react-select";
@@ -477,15 +12,16 @@ import {
   Divider,
   Tooltip,
   CircularProgress,
+  TextField,
 } from "@mui/material";
 import { Edit, School } from "@mui/icons-material";
-import { FaPlusCircle } from "react-icons/fa";
 import toast from "react-hot-toast";
 
 import { apiGet, apiPost, apiPut, apiDelete, apiPatch } from "../api/apiFetch";
 import apiPath from "../api/apiPath";
 import Modal from "../components/Modal";
 import ToggleButton from "../components/ToggleButton";
+import { useEffect } from "react";
 
 export default function FeesStructure() {
   const queryClient = useQueryClient();
@@ -500,14 +36,14 @@ export default function FeesStructure() {
   const nextYear = currentYear + 1;
 
   const [formData, setFormData] = useState({
-    academicYear: `${currentYear}-${nextYear}`,
+    academicYear: ``,
     feeHeads: [
       { type: "Tuition Fee", amount: 0, isOptional: false },
       { type: "Exam Fee", amount: 0, isOptional: false },
     ],
     totalAmount: 0,
   });
-
+  console.log("formdata", formData);
   // Fetch classes
   const { data: classData, isLoading: classLoading } = useQuery({
     queryKey: ["classesdata"],
@@ -521,7 +57,41 @@ export default function FeesStructure() {
       apiGet(`${apiPath.getFeesStructure}?classIdentifier=${selectedClass}`),
     enabled: !!selectedClass,
   });
+  const { data: academicSessionData, isLoading: sessionLoading } = useQuery({
+    queryKey: ["current-academic-session"],
+    queryFn: () => apiGet(apiPath.currentSession),
+  });
+  const currentSession =
+    academicSessionData?.results?.academicSession?.currentSession || "";
 
+  useEffect(() => {
+    if (!currentSession) return;
+
+    setFormData(prev => ({
+      ...prev,
+      academicYear: currentSession,
+    }));
+  }, [currentSession]);
+  const formatAcademicSession = (session) => {
+    if (!session || session.length < 21) return session;
+
+    // ✅ Extract exact dates using substring (safe)
+    const start = session.substring(0, 10);
+    const end = session.substring(11, 21);
+
+    const formatDate = (dateStr) => {
+      const date = new Date(dateStr);
+      if (isNaN(date)) return dateStr;
+
+      return date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    };
+
+    return `${formatDate(start)} - ${formatDate(end)}`;
+  };
   // Mutations
   const mutation = useMutation({
     mutationFn: async (payload) => {
@@ -541,14 +111,14 @@ export default function FeesStructure() {
   // FIXED: Delete Mutation with optimistic updates
   const deleteMutation = useMutation({
     mutationFn: async (id) => apiDelete(`${apiPath.deleteFeesStructure}/${id}`),
-    
+
     onMutate: async (id) => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries(["feesStructure", selectedClass]);
-      
+
       // Snapshot the previous value
       const previousData = queryClient.getQueryData(["feesStructure", selectedClass]);
-      
+
       // Optimistically update to remove the data
       queryClient.setQueryData(["feesStructure", selectedClass], (old) => {
         if (!old) return old;
@@ -557,10 +127,10 @@ export default function FeesStructure() {
           results: null // Set results to null immediately
         };
       });
-      
+
       return { previousData };
     },
-    
+
     onSuccess: (data) => {
       // Force refresh of selected class's fees
       queryClient.invalidateQueries(["feesStructure", selectedClass]);
@@ -569,7 +139,7 @@ export default function FeesStructure() {
       toast.success(data?.message || "Fees structure deleted successfully");
       setConfirmModal(false);
     },
-    
+
     onError: (err, id, context) => {
       // Rollback to previous data on error
       if (context?.previousData) {
@@ -578,7 +148,7 @@ export default function FeesStructure() {
       toast.error(err?.response?.data?.message || "Delete failed");
       setConfirmModal(false);
     },
-    
+
     onSettled: () => {
       // Always refetch after mutation settles
       queryClient.invalidateQueries(["feesStructure", selectedClass]);
@@ -596,7 +166,7 @@ export default function FeesStructure() {
 
   const resetForm = () =>
     setFormData({
-      academicYear: `${currentYear}-${nextYear}`,
+      academicYear: currentSession,
       feeHeads: [
         { type: "Tuition Fee", amount: 0, isOptional: false },
         { type: "Exam Fee", amount: 0, isOptional: false },
@@ -703,13 +273,14 @@ export default function FeesStructure() {
               // Reset delete state when changing class
               deleteMutation.reset();
             }}
-            className="shadow-md rounded-md"
+            className="shadow-md z-[99999] rounded-md"
             theme={(theme) => ({
               ...theme,
               colors: {
                 ...theme.colors,
                 primary25: "#fef08a", // light yellow on hover
-                primary: "#facc15",   // main yellow (border, selected)
+                primary: "#facc15",
+                // main yellow (border, selected)
               },
             })}
           />
@@ -719,9 +290,9 @@ export default function FeesStructure() {
         {feesLoading || deleteMutation.isPending ? (
           <div className="text-center py-10">
             <div className="h-[10vh] inset-0 flex items-center justify-center bg-opacity-70 z-50">
-              <CircularProgress 
-                size={48} 
-                sx={{ color: '#facc15' }} 
+              <CircularProgress
+                size={48}
+                sx={{ color: '#facc15' }}
               />
             </div>
             <p className="mt-2 text-gray-600">
@@ -740,8 +311,8 @@ export default function FeesStructure() {
               action={
                 <div className="flex items-center gap-3">
                   <Tooltip title="Edit Fees Structure">
-                    <IconButton 
-                      onClick={handleEdit} 
+                    <IconButton
+                      onClick={handleEdit}
                       className="text-yellow-700"
                       disabled={deleteMutation.isPending}
                     >
@@ -771,9 +342,22 @@ export default function FeesStructure() {
             />
             <Divider />
             <CardContent>
-              <Typography className="mb-4 text-gray-700 font-medium">
+              {/* <Typography className="mb-4 text-gray-700 font-medium">
                 Academic Year: <b>{feesData.results.academicYear}</b>
-              </Typography>
+              </Typography> */}
+              <TextField
+                fullWidth
+                name="academicYear"
+                label="Academic Year"
+                value={formatAcademicSession(feesData?.results?.academicYear) || ""}
+                disabled   // ✅ LOCKED
+                InputProps={{ readOnly: true }}  // extra safety
+                helperText={
+                  sessionLoading
+                    ? "Loading academic session..."
+                    : "Academic session from school settings"
+                }
+              />
 
               <div className="bg-yellow-50 p-4 rounded-xl shadow-inner">
                 {feesData.results.feeHeads.map((head, idx) => (
@@ -874,7 +458,7 @@ export default function FeesStructure() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
             <input
               type="text"
-              value={formData.academicYear}
+              value={formatAcademicSession(formData.academicYear)}
               readOnly
               className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-sm text-gray-700 cursor-not-allowed"
             />
@@ -967,7 +551,7 @@ export default function FeesStructure() {
           </div>
         </form>
       </Modal>
-      
+
       {/* FIXED: Confirm Box with proper handlers */}
       <ConfirmBox
         isOpen={confirmModal}

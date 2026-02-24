@@ -52,7 +52,7 @@ export default function StudentPage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [academicYear, setAcademicYear] = useState(null);
   const [selectedStudents, setSelectedStudents] = useState([]);
-  console.log("selectedstudetns",selectedStudents);
+  console.log("selectedstudetns", selectedStudents);
 
   console.log("classid", classId);
   const [sorting, setSorting] = useState([]);
@@ -75,9 +75,47 @@ export default function StudentPage() {
     ],
     totalAmount: 0,
   });
+  const getAcademicYears = (count = 5) => {
+    const currentYear = new Date().getFullYear();
 
+    return Array.from({ length: count }).map((_, i) => {
+      const startYear = currentYear - i;
+      const endYear = startYear + 1;
 
+      return `${startYear}-${endYear}`;
+    });
+  };
+  // const academicYearOptions = useMemo(() => getAcademicYears(5), []);
+  // console.log(
+  //   "acadmicyearoptions", academicYearOptions
+  // );
+const {data:academicYears} = useQuery({
+  queryKey:"AcademicYears",
+  queryFn:()=>apiGet(apiPath.fetchAcademicYears)
+});
+// console.log("academicyears",academicYears);
+const academicYearOptions = academicYears?.results || [];
+// const academicYearOptions=academicYear?.results;
   // 🔹 Import Mutation
+  const formatAcademicSession = (session) => {
+  if (!session) return "";
+
+  const start = session.substring(0, 10);
+  const end = session.substring(11, 21);
+
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    if (isNaN(date)) return dateStr;
+
+    return date.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  return `${formatDate(start)} - ${formatDate(end)}`;
+};
   const importMutation = useMutation({
     mutationFn: async (formData) =>
       apiPost(apiPath.importStudents, formData, {
@@ -437,7 +475,7 @@ export default function StudentPage() {
     () => studentsData?.results?.docs || [],
     [studentsData]
   );
-  console.log("tabledata",tableData);
+  console.log("tabledata", tableData);
   const totalPages = studentsData?.results?.totalPages || 1;
   const handleUpdateSession = () => {
     if (!selectedStudents.length) {
@@ -465,28 +503,28 @@ export default function StudentPage() {
 
     updateMutation.mutate(payload);
   };
-const allStudentIds = tableData.map(s => s._id);
-console.log("allstudentids",allStudentIds);
+  const allStudentIds = tableData.map(s => s._id);
+  console.log("allstudentids", allStudentIds);
 
-const isAllSelected =
-  allStudentIds.length > 0 &&
-  allStudentIds.every(id => selectedStudents.includes(id));
+  const isAllSelected =
+    allStudentIds.length > 0 &&
+    allStudentIds.every(id => selectedStudents.includes(id));
 
-const toggleSelectAll = () => {
-  if (isAllSelected) {
-    setSelectedStudents([]); // unselect all
-  } else {
-    setSelectedStudents(allStudentIds); // select all visible rows
-  }
-};
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedStudents([]); // unselect all
+    } else {
+      setSelectedStudents(allStudentIds); // select all visible rows
+    }
+  };
 
-const toggleStudent = (id) => {
-  setSelectedStudents(prev =>
-    prev.includes(id)
-      ? prev.filter(sid => sid !== id)
-      : [...prev, id]
-  );
-};
+  const toggleStudent = (id) => {
+    setSelectedStudents(prev =>
+      prev.includes(id)
+        ? prev.filter(sid => sid !== id)
+        : [...prev, id]
+    );
+  };
 
   const columns = useMemo(
     () => [
@@ -563,7 +601,7 @@ const toggleStudent = (id) => {
         ),
       },
     ],
-    [classFilter,selectedStudents,
+    [classFilter, selectedStudents,
       isAllSelected]
   );
   return (
@@ -574,19 +612,34 @@ const toggleStudent = (id) => {
 
         <div className="md:flex items-center justify-between w-full md:items-center gap-4">
           {/* ✅ Class Filter Dropdown */}
-          <select
-            value={classFilter}
-            onChange={(e) => setClassFilter(e.target.value)}
-            disabled={classLoading}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 outline-none"
-          >
-            <option value="">All Classes</option>
-            {classData?.results?.docs?.map((cls) => (
-              <option key={cls._id} value={cls._id}>
-                {cls.name}  {cls.section}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-3">
+            <select
+              value={classFilter}
+              onChange={(e) => setClassFilter(e.target.value)}
+              disabled={classLoading}
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 outline-none"
+            >
+              <option value="">All Classes</option>
+              {classData?.results?.docs?.map((cls) => (
+                <option key={cls._id} value={cls._id}>
+                  {cls.name}  {cls.section}
+                </option>
+              ))}
+            </select>
+           <select
+  value={academicYearFilter}
+  onChange={(e) => setAcademicYearFilter(e.target.value)}
+  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 outline-none"
+>
+  <option value="">All Academic Years</option>
+
+  {academicYearOptions.map((year) => (
+    <option key={year} value={year}>
+      {formatAcademicSession(year)}
+    </option>
+  ))}
+</select>
+          </div>
 
           {/* Add Student Button */}
 

@@ -48,7 +48,7 @@ export default function AdminProfile() {
       region: profile.region || "",
       address: profile.address || "",
     });
-    setPreview(profile.profilePic ? `${profile.profilePic}` : "");
+    setPreview(profile.profilePic ? `${profile?.profilePic?.secure_url}` : "");
     setProfilePic(null);
     setIsModalOpen(true);
   };
@@ -156,7 +156,7 @@ onSuccess: (data) => {
             <div className="absolute left-10 top-28 flex items-center gap-4">
               {profile.profilePic ? (
                 <img
-                  src={`${profile.profilePic}`}
+                  src={`${profile.profilePic.secure_url}`}
                   alt="Profile"
                   className="rounded-full border-4 border-white shadow-lg w-[100px] h-[100px] object-cover"
                 />
@@ -322,7 +322,7 @@ onSuccess: (data) => {
           <div className="flex flex-col items-center">
             <div className="relative w-28 h-28">
               <img
-                src={preview || `${profile.profilePic}` || ""}
+                src={preview || `${profile?.profilePic?.secure_url}` || ""}
                 alt="Preview"
                 className="w-28 h-28 rounded-full object-cover border-2 border-yellow-400"
               />

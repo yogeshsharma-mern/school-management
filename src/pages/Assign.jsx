@@ -306,6 +306,8 @@ export default function TimetableManager() {
 
   // 🔹 Time slots
   const settingsData = settingsQuery.data?.results;
+  console.log("settingdata",settingsData);
+  console.log("generatetimeslots",generateTimeSlotsFromSettings(settingsData))
   const timeSlots = useMemo(
     () => (settingsData ? generateTimeSlotsFromSettings(settingsData) : []),
     [settingsData]

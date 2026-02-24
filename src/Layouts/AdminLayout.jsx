@@ -110,7 +110,7 @@ export default function AdminLayout() {
               <span className="hidden md:block font-semibold">{user.firstName} {user.lastName}</span>
 
               {
-                user?.profilePic !== "" ? <img className="w-[40px] h-[40px] cursor-pointer rounded-full" src={`${user.profilePic}`} alt="profilePicture" /> : <Avatar style={{ width: "40px", height: "40px" }} {...config} />
+                user?.profilePic !== "" ? <img className="w-[40px] h-[40px] cursor-pointer rounded-full" src={`${user?.profilePic?.secure_url}`} alt="profilePicture" /> : <Avatar style={{ width: "40px", height: "40px" }} {...config} />
               }
               {/* <img className="w-[40px] h-[40px] cursor-pointer rounded-full" src={`${user.profilePic}`} alt="profilePicture" /> */}
 

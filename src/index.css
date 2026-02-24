@@ -13,7 +13,7 @@
   --color-neutral-light: #F8FAFC;
   --color-neutral: #F5F9FF;
   --color-primary:#eab308;
-    --gradient-primary: linear-gradient(to right, #facc15, #eab308);
+    --gradient-primary: linear-gradient(to right, rgb(250, 204, 21), #eab308);
     --heading-hover:#facc15;
     --primary25:
   --color-neutral-medium: #6e727a;
@@ -57,4 +57,75 @@
 body {
   background-color: var(--color-neutral);
   color: var(--color-text);
+}
+
+/* Dropdown entrance animation */
+@keyframes menuEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-menu {
+  animation: menuEnter 0.18s ease-out;
+}
+
+/* Menu item styling */
+.menu-item {
+  position: relative;
+  width: 100%;
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  transition: all 0.25s ease;
+  background: transparent;
+}
+
+/* Remove last border */
+.menu-item:last-child {
+  border-bottom: none;
+}
+
+/* Hover animation */
+.menu-item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 193, 7, 0.15), transparent);
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: all 0.35s ease;
+}
+
+/* Smooth glow sweep */
+.menu-item:hover::before {
+  opacity: 1;
+  transform: translateX(100%);
+}
+
+/* Text + background animation */
+.menu-item:hover {
+  padding-left: 22px;
+  background: rgba(255, 193, 7, 0.08);
+}
+
+
+/* Add to your global CSS or component styles */
+.modal-yellow-theme {
+  --modal-bg: linear-gradient(135deg, #fff9e6 0%, #fff5d6 100%);
+  --modal-border: 1px solid #eab308;
+  --modal-shadow: 0 20px 25px -5px rgba(245, 158, 11, 0.1), 0 10px 10px -5px rgba(245, 158, 11, 0.04);
+}
+
+/* If you can customize the Modal component itself */
+:global(.modal-content) {
+  background: linear-gradient(135deg, #fff9e6 0%, #fff5d6 100%);
+  border: 1px solid #eab308;
+  box-shadow: 0 20px 25px -5px rgba(245, 158, 11, 0.1), 0 10px 10px -5px rgba(245, 158, 11, 0.04);
 }

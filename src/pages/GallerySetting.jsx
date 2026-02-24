@@ -42,7 +42,7 @@ export default function AdminGalleryUpload() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
   const categoryList = categories?.results?.data || [];
-  console.log("categoryList",categoryList);
+  console.log("categoryList", categoryList);
   // Auto-select first category
   useEffect(() => {
     if (categoryList.length > 0 && !activeCategory) {

@@ -21,22 +21,78 @@ import { apiPut, apiGet, apiPatch, apiDelete, apiPost } from "../api/apiFetch";
 import apiPath from "../api/apiPath";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
+import Modal from "./Modal";
+import "leaflet/dist/leaflet.css";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { LocationMarker } from "../components/LocationMarker";
+import { FlyToLocation } from "../components/FlyToLocation.js";
+import FixMapResize from "./FixMapResize.js";
+// import Select from "react-select";
+import { Country, State, City } from "country-state-city";
+const customSelectStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    // minHeight: "56px",
+    height: "56px",
+    borderColor: state.isFocused ? "#1976d2" : "#e5e7eb",
+    boxShadow: state.isFocused
+      ? "0 0 0 2px rgba(25, 118, 210, 0.2)"
+      : "none",
+    "&:hover": { borderColor: "#1976d2" },
+    borderRadius: "8px",
+    fontSize: "0.95rem",
+    backgroundColor: state.isDisabled ? "#f9fafb" : "white",
+    cursor: state.isDisabled ? "not-allowed" : "pointer",
+  }),
+
+  valueContainer: (provided) => ({
+    ...provided,
+    height: "56px",
+    padding: "0 12px",
+  }),
+
+  input: (provided) => ({
+    ...provided,
+    margin: "0",
+    padding: "0",
+  }),
+
+  indicatorsContainer: (provided) => ({
+    ...provided,
+    height: "56px",
+  }),
+
+  placeholder: (provided) => ({
+    ...provided,
+    color: "#9ca3af",
+  }),
+
+  menuPortal: (provided) => ({
+    ...provided,
+    zIndex: 9999,
+  }),
+
+  menu: (provided) => ({
+    ...provided,
+    zIndex: 9999,
+    borderRadius: "8px",
+  }),
+
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected
+      ? "#1976d2"
+      : state.isFocused
+        ? "#e8f0fe"
+        : "white",
+    color: state.isSelected ? "white" : "#1f2937",
+    cursor: "pointer",
+  }),
+};
 // import toast from "react-hot-toast";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://api.example.com";
 
-const stateOptions = [
-  { value: "Rajasthan", label: "Rajasthan" },
-  { value: "Delhi", label: "Delhi" },
-  { value: "Karnataka", label: "Karnataka" },
-];
-// Fetch classes
-
-const countryOptions = [
-  { value: "India", label: "India" },
-  { value: "USA", label: "USA" },
-  { value: "UK", label: "UK" },
-];
 
 export default function SchoolSettings() {
   const queryClient = useQueryClient();
@@ -93,8 +149,17 @@ export default function SchoolSettings() {
     schoolLogo: null,
     marks: []
   });
+  const [locationData, setLocationData] = useState({
+    latitude: "",
+    longitude: "",
+    radiusMeters: 1000,
+    search: "",
+  });
   const [urlErrors, setUrlErrors] = useState([]);
   const [aboutImagePreview, setAboutImagePreview] = useState(null);
+  const [cordinateModalOpen, setCordinateModalOpen] = useState(false);
+  const [schoolId, setSchoolId] = useState(null);
+  console.log("schoolId", schoolId);
 
   // console.log("urlerrors", urlErrors);
   const [logoPreview, setLogoPreview] = useState(null);
@@ -125,12 +190,44 @@ export default function SchoolSettings() {
     queryFn: () => apiGet(apiPath.SchoolSettings) // only fetch if id exists
   });
   // console.log("first", studentData);
+  const { data: cordinatesData, isLoading: cordiLoading } = useQuery({
+    queryKey: ["school-coordinates"],
+    queryFn: () => apiGet(`${apiPath.getCordinates}`)
+  });
+  console.log("cordinatesdata", cordinatesData);
+  useEffect(() => {
+    if (!cordinatesData?.results) return;
 
+    const results = cordinatesData.results;
+
+    // Check if coordinates exist and are valid
+    if (results.location?.coordinates && Array.isArray(results.location.coordinates) && results.location.coordinates.length === 2) {
+      const [lng, lat] = results.location.coordinates;
+
+      // Validate that lat and lng are numbers
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setLocationData(prev => ({
+          ...prev,
+          latitude: lat.toString(),
+          longitude: lng.toString(),
+          radiusMeters: results.radiusInMeters || 1000,
+        }));
+      }
+    } else {
+      // Set default coordinates if none exist (India gate coordinates as fallback)
+      setLocationData(prev => ({
+        ...prev,
+        latitude: "28.6139",
+        longitude: "77.2090",
+        radiusMeters: 1000,
+      }));
+    }
+  }, [cordinatesData]);
   useEffect(() => {
     if (!studentData?.results) return;
     const s = studentData.results;
     console.log("s", s);
-
+    setSchoolId(s._id);
     const formatDateForInput = (isoDate) =>
       isoDate ? isoDate.split("T")[0] : "";
 
@@ -205,41 +302,70 @@ export default function SchoolSettings() {
   //       : `${import.meta.env.VITE_API_BASE_URL}${s.aboutUs.image}`
   //   );
   // }
+  const detectCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation not supported");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        setLocationData(prev => ({
+          ...prev,
+          latitude: lat.toFixed(6),
+          longitude: lng.toFixed(6),
+        }));
+
+        toast.success("Location detected ✅");
+      },
+      (error) => {
+        toast.error("Location access denied ❌");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  };
   useEffect(() => {
-  const { lunchBreak } = schoolData.periods;
+    const { lunchBreak } = schoolData.periods;
 
-  if (!lunchBreak.isEnabled) return;
+    if (!lunchBreak.isEnabled) return;
 
-  const autoTime = calculateAutoLunchTime(schoolData);
-  if (!autoTime) return;
+    const autoTime = calculateAutoLunchTime(schoolData);
+    if (!autoTime) return;
 
-  if (autoTime !== lunchBreak.time) {
-    handleChange("periods.lunchBreak.time", autoTime);
-  }
-}, [
-  schoolData.periods.totalPeriods,
-  schoolData.periods.periodDuration,
-  schoolData.periods.breakDuration,
-  schoolData.schoolTiming.startTime,
-  schoolData.periods.lunchBreak.isEnabled,
-]);
-useEffect(() => {
-  if (!schoolData.periods.lunchBreak.isEnabled) return;
+    if (autoTime !== lunchBreak.time) {
+      handleChange("periods.lunchBreak.time", autoTime);
+    }
+  }, [
+    schoolData.periods.totalPeriods,
+    schoolData.periods.periodDuration,
+    schoolData.periods.breakDuration,
+    schoolData.schoolTiming.startTime,
+    schoolData.periods.lunchBreak.isEnabled,
+  ]);
+  useEffect(() => {
+    if (!schoolData.periods.lunchBreak.isEnabled) return;
 
-  const options = getPossibleLunchTimes(schoolData);
-  const exists = options.some(
-    o => o.value === schoolData.periods.lunchBreak.time
-  );
+    const options = getPossibleLunchTimes(schoolData);
+    const exists = options.some(
+      o => o.value === schoolData.periods.lunchBreak.time
+    );
 
-  if (!exists && options.length) {
-    handleChange("periods.lunchBreak.time", options[0].value);
-  }
-}, [
-  schoolData.periods.totalPeriods,
-  schoolData.periods.periodDuration,
-  schoolData.periods.breakDuration,
-  schoolData.schoolTiming.startTime,
-]);
+    if (!exists && options.length) {
+      handleChange("periods.lunchBreak.time", options[0].value);
+    }
+  }, [
+    schoolData.periods.totalPeriods,
+    schoolData.periods.periodDuration,
+    schoolData.periods.breakDuration,
+    schoolData.schoolTiming.startTime,
+  ]);
 
   const addSocial = () => {
     setSchoolData(prev => ({
@@ -253,7 +379,30 @@ useEffect(() => {
     setUrlErrors(prev => [...prev, ""]);
   };
 
+  const calculateAcademicSession = (startDate, endDate) => {
+    if (!startDate || !endDate) return "";
 
+    const startYear = new Date(startDate).getFullYear();
+    const endYear = new Date(endDate).getFullYear();
+
+    if (isNaN(startYear) || isNaN(endYear)) return "";
+
+    return `${startDate}-${endDate}`;
+  };
+  useEffect(() => {
+    const { startDate, endDate } = schoolData.academicSession;
+
+    if (!startDate || !endDate) return;
+
+    const session = calculateAcademicSession(startDate, endDate);
+
+    if (session !== schoolData.academicSession.currentSession) {
+      handleChange("academicSession.currentSession", session);
+    }
+  }, [
+    schoolData.academicSession.startDate,
+    schoolData.academicSession.endDate,
+  ]);
 
   const removeSocial = (index) => {
     setSchoolData(prev => ({
@@ -312,7 +461,28 @@ useEffect(() => {
 
     return "";
   };
+  const countryOptions = Country.getAllCountries().map(country => ({
+    value: country.isoCode,
+    label: country.name,
+  }));
 
+  const stateOptions = schoolData.address.country
+    ? State.getStatesOfCountry(schoolData.address.country).map(state => ({
+      value: state.isoCode,
+      label: state.name,
+    }))
+    : [];
+
+  const cityOptions =
+    schoolData.address.country && schoolData.address.state
+      ? City.getCitiesOfState(
+        schoolData.address.country,
+        schoolData.address.state
+      ).map(city => ({
+        value: city.name,
+        label: city.name,
+      }))
+      : [];
   // const handleUrlChange = (e, index) => {
   //   const value = e.target.value.trim();
   //   const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[^\s]*)?$/;
@@ -372,8 +542,65 @@ useEffect(() => {
       toast.error(error?.response?.data?.message);
     },
   });
+  const saveLocationMutation = useMutation({
+    mutationFn: async () => {
+      if (!schoolId) throw new Error("SchoolId missing");
 
+      // Validate coordinates
+      const lat = Number(locationData.latitude);
+      const lng = Number(locationData.longitude);
 
+      if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        throw new Error("Invalid coordinates");
+      }
+
+      const payload = {
+        latitude: lat,
+        longitude: lng,
+        radiusMeters: Number(locationData.radiusMeters),
+      };
+
+      // 🔹 Decide POST vs PUT
+      if (!cordinatesData?.results) {
+        return apiPost(apiPath.addSchoolLocation, {
+          schoolId,
+          ...payload,
+        });
+      } else {
+        return apiPut(`${apiPath.updateSchoolLocation}/${schoolId}/location`, payload);
+      }
+    },
+    onSuccess: () => {
+      toast.success("Location saved successfully ✅");
+      queryClient.invalidateQueries({ queryKey: ["school-coordinates"] });
+      setCordinateModalOpen(false);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to save location ❌");
+    },
+  });
+  const searchLocation = async () => {
+    if (!locationData.search) return;
+
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${locationData.search}`
+    );
+
+    const data = await res.json();
+
+    if (!data.length) {
+      toast.error("Location not found");
+      return;
+    }
+
+    const { lat, lon } = data[0];
+
+    setLocationData(prev => ({
+      ...prev,
+      latitude: Number(lat),
+      longitude: Number(lon),
+    }));
+  };
   const handleDeleteBanner = (img, index) => {
     // 🟢 Agar new uploaded file hai (File object) → sirf local remove
     if (img instanceof File) {
@@ -411,39 +638,39 @@ useEffect(() => {
     return "";
   };
 
-const getPossibleLunchTimes = (data) => {
-  const { schoolTiming, periods } = data;
+  const getPossibleLunchTimes = (data) => {
+    const { schoolTiming, periods } = data;
 
-  if (
-    !schoolTiming.startTime ||
-    !periods.totalPeriods ||
-    !periods.periodDuration
-  ) {
-    return [];
-  }
+    if (
+      !schoolTiming.startTime ||
+      !periods.totalPeriods ||
+      !periods.periodDuration
+    ) {
+      return [];
+    }
 
-  const totalPeriods = Number(periods.totalPeriods);
-  const periodDuration = Number(periods.periodDuration);
-  const breakDuration = Number(periods.breakDuration || 0);
+    const totalPeriods = Number(periods.totalPeriods);
+    const periodDuration = Number(periods.periodDuration);
+    const breakDuration = Number(periods.breakDuration || 0);
 
-  let current = timeToMinutes(schoolTiming.startTime);
-  const options = [];
+    let current = timeToMinutes(schoolTiming.startTime);
+    const options = [];
 
-  for (let i = 1; i < totalPeriods; i++) {
-    // finish period
-    current += periodDuration;
+    for (let i = 1; i < totalPeriods; i++) {
+      // finish period
+      current += periodDuration;
 
-    options.push({
-      label: `After Period ${i} (${minutesToTime(current)})`,
-      value: minutesToTime(current),
-    });
+      options.push({
+        label: `After Period ${i} (${minutesToTime(current)})`,
+        value: minutesToTime(current),
+      });
 
-    // add break before next period
-    current += breakDuration;
-  }
+      // add break before next period
+      current += breakDuration;
+    }
 
-  return options;
-};
+    return options;
+  };
 
   const generateSessionOptions = (startDate, endDate) => {
     if (!startDate || !endDate) return [];
@@ -566,193 +793,193 @@ const getPossibleLunchTimes = (data) => {
     }
 
 
-if (!validatePeriodsAgainstSchoolTime(schoolData)) {
-  toast.error("Please fix school timing and periods");
-  return;
-}
+    if (!validatePeriodsAgainstSchoolTime(schoolData)) {
+      toast.error("Please fix school timing and periods");
+      return;
+    }
     // ✅ Submit using mutation
     mutation.mutate(formData);
   };
-const timeToMinutes = (time) => {
-  if (!time) return 0;
-  const [h, m] = time.split(":").map(Number);
-  return h * 60 + m;
-};
-
-const minutesToTime = (mins) => {
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-};
-
-    const runPeriodsValidation = () => {
-  validatePeriodsAgainstSchoolTime(schoolData);
-};
-const getSchoolTotalMinutes = (data) => {
-  const start = timeToMinutes(data.schoolTiming.startTime);
-  const end = timeToMinutes(data.schoolTiming.endTime);
-  return end - start;
-};
-const validateSchoolTiming = (start, end) => {
-  const diff = timeToMinutes(end) - timeToMinutes(start);
-
-  if (diff <= 0) {
-    toast.error("End time must be after start time");
-    return false;
-  }
-
-  return true;
-};
-const calculateAutoLunchTime = (data) => {
-  const { schoolTiming, periods } = data;
-
-  if (
-    !periods.totalPeriods ||
-    !periods.periodDuration ||
-    !schoolTiming.startTime
-  ) {
-    return "";
-  }
-
-  const totalPeriods = Number(periods.totalPeriods);
-  const periodDuration = Number(periods.periodDuration);
-  const breakDuration = Number(periods.breakDuration || 0);
-
-  const lunchAfterPeriod = Math.floor(totalPeriods / 2);
-
-  let current = timeToMinutes(schoolTiming.startTime);
-
-  for (let i = 1; i <= lunchAfterPeriod; i++) {
-    // finish period
-    current += periodDuration;
-
-    // ❌ no break before lunch
-    if (i === lunchAfterPeriod) break;
-
-    // add break
-    current += breakDuration;
-  }
-
-  return minutesToTime(current);
-};
-
-const validatePeriodsAgainstSchoolTime = (data, silent = false) => {
-  const { schoolTiming, periods } = data;
-
-  // ⛔ timing missing
-  if (!schoolTiming.startTime || !schoolTiming.endTime) return true;
-
-  const schoolMinutes =
-    timeToMinutes(schoolTiming.endTime) -
-    timeToMinutes(schoolTiming.startTime);
-
-  if (schoolMinutes <= 0) {
-    if (!silent) toast.error("Invalid school timing");
-    return false;
-  }
-
-  // ⛔ required fields missing
-  if (!periods.totalPeriods || !periods.periodDuration) return true;
-
-  const totalPeriods = Number(periods.totalPeriods);
-  const periodDuration = Number(periods.periodDuration);
-  const breakDuration = Number(periods.breakDuration || 0); // ✅ DEFAULT 0
-
-const breakCount = getEffectiveBreakCount(
-  totalPeriods,
-  periods.lunchBreak.isEnabled
-);
-
-let totalUsedMinutes =
-  totalPeriods * periodDuration +
-  breakCount * breakDuration;
-
-  // 🍱 Lunch
-  if (periods.lunchBreak.isEnabled) {
-    if (!periods.lunchBreak.duration) return true;
-    totalUsedMinutes += Number(periods.lunchBreak.duration);
-  }
-
-  if (totalUsedMinutes > schoolMinutes) {
-    if (!silent)
-      toast.error(
-        `Total time (${totalUsedMinutes} min) exceeds school timing (${schoolMinutes} min)`
-      );
-    return false;
-  }
-
-  if (totalUsedMinutes < schoolMinutes) {
-    if (!silent)
-      toast.error(
-        `Total time (${totalUsedMinutes} min) is less than school timing (${schoolMinutes} min)`
-      );
-    return false;
-  }
-
-  return true;
-};
-const getUsedMinutes = (data) => {
-  const { periods } = data;
-
-  if (!periods.totalPeriods || !periods.periodDuration) return 0;
-
-  const totalPeriods = Number(periods.totalPeriods);
-  const periodDuration = Number(periods.periodDuration);
-  const breakDuration = Number(periods.breakDuration || 0);
-
-  const breakCount = getEffectiveBreakCount(
-    totalPeriods,
-    periods.lunchBreak.isEnabled
-  );
-
-  let total =
-    totalPeriods * periodDuration +
-    breakCount * breakDuration;
-
-  if (periods.lunchBreak.isEnabled && periods.lunchBreak.duration) {
-    total += Number(periods.lunchBreak.duration);
-  }
-
-  return total;
-};
-
-const getEffectiveBreakCount = (totalPeriods, lunchEnabled) => {
-  if (totalPeriods <= 1) return 0;
-
-  // lunch enabled → 2 breaks removed
-  if (lunchEnabled) {
-    return Math.max(totalPeriods - 2, 0);
-  }
-
-  // lunch disabled → normal breaks
-  return Math.max(totalPeriods - 1, 0);
-};
-
-const getTimingStatus = (data) => {
-  const used = getUsedMinutes(data);
-  const school = getSchoolTotalMinutes(data);
-
-  if (!used || !school) return { color: "text.secondary", msg: "" };
-
-  if (used > school) {
-    return {
-      color: "error.main",
-      msg: `Over by ${used - school} min`,
-    };
-  }
-
-  if (used < school) {
-    return {
-      color: "warning.main",
-      msg: `Short by ${school - used} min`,
-    };
-  }
-
-  return {
-    color: "success.main",
-    msg: "Perfect match",
+  const timeToMinutes = (time) => {
+    if (!time) return 0;
+    const [h, m] = time.split(":").map(Number);
+    return h * 60 + m;
   };
-};
+
+  const minutesToTime = (mins) => {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  };
+
+  const runPeriodsValidation = () => {
+    validatePeriodsAgainstSchoolTime(schoolData);
+  };
+  const getSchoolTotalMinutes = (data) => {
+    const start = timeToMinutes(data.schoolTiming.startTime);
+    const end = timeToMinutes(data.schoolTiming.endTime);
+    return end - start;
+  };
+  const validateSchoolTiming = (start, end) => {
+    const diff = timeToMinutes(end) - timeToMinutes(start);
+
+    if (diff <= 0) {
+      toast.error("End time must be after start time");
+      return false;
+    }
+
+    return true;
+  };
+  const calculateAutoLunchTime = (data) => {
+    const { schoolTiming, periods } = data;
+
+    if (
+      !periods.totalPeriods ||
+      !periods.periodDuration ||
+      !schoolTiming.startTime
+    ) {
+      return "";
+    }
+
+    const totalPeriods = Number(periods.totalPeriods);
+    const periodDuration = Number(periods.periodDuration);
+    const breakDuration = Number(periods.breakDuration || 0);
+
+    const lunchAfterPeriod = Math.floor(totalPeriods / 2);
+
+    let current = timeToMinutes(schoolTiming.startTime);
+
+    for (let i = 1; i <= lunchAfterPeriod; i++) {
+      // finish period
+      current += periodDuration;
+
+      // ❌ no break before lunch
+      if (i === lunchAfterPeriod) break;
+
+      // add break
+      current += breakDuration;
+    }
+
+    return minutesToTime(current);
+  };
+
+  const validatePeriodsAgainstSchoolTime = (data, silent = false) => {
+    const { schoolTiming, periods } = data;
+
+    // ⛔ timing missing
+    if (!schoolTiming.startTime || !schoolTiming.endTime) return true;
+
+    const schoolMinutes =
+      timeToMinutes(schoolTiming.endTime) -
+      timeToMinutes(schoolTiming.startTime);
+
+    if (schoolMinutes <= 0) {
+      if (!silent) toast.error("Invalid school timing");
+      return false;
+    }
+
+    // ⛔ required fields missing
+    if (!periods.totalPeriods || !periods.periodDuration) return true;
+
+    const totalPeriods = Number(periods.totalPeriods);
+    const periodDuration = Number(periods.periodDuration);
+    const breakDuration = Number(periods.breakDuration || 0); // ✅ DEFAULT 0
+
+    const breakCount = getEffectiveBreakCount(
+      totalPeriods,
+      periods.lunchBreak.isEnabled
+    );
+
+    let totalUsedMinutes =
+      totalPeriods * periodDuration +
+      breakCount * breakDuration;
+
+    // 🍱 Lunch
+    if (periods.lunchBreak.isEnabled) {
+      if (!periods.lunchBreak.duration) return true;
+      totalUsedMinutes += Number(periods.lunchBreak.duration);
+    }
+
+    if (totalUsedMinutes > schoolMinutes) {
+      if (!silent)
+        toast.error(
+          `Total time (${totalUsedMinutes} min) exceeds school timing (${schoolMinutes} min)`
+        );
+      return false;
+    }
+
+    if (totalUsedMinutes < schoolMinutes) {
+      if (!silent)
+        toast.error(
+          `Total time (${totalUsedMinutes} min) is less than school timing (${schoolMinutes} min)`
+        );
+      return false;
+    }
+
+    return true;
+  };
+  const getUsedMinutes = (data) => {
+    const { periods } = data;
+
+    if (!periods.totalPeriods || !periods.periodDuration) return 0;
+
+    const totalPeriods = Number(periods.totalPeriods);
+    const periodDuration = Number(periods.periodDuration);
+    const breakDuration = Number(periods.breakDuration || 0);
+
+    const breakCount = getEffectiveBreakCount(
+      totalPeriods,
+      periods.lunchBreak.isEnabled
+    );
+
+    let total =
+      totalPeriods * periodDuration +
+      breakCount * breakDuration;
+
+    if (periods.lunchBreak.isEnabled && periods.lunchBreak.duration) {
+      total += Number(periods.lunchBreak.duration);
+    }
+
+    return total;
+  };
+
+  const getEffectiveBreakCount = (totalPeriods, lunchEnabled) => {
+    if (totalPeriods <= 1) return 0;
+
+    // lunch enabled → 2 breaks removed
+    if (lunchEnabled) {
+      return Math.max(totalPeriods - 2, 0);
+    }
+
+    // lunch disabled → normal breaks
+    return Math.max(totalPeriods - 1, 0);
+  };
+
+  const getTimingStatus = (data) => {
+    const used = getUsedMinutes(data);
+    const school = getSchoolTotalMinutes(data);
+
+    if (!used || !school) return { color: "text.secondary", msg: "" };
+
+    if (used > school) {
+      return {
+        color: "error.main",
+        msg: `Over by ${used - school} min`,
+      };
+    }
+
+    if (used < school) {
+      return {
+        color: "warning.main",
+        msg: `Short by ${school - used} min`,
+      };
+    }
+
+    return {
+      color: "success.main",
+      msg: "Perfect match",
+    };
+  };
 
 
 
@@ -767,392 +994,439 @@ const getTimingStatus = (data) => {
     );
 
   return (
-    <Box className="p-6 w-[100vw] md:w-auto" >
-      <Typography
-        className="text-black font-bold tracking-wide"
-        variant="h5"
-        align="center"
-        gutterBottom
-      >
-        🏫 School Settings
-      </Typography>
+    <>
 
-      <form onSubmit={handleSubmit}>
-        {/* Basic Info + Status */}
-        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-          <CardContent>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} sm={6}>
-                {/* <TextField
+      <Box className="p-6 w-[100vw] md:w-auto" >
+        <Typography
+          className="text-black font-bold tracking-wide"
+          variant="h5"
+          align="center"
+          gutterBottom
+        >
+          🏫 School Settings
+        </Typography>
+        <div className="flex items-center justify-end mb-3">
+          <button onClick={() => setCordinateModalOpen(true)} className="bg-[image:var(--gradient-primary)] cursor-pointer py-2 px-3 rounded ">Add Cordinates</button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          {/* Basic Info + Status */}
+          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+            <CardContent>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item xs={12} sm={6}>
+                  {/* <TextField
                   label="School Name"
                   value={schoolData.schoolName || ""}
                   onChange={(e) => handleChange("schoolName", e.target.value)}
                   fullWidth
                 /> */}
-                <TextField
-                  label="School Name"
-                  value={schoolData.schoolName || ""}
-                  onChange={(e) => {
-                    const onlyLetters = e.target.value.replace(/[^a-zA-Z\s]/g, ""); // allow letters and spaces
-                    handleChange("schoolName", onlyLetters);
-                  }}
-                  fullWidth
-                />
+                  <TextField
+                    label="School Name"
+                    value={schoolData.schoolName || ""}
+                    onChange={(e) => {
+                      const onlyLetters = e.target.value.replace(/[^a-zA-Z\s]/g, ""); // allow letters and spaces
+                      handleChange("schoolName", onlyLetters);
+                    }}
+                    fullWidth
+                  />
 
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Status
+                  </Typography>
+                  <ToggleButton
+                    isActive={schoolData.status}
+                    onToggle={() =>
+                      handleChange(
+                        "status",
+                        schoolData.status === "active" ? "inactive" : "active"
+                      )
+                    }
+                  />
+                </Grid>
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Status
-                </Typography>
-                <ToggleButton
-                  isActive={schoolData.status}
-                  onToggle={() =>
-                    handleChange(
-                      "status",
-                      schoolData.status === "active" ? "inactive" : "active"
-                    )
-                  }
-                />
+            </CardContent>
+          </Card>
+
+          {/* Contact */}
+          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                📞 Contact Info
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={4}>
+                  <PhoneInput
+                    country={"in"}
+                    value={schoolData.contact.phone || ""}
+                    onChange={(phone) => handleChange("contact.phone", phone)}
+                    inputStyle={{ width: "100%" }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    label="Email"
+                    value={schoolData.contact.email || ""}
+                    onChange={(e) => handleChange("contact.email", e.target.value)}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    label="Website"
+                    value={schoolData.contact.website || ""}
+                    onChange={(e) => {
+                      const input = e.target.value.trim();
+
+                      // ✅ Allow only letters, digits, dots, hyphens, slashes, and colons
+                      const clean = input.replace(/[^a-zA-Z0-9\-._:/]/g, "");
+
+                      handleChange("contact.website", clean);
+                    }}
+                    fullWidth
+                    placeholder="https://www.example.com"
+                  />
+
+                </Grid>
               </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Contact */}
-        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              📞 Contact Info
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={4}>
-                <PhoneInput
-                  country={"in"}
-                  value={schoolData.contact.phone || ""}
-                  onChange={(phone) => handleChange("contact.phone", phone)}
-                  inputStyle={{ width: "100%" }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  label="Email"
-                  value={schoolData.contact.email || ""}
-                  onChange={(e) => handleChange("contact.email", e.target.value)}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  label="Website"
-                  value={schoolData.contact.website || ""}
-                  onChange={(e) => {
-                    const input = e.target.value.trim();
+          {/* Address */}
+          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                📍 Address
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Street"
+                    value={schoolData.address.street || ""}
+                    onChange={(e) => {
+                      // allow letters, numbers, and spaces only
+                      const cleanValue = e.target.value.replace(/[^a-zA-Z0-9\s]/g, "");
+                      handleChange("address.street", cleanValue);
+                    }}
+                    fullWidth
+                  />
 
-                    // ✅ Allow only letters, digits, dots, hyphens, slashes, and colons
-                    const clean = input.replace(/[^a-zA-Z0-9\-._:/]/g, "");
+                </Grid>
+                {/* <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="City"
+                    value={schoolData.address.city || ""}
+                    onChange={(e) => {
+                      const onlyLetters = e.target.value.replace(/[^a-zA-Z\s]/g, ""); // allow only letters and spaces
+                      handleChange("address.city", onlyLetters);
+                    }}
+                    fullWidth
+                  />
 
-                    handleChange("contact.website", clean);
-                  }}
-                  fullWidth
-                  placeholder="https://www.example.com"
-                />
-
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-
-        {/* Address */}
-        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              📍 Address
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Street"
-                  value={schoolData.address.street || ""}
-                  onChange={(e) => {
-                    // allow letters, numbers, and spaces only
-                    const cleanValue = e.target.value.replace(/[^a-zA-Z0-9\s]/g, "");
-                    handleChange("address.street", cleanValue);
-                  }}
-                  fullWidth
-                />
-
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="City"
-                  value={schoolData.address.city || ""}
-                  onChange={(e) => {
-                    const onlyLetters = e.target.value.replace(/[^a-zA-Z\s]/g, ""); // allow only letters and spaces
-                    handleChange("address.city", onlyLetters);
-                  }}
-                  fullWidth
-                />
-
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Select
-                  options={stateOptions}
-                  value={stateOptions.find((s) => s.value === schoolData.address.state)}
-                  onChange={(option) => handleChange("address.state", option.value)}
-                  menuPortalTarget={document.body} // ✅ renders dropdown at body level
-                  styles={{
-                    menuPortal: (base) => ({ ...base, zIndex: 9999 }), // ✅ ensures visible on top
-                    menu: (base) => ({ ...base, zIndex: 9999 }),       // optional double safety
-                  }}
-                />
-
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Select
-                  options={countryOptions}
-                  value={countryOptions.find(
-                    (c) => c.value === schoolData.address.country
-                  )}
-                  menuPortalTarget={document.body} // ✅ renders dropdown at body level
-                  styles={{
-                    menuPortal: (base) => ({ ...base, zIndex: 9999 }), // ✅ ensures visible on top
-                    menu: (base) => ({ ...base, zIndex: 9999 }),       // optional double safety
-                  }}
-                  onChange={(option) =>
-                    handleChange("address.country", option.value)
-                  }
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="ZIP"
-                  value={schoolData.address.zip || ""}
-                  onChange={(e) => {
-                    // Allow only numbers and limit to 6 digits
-                    const onlyDigits = e.target.value.replace(/\D/g, "").slice(0, 6);
-                    handleChange("address.zip", onlyDigits);
-                  }}
-                  fullWidth
-                />
-
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-
-        {/* School Timing */}
-        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              ⏰ School Timing
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-  type="time"
-  label="Start Time"
-  value={schoolData.schoolTiming.startTime}
-  onChange={(e) => {
-    const newStart = e.target.value;
-    const end = schoolData.schoolTiming.endTime;
-    if (end && !validateSchoolTiming(newStart, end)) return;
-    handleChange("schoolTiming.startTime", newStart);
-  }}
-  fullWidth
-  InputLabelProps={{ shrink: true }}
-/>
-
-              </Grid>
-              <Grid item xs={12} sm={6}>
-              <TextField
-  type="time"
-  label="End Time"
-  value={schoolData.schoolTiming.endTime}
-  onChange={(e) => {
-    const newEnd = e.target.value;
-    const start = schoolData.schoolTiming.startTime;
-    if (start && !validateSchoolTiming(start, newEnd)) return;
-    handleChange("schoolTiming.endTime", newEnd);
-  }}
-  fullWidth
-  InputLabelProps={{ shrink: true }}
-/>
-
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-
-        {/* Periods */}
-        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              📘 Periods
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={4}>
-              <TextField
-  type="number"
-  label="Total Periods"
-  value={schoolData.periods.totalPeriods || ""}
-  onChange={(e) => {
-    const value = e.target.value;
-    if (value === "" || (Number(value) >= 1 && Number(value) <= 10)) {
-      handleChange("periods.totalPeriods", value);
-    }
-  }}
-  onBlur={runPeriodsValidation}
-  fullWidth
-/>
-
-
-              </Grid>
-              <Grid item xs={12} sm={4}>
-               <TextField
-  type="number"
-  label="Period Duration (min)"
-  value={schoolData.periods.periodDuration || ""}
-  onChange={(e) => {
-    let value = e.target.value.replace(/\D/g, "");
-    if (value.length > 3) value = value.slice(0, 3);
-    handleChange("periods.periodDuration", value);
-  }}
-  onBlur={runPeriodsValidation}
-  fullWidth
-/>
-
-
-              </Grid>
-              <Grid item xs={12} sm={4}>
-              <TextField
-  type="number"
-  label="Break Duration (min)"
-  value={schoolData.periods.breakDuration || ""}
-  onChange={(e) => {
-    const value = e.target.value;
-    if (Number(value) > 30) {
-      toast.error("Break duration cannot exceed 30 minutes");
-      return;
-    }
-    handleChange("periods.breakDuration", value);
-  }}
-  onBlur={runPeriodsValidation}
-  fullWidth
-/>
-
-              </Grid>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-  checked={schoolData.periods.lunchBreak.isEnabled || false}
-  onChange={(e) => {
-    handleChange("periods.lunchBreak.isEnabled", e.target.checked);
-    setTimeout(runPeriodsValidation, 0);
-  }}
-/>
-
-                  }
-                  label="Enable Lunch Break"
-                />
-              </Grid>
-              {schoolData.periods.lunchBreak.isEnabled && (
-                <>
-                  <Grid item xs={12} sm={6}>
+                </Grid> */}
+                {/* <Grid item xs={12} sm={6}>
                   <Select
-  options={getPossibleLunchTimes(schoolData)}
-  value={getPossibleLunchTimes(schoolData).find(
-    o => o.value === schoolData.periods.lunchBreak.time
-  )}
-  onChange={(opt) =>
-    handleChange("periods.lunchBreak.time", opt.value)
-  }
-  placeholder="Select Lunch Time"
-  menuPortalTarget={document.body}
-  styles={{
-    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-  }}
-/>
+                    options={stateOptions}
+                    value={stateOptions.find((s) => s.value === schoolData.address.state)}
+                    onChange={(option) => handleChange("address.state", option.value)}
+                    menuPortalTarget={document.body} // ✅ renders dropdown at body level
+                    styles={{
+                      menuPortal: (base) => ({ ...base, zIndex: 9999 }), // ✅ ensures visible on top
+                      menu: (base) => ({ ...base, zIndex: 9999 }),       // optional double safety
+                    }}
+                  />
 
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      type="number"
-                      label="Lunch Duration (min)"
-                      value={schoolData.periods.lunchBreak.duration || ""}
-                      onChange={(e) =>
-                        handleChange("periods.lunchBreak.duration", e.target.value)
+                </Grid> */}
+                <Grid item xs={12} sm={6}>
+                  <Select
+                    options={countryOptions}
+                    styles={customSelectStyles}
+                    value={
+                      countryOptions.find(c => c.value === schoolData.address.country) || null
+                    }
+                    menuPortalTarget={document.body}
+                    menuPosition="fixed"
+                    styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+                    onChange={(selected) =>
+                      handleChange("address.country", selected?.value || "")
+                    }
+                    placeholder="Select Country"
+                    isClearable
+                  />
+
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Select
+                    options={stateOptions}
+                    styles={customSelectStyles}
+                    menuPortalTarget={document.body}
+                    menuPosition="fixed"
+
+                    styles={{ menuPortal: base => ({ ...base, zIndex: 9999, height: "23px" }) }}
+                    value={
+                      stateOptions.find(s => s.value === schoolData.address.state) || null
+                    }
+                    onChange={(selected) =>
+                      handleChange("address.state", selected?.value || "")
+                    }
+                    placeholder={
+                      schoolData.address.country ? "Select State" : "Select Country First"
+                    }
+                    isDisabled={!schoolData.address.country}
+                    isClearable
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Select
+                    options={cityOptions}
+                    styles={customSelectStyles}
+                    value={
+                      cityOptions.find(c => c.value === schoolData.address.city) || null
+                    }
+                    menuPortalTarget={document.body}
+                    menuPosition="fixed"
+                    styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+                    onChange={(selected) =>
+                      handleChange("address.city", selected?.value || "")
+                    }
+                    placeholder={
+                      schoolData.address.state ? "Select City" : "Select State First"
+                    }
+                    isDisabled={!schoolData.address.state}
+                    isClearable
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="ZIP"
+                    value={schoolData.address.zip || ""}
+                    onChange={(e) => {
+                      // Allow only numbers and limit to 6 digits
+                      const onlyDigits = e.target.value.replace(/\D/g, "").slice(0, 6);
+                      handleChange("address.zip", onlyDigits);
+                    }}
+                    fullWidth
+                  />
+
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+
+          {/* School Timing */}
+          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                ⏰ School Timing
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    type="time"
+                    label="Start Time"
+                    value={schoolData.schoolTiming.startTime}
+                    onChange={(e) => {
+                      const newStart = e.target.value;
+                      const end = schoolData.schoolTiming.endTime;
+                      if (end && !validateSchoolTiming(newStart, end)) return;
+                      handleChange("schoolTiming.startTime", newStart);
+                    }}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                  />
+
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    type="time"
+                    label="End Time"
+                    value={schoolData.schoolTiming.endTime}
+                    onChange={(e) => {
+                      const newEnd = e.target.value;
+                      const start = schoolData.schoolTiming.startTime;
+                      if (start && !validateSchoolTiming(start, newEnd)) return;
+                      handleChange("schoolTiming.endTime", newEnd);
+                    }}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                  />
+
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+
+          {/* Periods */}
+          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                📘 Periods
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    type="number"
+                    label="Total Periods"
+                    value={schoolData.periods.totalPeriods || ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "" || (Number(value) >= 1 && Number(value) <= 10)) {
+                        handleChange("periods.totalPeriods", value);
                       }
-                      fullWidth
-                    />
-                  </Grid>
-                </>
-              )}
-            </Grid>
-            {(() => {
-  const used = getUsedMinutes(schoolData);
-  const school = getSchoolTotalMinutes(schoolData);
-  const status = getTimingStatus(schoolData);
-
-  if (!used || !school) return null;
-
-  return (
-    <Typography
-      variant="body2"
-      sx={{ color: status.color, fontWeight: 600, marginTop: 2 }}
-    >
-      Used: {used} min / School: {school} min — {status.msg}
-    </Typography>
-  );
-})()}
-          </CardContent>
+                    }}
+                    onBlur={runPeriodsValidation}
+                    fullWidth
+                  />
 
 
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    type="number"
+                    label="Period Duration (min)"
+                    value={schoolData.periods.periodDuration || ""}
+                    onChange={(e) => {
+                      let value = e.target.value.replace(/\D/g, "");
+                      if (value.length > 3) value = value.slice(0, 3);
+                      handleChange("periods.periodDuration", value);
+                    }}
+                    onBlur={runPeriodsValidation}
+                    fullWidth
+                  />
 
 
-        </Card>
-        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              📊 Class-wise Marks
-            </Typography>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    type="number"
+                    label="Break Duration (min)"
+                    value={schoolData.periods.breakDuration || ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (Number(value) > 30) {
+                        toast.error("Break duration cannot exceed 30 minutes");
+                        return;
+                      }
+                      handleChange("periods.breakDuration", value);
+                    }}
+                    onBlur={runPeriodsValidation}
+                    fullWidth
+                  />
 
-            {(schoolData.marks || []).map((item, index) => (
-              <Box
-                key={index}
-                display="flex"
-                gap={2}
-                alignItems="center"
-                mb={2}
-              // pr={3}
-              >
-                {/* Class Name */}
-                <Select
-                  options={availableOptions}
-                  value={classOptions.find(
-                    (opt) => opt.value === item.className
-                  )}
-                  onChange={(option) =>
-                    handleChange(`marks.${index}.className`, option.value)
-                  }
-                  placeholder="Select Class"
-                  menuPortalTarget={document.body}
-                  styles={{
-                    control: (base) => ({
-                      ...base,
-                      width: 150,          // 👈 yahan width badhao
-                      minWidth: 150,
-                    }),
-                    menuPortal: (base) => ({
-                      ...base,
-                      zIndex: 9999,
-                    }),
-                  }}
-                />
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={schoolData.periods.lunchBreak.isEnabled || false}
+                        onChange={(e) => {
+                          handleChange("periods.lunchBreak.isEnabled", e.target.checked);
+                          setTimeout(runPeriodsValidation, 0);
+                        }}
+                      />
+
+                    }
+                    label="Enable Lunch Break"
+                  />
+                </Grid>
+                {schoolData.periods.lunchBreak.isEnabled && (
+                  <>
+                    <Grid item xs={12} sm={6}>
+                      <Select
+                        options={getPossibleLunchTimes(schoolData)}
+                        value={getPossibleLunchTimes(schoolData).find(
+                          o => o.value === schoolData.periods.lunchBreak.time
+                        )}
+                        onChange={(opt) =>
+                          handleChange("periods.lunchBreak.time", opt.value)
+                        }
+                        placeholder="Select Lunch Time"
+                        menuPortalTarget={document.body}
+                        styles={{
+                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                        }}
+                      />
+
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        type="number"
+                        label="Lunch Duration (min)"
+                        value={schoolData.periods.lunchBreak.duration || ""}
+                        onChange={(e) =>
+                          handleChange("periods.lunchBreak.duration", e.target.value)
+                        }
+                        fullWidth
+                      />
+                    </Grid>
+                  </>
+                )}
+              </Grid>
+              {(() => {
+                const used = getUsedMinutes(schoolData);
+                const school = getSchoolTotalMinutes(schoolData);
+                const status = getTimingStatus(schoolData);
+
+                if (!used || !school) return null;
+
+                return (
+                  <Typography
+                    variant="body2"
+                    sx={{ color: status.color, fontWeight: 600, marginTop: 2 }}
+                  >
+                    Used: {used} min / School: {school} min — {status.msg}
+                  </Typography>
+                );
+              })()}
+            </CardContent>
 
 
-                {/* Per Subject Marks */}
-                {/* <TextField
+
+
+          </Card>
+          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                📊 Class-wise Marks
+              </Typography>
+
+              {(schoolData.marks || []).map((item, index) => (
+                <Box
+                  key={index}
+                  display="flex"
+                  gap={2}
+                  alignItems="center"
+                  mb={2}
+                // pr={3}
+                >
+                  {/* Class Name */}
+                  <Select
+                    options={availableOptions}
+                    value={classOptions.find(
+                      (opt) => opt.value === item.className
+                    )}
+                    onChange={(option) =>
+                      handleChange(`marks.${index}.className`, option.value)
+                    }
+                    placeholder="Select Class"
+                    menuPortalTarget={document.body}
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        width: 150,          // 👈 yahan width badhao
+                        minWidth: 150,
+                      }),
+                      menuPortal: (base) => ({
+                        ...base,
+                        zIndex: 9999,
+                      }),
+                    }}
+                  />
+
+
+                  {/* Per Subject Marks */}
+                  {/* <TextField
                   type="number"
                   label="Per Subject Marks"
                   value={item.perSubjectMarks}
@@ -1162,220 +1436,220 @@ const getTimingStatus = (data) => {
                   inputProps={{ min: 0, max: 100 }}
                   fullWidth
                 /> */}
-                <TextField
-                  type="number"
-                  label="Per Subject Marks"
-                  value={item.perSubjectMarks}
-                  onChange={(e) => {
-                    let value = e.target.value;
+                  <TextField
+                    type="number"
+                    label="Per Subject Marks"
+                    value={item.perSubjectMarks}
+                    onChange={(e) => {
+                      let value = e.target.value;
 
-                    // ❌ empty allow
-                    if (value === "") {
-                      handleChange(`marks.${index}.perSubjectMarks`, "");
-                      return;
+                      // ❌ empty allow
+                      if (value === "") {
+                        handleChange(`marks.${index}.perSubjectMarks`, "");
+                        return;
+                      }
+
+                      // ❌ only digits
+                      value = value.replace(/\D/g, "");
+
+                      // ❌ max 3 digits
+                      if (value.length > 3) return;
+
+                      const num = Number(value);
+
+                      // ❌ max 100
+                      if (num > 100) {
+                        toast.error("Marks cannot be more than 100");
+                        return;
+                      }
+
+                      handleChange(`marks.${index}.perSubjectMarks`, value);
+                    }}
+                    inputProps={{
+                      min: 0,
+                      max: 100,
+                    }}
+                    fullWidth
+                  />
+
+
+                  {/* Delete */}
+                  <Button
+                    color="error"
+                    variant="outlined"
+                    onClick={() =>
+                      handleChange(
+                        "marks",
+                        schoolData.marks.filter((_, i) => i !== index)
+                      )
                     }
+                  >
+                    ✕
+                  </Button>
+                </Box>
+              ))}
 
-                    // ❌ only digits
-                    value = value.replace(/\D/g, "");
-
-                    // ❌ max 3 digits
-                    if (value.length > 3) return;
-
-                    const num = Number(value);
-
-                    // ❌ max 100
-                    if (num > 100) {
-                      toast.error("Marks cannot be more than 100");
-                      return;
-                    }
-
-                    handleChange(`marks.${index}.perSubjectMarks`, value);
-                  }}
-                  inputProps={{
-                    min: 0,
-                    max: 100,
-                  }}
-                  fullWidth
-                />
-
-
-                {/* Delete */}
-                <Button
-                  color="error"
-                  variant="outlined"
-                  onClick={() =>
-                    handleChange(
-                      "marks",
-                      schoolData.marks.filter((_, i) => i !== index)
-                    )
-                  }
-                >
-                  ✕
-                </Button>
-              </Box>
-            ))}
-
-            {/* Add New Class */}
-            <Button
-              variant="outlined"
-              onClick={() =>
-                handleChange("marks", [
-                  ...(schoolData.marks || []),
-                  { className: "", perSubjectMarks: "" },
-                ])
-              }
-            >
-              ➕ Add Class Marks
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* // Add this snippet inside your <form> before the buttons section */}
-        {/* Academic Session */}
-        {/* Academic Session */}
-        {/* Academic Session */}
-        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              🎓 Academic Session
-            </Typography>
-            <Grid container spacing={2}>
-              {/* Start Date */}
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  type="date"
-                  label="Start Date"
-                  value={schoolData.academicSession.startDate || ""}
-                  onChange={(e) => {
-                    handleChange("academicSession.startDate", e.target.value);
-                    handleChange("academicSession.currentSession", "");
-                  }}
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                  sx={{ height: 55 }}
-                  required
-                />
-              </Grid>
-
-              {/* End Date */}
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  type="date"
-                  label="End Date"
-                  value={schoolData.academicSession.endDate || ""}
-                  onChange={(e) => {
-                    handleChange("academicSession.endDate", e.target.value);
-                    handleChange("academicSession.currentSession", "");
-                  }}
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                  sx={{ height: 55 }}
-                  required
-                />
-              </Grid>
-
-              {/* Current Session */}
-              <Grid item xs={12} sm={4}>
-                <Select
-
-                  options={generateSessionOptions(
-                    schoolData.academicSession.startDate,
-                    schoolData.academicSession.endDate
-                  )}
-
-                  value={getCurrentSessionValue(
-                    schoolData.academicSession.currentSession
-                  )}
-
-                  onChange={(option) =>
-                    handleChange("academicSession.currentSession", option.value)
-                  }
-                  menuPortalTarget={document.body} // ✅ renders dropdown at body level
-                  styles={{
-                    menuPortal: (base) => ({ ...base, zIndex: 9999 }), // ✅ ensures visible on top
-                    menu: (base) => ({ ...base, zIndex: 9999 }),       // optional double safety
-                  }}
-
-                  placeholder="Select Current Session"
-
-                />
-                {!schoolData.academicSession.currentSession && (
-                  <Typography variant="body2" color="error" mt={1}>
-                    Current Session is required.
-                  </Typography>
-                )}
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-
-
-
-
-        {/* School Logo */}
-        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              🏫 School Logo
-            </Typography>
-            <Button style={{ background: "var(--gradient-primary)", color: "black" }} component="label">
-              Upload Logo
-              <input
-                hidden
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file) {
-                    handleChange("schoolLogo", file);
-                    setLogoPreview(URL.createObjectURL(file));
-                  }
-                }}
-              />
-            </Button>
-            {logoPreview && (
-              <Box mt={2}>
-                <img
-                  src={logoPreview}
-                  alt="Preview"
-                  style={{ width: 120, height: 120, borderRadius: 12 }}
-                />
-              </Box>
-            )}
-          </CardContent>
-        </Card>
-        {/* Toll-Free Number */}
-        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              ☎️ Toll-Free Number
-            </Typography>
-            <TextField
-              fullWidth
-              label="Toll-Free Number"
-              value={schoolData.tollFree || ""}
-              onChange={(e) => {
-                let value = e.target.value.replace(/\D/g, ""); // only digits allowed
-
-                if (value.length > 11) {
-                  toast.error("Toll-free number must be 11 digits only");
-                  value = value.slice(0, 11); // limit to 11 digits
+              {/* Add New Class */}
+              <Button
+                variant="outlined"
+                onClick={() =>
+                  handleChange("marks", [
+                    ...(schoolData.marks || []),
+                    { className: "", perSubjectMarks: "" },
+                  ])
                 }
+              >
+                ➕ Add Class Marks
+              </Button>
+            </CardContent>
+          </Card>
 
-                handleChange("tollFree", value);
-              }}
-              inputProps={{ maxLength: 11 }}
-            />
-          </CardContent>
-        </Card>
+          {/* // Add this snippet inside your <form> before the buttons section */}
+          {/* Academic Session */}
+          {/* Academic Session */}
+          {/* Academic Session */}
+          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                🎓 Academic Session
+              </Typography>
+              <Grid container spacing={2}>
+                {/* Start Date */}
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    type="date"
+                    label="Start Date"
+                    value={schoolData.academicSession.startDate || ""}
+                    onChange={(e) => {
+                      handleChange("academicSession.startDate", e.target.value);
+                      // handleChange("academicSession.currentSession", "");
+                    }}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    sx={{ height: 55 }}
+                    required
+                  />
+                </Grid>
 
-        {/* About Section */}
-        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-          <CardContent>
-            {/* <Typography variant="h6" gutterBottom>
+                {/* End Date */}
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    type="date"
+                    label="End Date"
+                    value={schoolData.academicSession.endDate || ""}
+                    onChange={(e) => {
+                      handleChange("academicSession.endDate", e.target.value);
+                      // handleChange("academicSession.currentSession", "");
+                    }}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    sx={{ height: 55 }}
+                    required
+                  />
+                </Grid>
+
+                {/* Current Session */}
+                {/* <Grid item xs={12} sm={4}>
+                  <Select
+
+                    options={generateSessionOptions(
+                      schoolData.academicSession.startDate,
+                      schoolData.academicSession.endDate
+                    )}
+
+                    value={getCurrentSessionValue(
+                      schoolData.academicSession.currentSession
+                    )}
+
+                    onChange={(option) =>
+                      handleChange("academicSession.currentSession", option.value)
+                    }
+                    menuPortalTarget={document.body} // ✅ renders dropdown at body level
+                    styles={{
+                      menuPortal: (base) => ({ ...base, zIndex: 9999 }), // ✅ ensures visible on top
+                      menu: (base) => ({ ...base, zIndex: 9999 }),       // optional double safety
+                    }}
+
+                    placeholder="Select Current Session"
+
+                  />
+                  {!schoolData.academicSession.currentSession && (
+                    <Typography variant="body2" color="error" mt={1}>
+                      Current Session is required.
+                    </Typography>
+                  )}
+                </Grid> */}
+              </Grid>
+            </CardContent>
+          </Card>
+
+
+
+
+          {/* School Logo */}
+          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                🏫 School Logo
+              </Typography>
+              <Button style={{ background: "var(--gradient-primary)", color: "black" }} component="label">
+                Upload Logo
+                <input
+                  hidden
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      handleChange("schoolLogo", file);
+                      setLogoPreview(URL.createObjectURL(file));
+                    }
+                  }}
+                />
+              </Button>
+              {logoPreview && (
+                <Box mt={2}>
+                  <img
+                    src={logoPreview}
+                    alt="Preview"
+                    style={{ width: 120, height: 120, borderRadius: 12 }}
+                  />
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+          {/* Toll-Free Number */}
+          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                ☎️ Toll-Free Number
+              </Typography>
+              <TextField
+                fullWidth
+                label="Toll-Free Number"
+                value={schoolData.tollFree || ""}
+                onChange={(e) => {
+                  let value = e.target.value.replace(/\D/g, ""); // only digits allowed
+
+                  if (value.length > 11) {
+                    toast.error("Toll-free number must be 11 digits only");
+                    value = value.slice(0, 11); // limit to 11 digits
+                  }
+
+                  handleChange("tollFree", value);
+                }}
+                inputProps={{ maxLength: 11 }}
+              />
+            </CardContent>
+          </Card>
+
+          {/* About Section */}
+          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+            <CardContent>
+              {/* <Typography variant="h6" gutterBottom>
               🏫 About School
             </Typography> */}
-            {/* <TextField
+              {/* <TextField
               fullWidth
               label="Title"
               value={schoolData.about?.title || ""}
@@ -1386,7 +1660,7 @@ const getTimingStatus = (data) => {
               sx={{ mb: 2 }}
             /> */}
 
-            {/* <TextField
+              {/* <TextField
               fullWidth
               multiline
               minRows={3}
@@ -1397,202 +1671,202 @@ const getTimingStatus = (data) => {
               }
               helperText="Each line will be treated as a separate key point."
             /> */}
-            <Box>
-              {/* <Typography variant="subtitle1" fontWeight={600} mb={1}>
+              <Box>
+                {/* <Typography variant="subtitle1" fontWeight={600} mb={1}>
     🖼️ About Section Image
   </Typography> */}
 
-              {/* Upload / Preview Card */}
+                {/* Upload / Preview Card */}
 
-            </Box>
-
-
-            {aboutImagePreview && (
-              <Box mt={2}>
-                <img
-                  src={aboutImagePreview}
-                  alt="About Preview"
-                  style={{
-                    width: 220,
-                    height: 130,
-                    objectFit: "cover",
-                    borderRadius: 10,
-                    border: "1px solid #ddd",
-                  }}
-                />
               </Box>
-            )}
 
-          </CardContent>
-        </Card>
 
-        {/* FAQs Section */}
-        {/* FAQs Section */}
-        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              ❓ Frequently Asked Questions
-            </Typography>
+              {aboutImagePreview && (
+                <Box mt={2}>
+                  <img
+                    src={aboutImagePreview}
+                    alt="About Preview"
+                    style={{
+                      width: 220,
+                      height: 130,
+                      objectFit: "cover",
+                      borderRadius: 10,
+                      border: "1px solid #ddd",
+                    }}
+                  />
+                </Box>
+              )}
 
-            {(schoolData.faqs || []).map((faq, index) => (
-              <Box
-                key={index}
-                sx={{
-                  border: "1px solid #e0e0e0",
-                  borderRadius: 2,
-                  p: 4,
-                  mb: 2,
-                  background: "#fafafa",
-                  position: "relative",
+            </CardContent>
+          </Card>
 
-                }}
-              >
-                {/* ❌ Remove Button */}
-                <Button
-                  size="small"
-                  color="error"
-                  onClick={() =>
-                    handleChange(
-                      "faqs",
-                      schoolData.faqs.filter((_, i) => i !== index)
-                    )
-                  }
+          {/* FAQs Section */}
+          {/* FAQs Section */}
+          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                ❓ Frequently Asked Questions
+              </Typography>
+
+              {(schoolData.faqs || []).map((faq, index) => (
+                <Box
+                  key={index}
                   sx={{
-                    position: "absolute",
-                    top: 4,
-                    right: 4,
-                    minWidth: "30px",
-                    height: "30px",
-                    borderRadius: "50%",
-                    fontSize: "16px",
-                    lineHeight: "1",
-                    fontWeight: "bold",
+                    border: "1px solid #e0e0e0",
+                    borderRadius: 2,
+                    p: 4,
+                    mb: 2,
+                    background: "#fafafa",
+                    position: "relative",
+
                   }}
                 >
-                  ✕
-                </Button>
-
-                <TextField
-                  fullWidth
-                  label={`Question ${index + 1}`}
-                  value={faq.question}
-                  onChange={(e) =>
-                    handleChange(`faqs.${index}.question`, e.target.value)
-                  }
-                  sx={{ mb: 1 }}
-                />
-
-                <TextField
-                  fullWidth
-                  label={`Answer ${index + 1}`}
-                  value={faq.answer}
-                  onChange={(e) =>
-                    handleChange(`faqs.${index}.answer`, e.target.value)
-                  }
-                  multiline
-                  minRows={2}
-                />
-              </Box>
-            ))}
-
-            {/* ➕ Add FAQ button */}
-            <Button
-              variant="outlined"
-              onClick={() =>
-                handleChange("faqs", [
-                  ...(schoolData.faqs || []),
-                  { question: "", answer: "" },
-                ])
-              }
-            >
-              ➕ Add FAQ
-            </Button>
-          </CardContent>
-        </Card>
-
-
-        {/* Banner Images */}
-        {/* Banner Images */}
-        <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              🖼️ Banner Images
-            </Typography>
-
-            <Button
-              variant="contained"
-              component="label"
-              sx={{ background: "var(--gradient-primary)", color: "black", mb: 2 }}
-            >
-              Upload Banner
-              <input
-                hidden
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={(e) => {
-                  const files = Array.from(e.target.files);
-                  handleChange("banner", [
-                    ...(schoolData.banner || []),
-                    ...files, // can stay as File objects
-                  ]);
-                }}
-              />
-            </Button>
-
-            <Box display="flex" flexWrap="wrap" gap={2} mt={2}>
-              {(schoolData.banner || []).map((img, idx) => {
-                const preview = getImagePreview(img);
-                return (
-                  <Box
-                    key={idx}
-                    position="relative"
+                  {/* ❌ Remove Button */}
+                  <Button
+                    size="small"
+                    color="error"
+                    onClick={() =>
+                      handleChange(
+                        "faqs",
+                        schoolData.faqs.filter((_, i) => i !== index)
+                      )
+                    }
                     sx={{
-                      width: 100,
-                      height: 100,
-                      borderRadius: 2,
-                      overflow: "hidden",
-                      boxShadow: 2,
+                      position: "absolute",
+                      top: 4,
+                      right: 4,
+                      minWidth: "30px",
+                      height: "30px",
+                      borderRadius: "50%",
+                      fontSize: "16px",
+                      lineHeight: "1",
+                      fontWeight: "bold",
                     }}
                   >
-                    <img
-                      src={preview}
-                      alt={`Banner ${idx}`}
-                      width="100%"
-                      height="100%"
-                      style={{ objectFit: "cover" }}
-                    />
-                    <Button
-                      size="small"
-                      color="error"
-                      onClick={() => handleDeleteBanner(img, idx)}
+                    ✕
+                  </Button>
+
+                  <TextField
+                    fullWidth
+                    label={`Question ${index + 1}`}
+                    value={faq.question}
+                    onChange={(e) =>
+                      handleChange(`faqs.${index}.question`, e.target.value)
+                    }
+                    sx={{ mb: 1 }}
+                  />
+
+                  <TextField
+                    fullWidth
+                    label={`Answer ${index + 1}`}
+                    value={faq.answer}
+                    onChange={(e) =>
+                      handleChange(`faqs.${index}.answer`, e.target.value)
+                    }
+                    multiline
+                    minRows={2}
+                  />
+                </Box>
+              ))}
+
+              {/* ➕ Add FAQ button */}
+              <Button
+                variant="outlined"
+                onClick={() =>
+                  handleChange("faqs", [
+                    ...(schoolData.faqs || []),
+                    { question: "", answer: "" },
+                  ])
+                }
+              >
+                ➕ Add FAQ
+              </Button>
+            </CardContent>
+          </Card>
 
 
+          {/* Banner Images */}
+          {/* Banner Images */}
+          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                🖼️ Banner Images
+              </Typography>
+
+              <Button
+                variant="contained"
+                component="label"
+                sx={{ background: "var(--gradient-primary)", color: "black", mb: 2 }}
+              >
+                Upload Banner
+                <input
+                  hidden
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files);
+                    handleChange("banner", [
+                      ...(schoolData.banner || []),
+                      ...files, // can stay as File objects
+                    ]);
+                  }}
+                />
+              </Button>
+
+              <Box display="flex" flexWrap="wrap" gap={2} mt={2}>
+                {(schoolData.banner || []).map((img, idx) => {
+                  const preview = getImagePreview(img);
+                  return (
+                    <Box
+                      key={idx}
+                      position="relative"
                       sx={{
-                        position: "absolute",
-                        top: -8,
-                        right: -8,
-                        minWidth: 28,
-                        height: 28,
-                        borderRadius: "50%",
-                        fontSize: 14,
-                        background: "white",
-                        "&:hover": { background: "#ffebee" },
+                        width: 100,
+                        height: 100,
+                        borderRadius: 2,
+                        overflow: "hidden",
+                        boxShadow: 2,
                       }}
                     >
-                      ✕
-                    </Button>
-                  </Box>
-                );
-              })}
-            </Box>
-          </CardContent>
-        </Card>
+                      <img
+                        src={preview}
+                        alt={`Banner ${idx}`}
+                        width="100%"
+                        height="100%"
+                        style={{ objectFit: "cover" }}
+                      />
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => handleDeleteBanner(img, idx)}
 
 
-        {/* Gallery Images */}
-        {/* Gallery Images */}
-        {/* <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+                        sx={{
+                          position: "absolute",
+                          top: -8,
+                          right: -8,
+                          minWidth: 28,
+                          height: 28,
+                          borderRadius: "50%",
+                          fontSize: 14,
+                          background: "white",
+                          "&:hover": { background: "#ffebee" },
+                        }}
+                      >
+                        ✕
+                      </Button>
+                    </Box>
+                  );
+                })}
+              </Box>
+            </CardContent>
+          </Card>
+
+
+          {/* Gallery Images */}
+          {/* Gallery Images */}
+          {/* <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               🖼️ Gallery Images
@@ -1669,258 +1943,362 @@ const getTimingStatus = (data) => {
         </Card> */}
 
 
-        {/* Social URLs */}
-        {/* Social URLs */}
-<div className="overflow-auto">
-<div className="overflow-auto">
-  <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-    <CardContent>
-      <Typography variant="h6" gutterBottom>
-        🌐 Social Media Links
-      </Typography>
-
-      {(schoolData.socialLinks || []).map((item, index) => {
-        const preview = getSocialLogoPreview(item.logo);
-
-        return (
-          <Box
-            key={index}
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr", // Mobile: single column
-                sm: "1fr 1fr", // Tablet: 2 columns
-                md: "160px 1fr 90px auto", // Desktop: 4 columns (original)
-              },
-              gap: { xs: 1.5, sm: 2 }, // Responsive gap
-              alignItems: "center",
-              mb: 2,
-              p: { xs: 1.5, sm: 2 }, // Responsive padding
-              border: "1px solid #e0e0e0",
-              borderRadius: 2,
-              backgroundColor: "#fafafa",
-            }}
-          >
-            {/* Platform Name */}
-            <TextField
-              label="Platform"
-              placeholder="Facebook"
-              value={item.platform}
-              onChange={(e) =>
-                handleSocialChange(index, "platform", e.target.value)
-              }
-              fullWidth
-              sx={{
-                gridColumn: {
-                  xs: "span 1", // Mobile: full width
-                  sm: "span 1", // Tablet: first column
-                  md: "span 1", // Desktop: first column
-                }
-              }}
-            />
-
-            {/* URL */}
-            <TextField
-              fullWidth
-              label="Profile URL"
-              placeholder="https://facebook.com/yourpage"
-              value={item.url}
-              onChange={(e) =>
-                handleSocialChange(index, "url", e.target.value)
-              }
-              error={Boolean(urlErrors[index])}
-              helperText={urlErrors[index]}
-              sx={{
-                gridColumn: {
-                  xs: "span 1", // Mobile: full width
-                  sm: "span 1", // Tablet: second column
-                  md: "span 1", // Desktop: second column
-                }
-              }}
-            />
-
-            {/* Logo Preview - Hidden on mobile, shown on tablet+ */}
-            <Box
-              sx={{
-                width: 44,
-                height: 44,
-                borderRadius: "50%",
-                border: "1px solid #ddd",
-                display: { xs: "none", sm: "flex" }, // Hidden on mobile
-                alignItems: "center",
-                justifyContent: "center",
-                overflow: "hidden",
-                background: "#fff",
-                justifySelf: { sm: "center", md: "auto" }, // Center on tablet
-                gridColumn: {
-                  sm: "span 1", // Tablet: third column
-                  md: "span 1", // Desktop: third column
-                }
-              }}
-            >
-              {preview ? (
-                <img
-                  src={preview}
-                  alt="Logo"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                />
-              ) : (
-                <Typography variant="caption" color="text.secondary">
-                  No Logo
-                </Typography>
-              )}
-            </Box>
-
-            {/* Actions - Hidden on mobile, shown on tablet+ */}
-            <Box 
-              display="flex" 
-              gap={1}
-              sx={{
-                display: { xs: "none", sm: "flex" }, // Hidden on mobile
-                gridColumn: {
-                  sm: "span 1", // Tablet: fourth column
-                  md: "span 1", // Desktop: fourth column
-                },
-                justifyContent: {
-                  sm: "flex-start", // Tablet+: align left
-                }
-              }}
-            >
-              <Button
-                variant="outlined"
-                component="label"
-                size="small"
-                fullWidth={false}
-              >
-                {item.logo ? "Change" : "Upload"}
-                <input
-                  hidden
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    handleSocialChange(index, "logo", e.target.files[0])
-                  }
-                />
-              </Button>
-
-              <IconButton
-                color="error"
-                onClick={() => removeSocial(index)}
-                sx={{
-                  ml: 1
-                }}
-              >
-                ✕
-              </IconButton>
-            </Box>
-
-            {/* Mobile View - Logo and Actions in a row (Only shown on mobile) */}
-            <Box
-              sx={{
-                display: { xs: "flex", sm: "none" }, // Only show on mobile
-                gridColumn: "span 1",
-                gap: 2,
-                alignItems: "center",
-                mt: 1,
-                pt: 1,
-                borderTop: "1px solid #e0e0e0",
-              }}
-            >
-              {/* Mobile Logo Preview */}
-              <Box
-                sx={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: "50%",
-                  border: "1px solid #ddd",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  overflow: "hidden",
-                  background: "#fff",
-                  flexShrink: 0,
-                }}
-              >
-                {preview ? (
-                  <img
-                    src={preview}
-                    alt="Logo"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                ) : (
-                  <Typography variant="caption" color="text.secondary" fontSize="0.6rem">
-                    No Logo
+          {/* Social URLs */}
+          {/* Social URLs */}
+          <div className="overflow-auto">
+            <div className="overflow-auto">
+              <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    🌐 Social Media Links
                   </Typography>
-                )}
-              </Box>
 
-              {/* Mobile Upload Button */}
-              <Button
-                variant="outlined"
-                component="label"
-                size="small"
-                sx={{ flex: 1 }}
-              >
-                {item.logo ? "Change Logo" : "Upload Logo"}
-                <input
-                  hidden
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    handleSocialChange(index, "logo", e.target.files[0])
-                  }
-                />
-              </Button>
+                  {(schoolData.socialLinks || []).map((item, index) => {
+                    const preview = getSocialLogoPreview(item.logo);
 
-              <IconButton
-                color="error"
-                onClick={() => removeSocial(index)}
-                size="small"
-              >
-                ✕
-              </IconButton>
-            </Box>
+                    return (
+                      <Box
+                        key={index}
+                        sx={{
+                          display: "grid",
+                          gridTemplateColumns: {
+                            xs: "1fr", // Mobile: single column
+                            sm: "1fr 1fr", // Tablet: 2 columns
+                            md: "160px 1fr 90px auto", // Desktop: 4 columns (original)
+                          },
+                          gap: { xs: 1.5, sm: 2 }, // Responsive gap
+                          alignItems: "center",
+                          mb: 2,
+                          p: { xs: 1.5, sm: 2 }, // Responsive padding
+                          border: "1px solid #e0e0e0",
+                          borderRadius: 2,
+                          backgroundColor: "#fafafa",
+                        }}
+                      >
+                        {/* Platform Name */}
+                        <TextField
+                          label="Platform"
+                          placeholder="Facebook"
+                          value={item.platform}
+                          onChange={(e) =>
+                            handleSocialChange(index, "platform", e.target.value)
+                          }
+                          fullWidth
+                          sx={{
+                            gridColumn: {
+                              xs: "span 1", // Mobile: full width
+                              sm: "span 1", // Tablet: first column
+                              md: "span 1", // Desktop: first column
+                            }
+                          }}
+                        />
+
+                        {/* URL */}
+                        <TextField
+                          fullWidth
+                          label="Profile URL"
+                          placeholder="https://facebook.com/yourpage"
+                          value={item.url}
+                          onChange={(e) =>
+                            handleSocialChange(index, "url", e.target.value)
+                          }
+                          error={Boolean(urlErrors[index])}
+                          helperText={urlErrors[index]}
+                          sx={{
+                            gridColumn: {
+                              xs: "span 1", // Mobile: full width
+                              sm: "span 1", // Tablet: second column
+                              md: "span 1", // Desktop: second column
+                            }
+                          }}
+                        />
+
+                        {/* Logo Preview - Hidden on mobile, shown on tablet+ */}
+                        <Box
+                          sx={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: "50%",
+                            border: "1px solid #ddd",
+                            display: { xs: "none", sm: "flex" }, // Hidden on mobile
+                            alignItems: "center",
+                            justifyContent: "center",
+                            overflow: "hidden",
+                            background: "#fff",
+                            justifySelf: { sm: "center", md: "auto" }, // Center on tablet
+                            gridColumn: {
+                              sm: "span 1", // Tablet: third column
+                              md: "span 1", // Desktop: third column
+                            }
+                          }}
+                        >
+                          {preview ? (
+                            <img
+                              src={preview}
+                              alt="Logo"
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                              }}
+                            />
+                          ) : (
+                            <Typography variant="caption" color="text.secondary">
+                              No Logo
+                            </Typography>
+                          )}
+                        </Box>
+
+                        {/* Actions - Hidden on mobile, shown on tablet+ */}
+                        <Box
+                          display="flex"
+                          gap={1}
+                          sx={{
+                            display: { xs: "none", sm: "flex" }, // Hidden on mobile
+                            gridColumn: {
+                              sm: "span 1", // Tablet: fourth column
+                              md: "span 1", // Desktop: fourth column
+                            },
+                            justifyContent: {
+                              sm: "flex-start", // Tablet+: align left
+                            }
+                          }}
+                        >
+                          <Button
+                            variant="outlined"
+                            component="label"
+                            size="small"
+                            fullWidth={false}
+                          >
+                            {item.logo ? "Change" : "Upload"}
+                            <input
+                              hidden
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) =>
+                                handleSocialChange(index, "logo", e.target.files[0])
+                              }
+                            />
+                          </Button>
+
+                          <IconButton
+                            color="error"
+                            onClick={() => removeSocial(index)}
+                            sx={{
+                              ml: 1
+                            }}
+                          >
+                            ✕
+                          </IconButton>
+                        </Box>
+
+                        {/* Mobile View - Logo and Actions in a row (Only shown on mobile) */}
+                        <Box
+                          sx={{
+                            display: { xs: "flex", sm: "none" }, // Only show on mobile
+                            gridColumn: "span 1",
+                            gap: 2,
+                            alignItems: "center",
+                            mt: 1,
+                            pt: 1,
+                            borderTop: "1px solid #e0e0e0",
+                          }}
+                        >
+                          {/* Mobile Logo Preview */}
+                          <Box
+                            sx={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: "50%",
+                              border: "1px solid #ddd",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              overflow: "hidden",
+                              background: "#fff",
+                              flexShrink: 0,
+                            }}
+                          >
+                            {preview ? (
+                              <img
+                                src={preview}
+                                alt="Logo"
+                                style={{
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                }}
+                              />
+                            ) : (
+                              <Typography variant="caption" color="text.secondary" fontSize="0.6rem">
+                                No Logo
+                              </Typography>
+                            )}
+                          </Box>
+
+                          {/* Mobile Upload Button */}
+                          <Button
+                            variant="outlined"
+                            component="label"
+                            size="small"
+                            sx={{ flex: 1 }}
+                          >
+                            {item.logo ? "Change Logo" : "Upload Logo"}
+                            <input
+                              hidden
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) =>
+                                handleSocialChange(index, "logo", e.target.files[0])
+                              }
+                            />
+                          </Button>
+
+                          <IconButton
+                            color="error"
+                            onClick={() => removeSocial(index)}
+                            size="small"
+                          >
+                            ✕
+                          </IconButton>
+                        </Box>
+                      </Box>
+                    );
+                  })}
+
+                  <Button variant="outlined" onClick={addSocial} sx={{ mt: 2 }}>
+                    ➕ Add Social Link
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+
+          <Box display="flex" justifyContent="space-between" mt={4}>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => resetMutation.mutate()}
+            >
+              Reset Defaults
+            </Button>
+            <Button
+              type="submit"
+              // variant="contained"
+              style={{ background: "var(--gradient-primary)", color: "black" }}
+              // color="primary"
+              disabled={mutation.isPending}
+            >
+              {mutation.isPending ? "Saving..." : "Save Settings"}
+            </Button>
           </Box>
-        );
-      })}
+        </form>
+      </Box>
+      <Modal
+        isOpen={cordinateModalOpen}
+        onClose={() => setCordinateModalOpen(false)}
+        title="Add School Coordinates"
+      >
+        <div className="space-y-5">
+          {/* Header Decoration */}
+          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-t-lg"></div>
 
-      <Button variant="outlined" onClick={addSocial} sx={{ mt: 2 }}>
-        ➕ Add Social Link
-      </Button>
-    </CardContent>
-  </Card>
-</div>
-</div>
-
-
-        <Box display="flex" justifyContent="space-between" mt={4}>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() => resetMutation.mutate()}
+          {/* Detect Current Location */}
+          <button
+            type="button"
+            onClick={detectCurrentLocation}
+            className="w-full bg-[image:var(--gradient-primary)] text-white py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-2"
           >
-            Reset Defaults
-          </Button>
-          <Button
-            type="submit"
-            // variant="contained"
-            style={{ background: "var(--gradient-primary)", color: "black" }}
-            // color="primary"
-            disabled={mutation.isPending}
+            <span className="text-lg">📍</span>
+            <span>Use Current Location</span>
+          </button>
+
+          {/* Coordinates with yellow accents */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-amber-700 ml-1">Coordinates</label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="relative">
+                <input
+                  type="number"
+                  placeholder="Latitude"
+                  value={locationData.latitude}
+                  onChange={(e) =>
+                    setLocationData(prev => ({ ...prev, latitude: e.target.value }))
+                  }
+                  className="w-full border-2 border-yellow-200 focus:border-yellow-400 rounded-xl px-4 py-3 outline-none transition-all duration-200 bg-yellow-50/30 focus:bg-white shadow-sm"
+                />
+                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-yellow-500">°</span>
+              </div>
+
+              <div className="relative">
+                <input
+                  type="number"
+                  placeholder="Longitude"
+                  value={locationData.longitude}
+                  onChange={(e) =>
+                    setLocationData(prev => ({ ...prev, longitude: e.target.value }))
+                  }
+                  className="w-full border-2 border-yellow-200 focus:border-yellow-400 rounded-xl px-4 py-3 outline-none transition-all duration-200 bg-yellow-50/30 focus:bg-white shadow-sm"
+                />
+                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-yellow-500">°</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Radius with yellow theme */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-amber-700 ml-1">Radius (meters)</label>
+            <div className="relative">
+              <input
+                type="number"
+                placeholder="Enter radius in meters"
+                value={locationData.radiusMeters}
+                onChange={(e) =>
+                  setLocationData(prev => ({ ...prev, radiusMeters: e.target.value }))
+                }
+                className="w-full border-2 border-yellow-200 focus:border-yellow-400 rounded-xl px-4 py-3 outline-none transition-all duration-200 bg-yellow-50/30 focus:bg-white shadow-sm"
+              />
+              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-yellow-500 font-medium">m</span>
+            </div>
+          </div>
+
+          {/* Save Button with yellow gradient */}
+          <button
+            type="button"
+            onClick={() => {
+              if (saveLocationMutation.isPending) return;
+              saveLocationMutation.mutate();
+            }}
+            disabled={saveLocationMutation.isPending}
+            className="w-full bg-[image:var(--gradient-primary)]  text-white py-3.5 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none mt-4"
           >
-            {mutation.isPending ? "Saving..." : "Save Settings"}
-          </Button>
-        </Box>
-      </form>
-    </Box>
+            {saveLocationMutation.isPending ? (
+              <div className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Saving Location...</span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center gap-2">
+                <span>✨</span>
+                <span>Save Location</span>
+                <span>✨</span>
+              </div>
+            )}
+          </button>
+
+          {/* Decorative yellow elements */}
+          <div className="flex justify-center gap-1 mt-2">
+            <div className="w-2 h-2 rounded-full bg-yellow-300 animate-pulse"></div>
+            <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse delay-75"></div>
+            <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse delay-150"></div>
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 }
 

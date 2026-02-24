@@ -336,7 +336,7 @@ const LeaderFormModal = ({ isOpen, onClose, leader = null, onSave }) => {
                         {/* Left Column - Photo */}
                         <div className="md:w-1/3 mb-6 md:mb-0">
                             <ProfilePhotoUpload
-                                photoUrl={formData.profilephoto}
+                                photoUrl={formData?.profilephoto?.secure_url}
                                 onPhotoChange={(photo) => handleChange('profilephoto', photo)}
                                 isLoading={false}
                                 error={errors.profilephoto}
@@ -489,7 +489,7 @@ const LeaderCard = ({ leader, onEdit, onDelete }) => {
                         <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-100">
                             {leader.profilephoto ? (
                                 <img
-                                    src={leader.profilephoto}
+                                    src={leader?.profilephoto?.secure_url}
                                     alt={leader.name}
                                     className="w-full h-full object-cover"
                                 />
