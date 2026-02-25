@@ -149,6 +149,7 @@ export default function SchoolSettings() {
     schoolLogo: null,
     marks: []
   });
+  console.log("schooldata",schoolData);
   const [locationData, setLocationData] = useState({
     latitude: "",
     longitude: "",
@@ -194,6 +195,19 @@ export default function SchoolSettings() {
     queryKey: ["school-coordinates"],
     queryFn: () => apiGet(`${apiPath.getCordinates}`)
   });
+    const { data: academicSessions, isLoading: loading, error } = useQuery({
+      queryKey: ['academicSessions'],
+      queryFn: () => apiGet(apiPath.getAcademicSessions)
+    });
+    const formatDate = (isoDate) => {
+      if (!isoDate) return "";
+      return new Date(isoDate).toISOString().slice(0, 10);
+    };
+const academicYearOptions = academicSessions?.results?.map(session => ({
+  value: session,   // ✅ FULL OBJECT (critical)
+  label: session.academicSession,
+}));
+console.log("academicyearoptions",academicYearOptions);
   console.log("cordinatesdata", cordinatesData);
   useEffect(() => {
     if (!cordinatesData?.results) return;
@@ -264,7 +278,7 @@ export default function SchoolSettings() {
       academicSession: {
         startDate: formatDateForInput(s.academicSession?.startDate),
         endDate: formatDateForInput(s.academicSession?.endDate),
-        currentSession: s.academicSession?.currentSession || "",
+        currentSession: s.academicSession.currentSession || "",
       },
       // about: {
       //   title: s.aboutUs?.title || "",
@@ -1515,7 +1529,7 @@ export default function SchoolSettings() {
               </Typography>
               <Grid container spacing={2}>
                 {/* Start Date */}
-                <Grid item xs={12} sm={4}>
+                {/* <Grid item xs={12} sm={4}>
                   <TextField
                     type="date"
                     label="Start Date"
@@ -1529,10 +1543,10 @@ export default function SchoolSettings() {
                     sx={{ height: 55 }}
                     required
                   />
-                </Grid>
+                </Grid> */}
 
                 {/* End Date */}
-                <Grid item xs={12} sm={4}>
+                {/* <Grid item xs={12} sm={4}>
                   <TextField
                     type="date"
                     label="End Date"
@@ -1546,8 +1560,43 @@ export default function SchoolSettings() {
                     sx={{ height: 55 }}
                     required
                   />
-                </Grid>
+                </Grid> */}
+<Select
+  options={academicYearOptions}
+  styles={customSelectStyles}
+  placeholder="Select Academic Year"
+  menuPortalTarget={document.body}     // ✅ CRITICAL FIX
+  menuPosition="fixed"                 // ✅ prevents clipping
+value={academicYearOptions?.find(opt => {
+  const sessionValue = schoolData.academicSession.currentSession;
 
+  if (typeof sessionValue !== "string" || sessionValue.length < 21)
+    return false;
+
+  const start = sessionValue.substring(0, 10);
+  const end = sessionValue.substring(11, 21);
+
+  const optStart = formatDateForInput(opt.value.startDate);
+  const optEnd = formatDateForInput(opt.value.endDate);
+
+  return optStart === start && optEnd === end;
+})}
+onChange={(selected) => {
+  const session = selected.value;
+
+  const formattedStart = formatDateForInput(session.startDate);
+  const formattedEnd = formatDateForInput(session.endDate);
+
+  setSchoolData(prev => ({
+    ...prev,
+    academicSession: {
+      startDate: formattedStart,
+      endDate: formattedEnd,
+      currentSession: `${formattedStart}-${formattedEnd}`, // ✅ FIXED
+    }
+  }));
+}}
+/>
                 {/* Current Session */}
                 {/* <Grid item xs={12} sm={4}>
                   <Select
@@ -1644,61 +1693,7 @@ export default function SchoolSettings() {
           </Card>
 
           {/* About Section */}
-          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-            <CardContent>
-              {/* <Typography variant="h6" gutterBottom>
-              🏫 About School
-            </Typography> */}
-              {/* <TextField
-              fullWidth
-              label="Title"
-              value={schoolData.about?.title || ""}
-              onChange={(e) => {
-                const onlyLetters = e.target.value.replace(/[^a-zA-Z\s]/g, ""); // allow only letters & spaces
-                handleChange("about.title", onlyLetters);
-              }}
-              sx={{ mb: 2 }}
-            /> */}
-
-              {/* <TextField
-              fullWidth
-              multiline
-              minRows={3}
-              label="Description / Key Info"
-              value={(schoolData.about?.keyStats || []).join("\n")}
-              onChange={(e) =>
-                handleChange("about.keyStats", e.target.value.split("\n"))
-              }
-              helperText="Each line will be treated as a separate key point."
-            /> */}
-              <Box>
-                {/* <Typography variant="subtitle1" fontWeight={600} mb={1}>
-    🖼️ About Section Image
-  </Typography> */}
-
-                {/* Upload / Preview Card */}
-
-              </Box>
-
-
-              {aboutImagePreview && (
-                <Box mt={2}>
-                  <img
-                    src={aboutImagePreview}
-                    alt="About Preview"
-                    style={{
-                      width: 220,
-                      height: 130,
-                      objectFit: "cover",
-                      borderRadius: 10,
-                      border: "1px solid #ddd",
-                    }}
-                  />
-                </Box>
-              )}
-
-            </CardContent>
-          </Card>
+      
 
           {/* FAQs Section */}
           {/* FAQs Section */}

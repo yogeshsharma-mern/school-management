@@ -79,7 +79,6 @@ const customSelectStyles = {
 };
 export default function FeesStructure() {
   const queryClient = useQueryClient();
-
   const [selectedClass, setSelectedClass] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState(null);
@@ -112,10 +111,10 @@ export default function FeesStructure() {
     enabled: !!selectedClass,
   });
   const { data: academicSessions, isLoading: loading, error } = useQuery({
-    queryKey: ['academicSessionsssss',selectedClass],
+    queryKey: ['academicSessionsssss', selectedClass],
     queryFn: () => apiGet(apiPath.getAcademicSessions)
   });
-  
+
   const formatDate = (isoDate) => {
     if (!isoDate) return "";
     return new Date(isoDate).toISOString().slice(0, 10);
@@ -125,39 +124,20 @@ export default function FeesStructure() {
     label: session.academicSession,   // what user sees
   }));
   useEffect(() => {
-  if (!feesData?.results) return;
+    if (!feesData?.results) return;
 
-  const data = feesData.results;
+    const data = feesData.results;
 
-  setFormData(prev => ({
-    ...prev,
-    academicYear: data.academicYear || "",
-    feeHeads: data.feeHeads || prev.feeHeads,
-    totalAmount: data.totalAmount || 0,
-  }));
+    setFormData(prev => ({
+      ...prev,
+      academicYear: data.academicYear || "",
+      feeHeads: data.feeHeads || prev.feeHeads,
+      totalAmount: data.totalAmount || 0,
+    }));
 
-}, [feesData]);
+  }, [feesData]);
   console.log("academicYearOptions", academicYearOptions);
-  const formatAcademicSession = (session) => {
-    if (!session || session.length < 21) return session;
 
-    // ✅ Extract exact dates using substring (safe)
-    const start = session.substring(0, 10);
-    const end = session.substring(11, 21);
-
-    const formatDate = (dateStr) => {
-      const date = new Date(dateStr);
-      if (isNaN(date)) return dateStr;
-
-      return date.toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      });
-    };
-
-    return `${formatDate(start)} - ${formatDate(end)}`;
-  };
   // Mutations
   const mutation = useMutation({
     mutationFn: async (payload) => {
@@ -424,22 +404,22 @@ export default function FeesStructure() {
                     : "Academic session from school settings"
                 }
               /> */}
-<Select
-  options={academicYearOptions}
-  styles={customSelectStyles}
-  className="mb-3"
-  placeholder="Select Academic Year"
-  value={academicYearOptions?.find(
-    opt => opt.value === formData.academicYear
-  )}
-  isDisabled={true}
-  onChange={(selected) => {
-    setFormData(prev => ({
-      ...prev,
-      academicYear: selected.value,
-    }));
-  }}
-/>
+              <Select
+                options={academicYearOptions}
+                styles={customSelectStyles}
+                className="mb-3"
+                placeholder="Select Academic Year"
+                value={academicYearOptions?.find(
+                  opt => opt.value === formData.academicYear
+                )}
+                isDisabled={true}
+                onChange={(selected) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    academicYear: selected.value,
+                  }));
+                }}
+              />
 
               <div className="bg-yellow-50 p-4 rounded-xl shadow-inner">
                 {feesData.results.feeHeads.map((head, idx) => (

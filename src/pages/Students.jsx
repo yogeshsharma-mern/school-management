@@ -89,33 +89,33 @@ export default function StudentPage() {
   // console.log(
   //   "acadmicyearoptions", academicYearOptions
   // );
-const {data:academicYears} = useQuery({
-  queryKey:"AcademicYears",
-  queryFn:()=>apiGet(apiPath.fetchAcademicYears)
-});
-// console.log("academicyears",academicYears);
-const academicYearOptions = academicYears?.results || [];
-// const academicYearOptions=academicYear?.results;
+  const { data: academicYears } = useQuery({
+    queryKey: "AcademicYears",
+    queryFn: () => apiGet(apiPath.fetchAcademicYears)
+  });
+  // console.log("academicyears",academicYears);
+  const academicYearOptions = academicYears?.results || [];
+  // const academicYearOptions=academicYear?.results;
   // 🔹 Import Mutation
   const formatAcademicSession = (session) => {
-  if (!session) return "";
+    if (!session) return "";
 
-  const start = session.substring(0, 10);
-  const end = session.substring(11, 21);
+    const start = session.substring(0, 10);
+    const end = session.substring(11, 21);
 
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    if (isNaN(date)) return dateStr;
+    const formatDate = (dateStr) => {
+      const date = new Date(dateStr);
+      if (isNaN(date)) return dateStr;
 
-    return date.toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+      return date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    };
+
+    return `${formatDate(start)} - ${formatDate(end)}`;
   };
-
-  return `${formatDate(start)} - ${formatDate(end)}`;
-};
   const importMutation = useMutation({
     mutationFn: async (formData) =>
       apiPost(apiPath.importStudents, formData, {
@@ -249,6 +249,19 @@ const academicYearOptions = academicYears?.results || [];
       }));
     }
   }, [feesData]);
+  const { data: academicSessions, isLoading: loading, error: err } = useQuery({
+    queryKey: ['academicSessions'],
+    queryFn: () => apiGet(apiPath.getAcademicSessions)
+  });
+  const formatDate = (isoDate) => {
+    if (!isoDate) return "";
+    return new Date(isoDate).toISOString().slice(0, 10);
+  };
+  const academicYearOptionss = academicSessions?.results?.map(session => ({
+    value: `${formatDate(session.startDate)}-${formatDate(session.endDate)}`,
+    label: session.academicSession,   // what user sees
+  }));
+  console.log("academicyearoptionss",academicYearOptionss);
   // ✅ Fetch students
   // const { data: studentsData, isLoading, isFetching, error } = useQuery({
   //   queryKey: [
@@ -626,19 +639,19 @@ const academicYearOptions = academicYears?.results || [];
                 </option>
               ))}
             </select>
-           <select
-  value={academicYearFilter}
-  onChange={(e) => setAcademicYearFilter(e.target.value)}
-  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 outline-none"
->
-  <option value="">All Academic Years</option>
+            <select
+              value={academicYearFilter}
+              onChange={(e) => setAcademicYearFilter(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 outline-none"
+            >
+              <option value="">All Academic Years</option>
 
-  {academicYearOptions.map((year) => (
-    <option key={year} value={year}>
-      {formatAcademicSession(year)}
-    </option>
-  ))}
-</select>
+              {academicYearOptionss?.map((year,i) => (
+                <option key={i} value={year.value}>
+                 {year.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Add Student Button */}
@@ -696,7 +709,7 @@ const academicYearOptions = academicYears?.results || [];
                       </TextField>
 
                       {/* Academic Year */}
-                      <TextField
+                      {/* <TextField
                         select
                         fullWidth
                         name="academicYear"
@@ -715,7 +728,18 @@ const academicYearOptions = academicYears?.results || [];
                             </MenuItem>
                           );
                         })}
-                      </TextField>
+                      </TextField> */}
+                      <Select
+                        options={academicYearOptionss}
+                        // styles={customSelectStyles}
+                        placeholder="Select Academic Year"
+                        value={academicYearOptionss?.find(
+                          opt => opt.value === academicYear
+                        )}
+                        onChange={(selected) => {
+                          setAcademicYear((selected.value));
+                        }}
+                      />
 
                     </div>
                   </div>

@@ -364,7 +364,7 @@ export default function AcademicYear() {
                                                 value={academicYearOptions.find(option => option.value === formData.academicSession)}
                                                 placeholder="Select session"
                                                 styles={selectStyles}
-                                                isDisabled={!!editingItem}
+                                                // isDisabled={!!editingItem}
                                             />
                                         </div>
 
