@@ -96,7 +96,8 @@ const apiPath = Object.freeze({
   createAcademicSession: '/admins/setting/create-academicSession',
   getAcademicSessions: '/admins/setting/get-academicSessions',
   getAcademicSession: '/admins/setting/get-academicSession',
-  updateAcademeicSession:'/admins/setting/update-academicSession'
+  updateAcademeicSession:'/admins/setting/update-academicSession',
+  generateTimeSlots:"/admins/setting/get-periods"
 
 
 

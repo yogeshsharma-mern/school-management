@@ -84,118 +84,121 @@ import { PaymentOutlined } from "@mui/icons-material";
 
 //   return slots;
 // }
-export function generateTimeSlotsFromSettings(settings) {
-  console.log("settings",settings);
-  if (!settings?.schoolTiming || !settings?.periods) return [];
+// export function generateTimeSlotsFromSettings(settings) {
+//   console.log("settings", settings);
+//   if (!settings?.schoolTiming || !settings?.periods) return [];
 
-  const { schoolTiming, periods } = settings;
+//   const { schoolTiming, periods } = settings;
 
-  const totalPeriods = Number(periods.totalPeriods);
-  const periodDuration = Number(periods.periodDuration);
-  const breakDuration = Number(periods.breakDuration || 0);
+//   const totalPeriods = Number(periods.totalPeriods);
+//   const periodDuration = Number(periods.periodDuration);
+//   const breakDuration = Number(periods.breakDuration || 0);
 
-  const lunch = periods.lunchBreak || { isEnabled: false };
+//   const lunch = periods.lunchBreak || { isEnabled: false };
 
-  // -------------------------
-  // Helpers
-  // -------------------------
-  const parseHM = (hm) => {
-    const [h, m] = hm.split(":").map(Number);
-    return new Date(1970, 0, 1, h, m, 0, 0);
-  };
+//   // -------------------------
+//   // Helpers
+//   // -------------------------
+//   const parseHM = (hm) => {
+//     const [h, m] = hm.split(":").map(Number);
+//     return new Date(1970, 0, 1, h, m, 0, 0);
+//   };
 
-  // 🔒 FORCE 12-HOUR FORMAT (NO 24H LEAK EVER)
-  const fmt = (date) => {
-    let h = date.getHours();
-    const m = String(date.getMinutes()).padStart(2, "0");
-    const ampm = h >= 12 ? "PM" : "AM";
+//   // 🔒 FORCE 12-HOUR FORMAT (NO 24H LEAK EVER)
+//   const fmt = (date) => {
+//     let h = date.getHours();
+//     const m = String(date.getMinutes()).padStart(2, "0");
+//     const ampm = h >= 12 ? "PM" : "AM";
 
-    h = h % 12;
-    h = h === 0 ? 12 : h;
+//     h = h % 12;
+//     h = h === 0 ? 12 : h;
 
-    return `${h}:${m} ${ampm}`;
-  };
+//     return `${h}:${m} ${ampm}`;
+//   };
 
-  // -------------------------
-  // Base Times
-  // -------------------------
-  const schoolStart = parseHM(schoolTiming.startTime);
-  console.log("schoolstart",schoolStart)
-  const schoolEnd = parseHM(schoolTiming.endTime);
+//   // -------------------------
+//   // Base Times
+//   // -------------------------
+//   const schoolStart = parseHM(schoolTiming.startTime);
+//   console.log("schoolstart", schoolStart)
+//   const schoolEnd = parseHM(schoolTiming.endTime);
 
-  const lunchStart =
-    lunch.isEnabled && lunch.time ? parseHM(lunch.time) : null;
+//   const lunchStart =
+//     lunch.isEnabled && lunch.time ? parseHM(lunch.time) : null;
 
-  const lunchEnd =
-    lunch.isEnabled && lunch.time && lunch.duration
-      ? new Date(lunchStart.getTime() + lunch.duration * 60000)
-      : null;
+//   const lunchEnd =
+//     lunch.isEnabled && lunch.time && lunch.duration
+//       ? new Date(lunchStart.getTime() + lunch.duration * 60000)
+//       : null;
 
-  // -------------------------
-  // Slot Generation
-  // -------------------------
-  const slots = [];
-  let current = new Date(schoolStart);
-  let periodCount = 0;
-  let lunchInserted = false;
-  let id = 1;
+//   // -------------------------
+//   // Slot Generation
+//   // -------------------------
+//   const slots = [];
+//   let current = new Date(schoolStart);
+//   let periodCount = 0;
+//   let lunchInserted = false;
+//   let id = 1;
 
-  while (periodCount < totalPeriods && current < schoolEnd) {
-    // 🍱 Insert lunch EXACTLY at lunch time
-    if (
-      lunch.isEnabled &&
-      lunchStart &&
-      lunchEnd &&
-      !lunchInserted &&
-      current.getTime() === lunchStart.getTime()
-    ) {
-      slots.push({
-        id: `L${id++}`,
-        period: "Lunch Break",
-        startTime: fmt(lunchStart),
-        endTime: fmt(lunchEnd),
-        isBreak: true,
-      });
+//   while (periodCount < totalPeriods && current < schoolEnd) {
+//     // 🍱 Insert lunch EXACTLY at lunch time
+//     if (
+//       lunch.isEnabled &&
+//       lunchStart &&
+//       lunchEnd &&
+//       !lunchInserted &&
+//       current.getTime() === lunchStart.getTime()
+//     ) {
+//       slots.push({
+//         id: `L${id++}`,
+//         period: "Lunch Break",
+//         startTime: fmt(lunchStart),
+//         endTime: fmt(lunchEnd),
+//         isBreak: true,
+//       });
 
-      current = new Date(lunchEnd);
-      lunchInserted = true;
-      continue;
-    }
+//       current = new Date(lunchEnd);
+//       lunchInserted = true;
+//       continue;
+//     }
 
-    // 📘 Period slot
-    const pStart = new Date(current);
-    const pEnd = new Date(pStart.getTime() + periodDuration * 60000);
+//     // 📘 Period slot
+//     const pStart = new Date(current);
+//     const pEnd = new Date(pStart.getTime() + periodDuration * 60000);
 
-    slots.push({
-      id: id++,
-      period: periodCount + 1,
-      startTime: fmt(pStart),
-      endTime: fmt(pEnd),
-      isBreak: false,
-      timeSlotId: periodCount + 1,
-    });
+//     slots.push({
+//       id: id++,
+//       period: periodCount + 1,
+//       startTime: fmt(pStart),
+//       endTime: fmt(pEnd),
+//       isBreak: false,
+//       timeSlotId: periodCount + 1,
+//     });
 
-    periodCount++;
-    current = new Date(pEnd);
+//     periodCount++;
+//     current = new Date(pEnd);
 
-    // ❌ NO break:
-    // - after last period
-    // - before lunch
-    if (
-      periodCount === totalPeriods ||
-      (lunch.isEnabled &&
-        lunchStart &&
-        current.getTime() === lunchStart.getTime())
-    ) {
-      continue;
-    }
+//     // ❌ NO break:
+//     // - after last period
+//     // - before lunch
+//     if (
+//       periodCount === totalPeriods ||
+//       (lunch.isEnabled &&
+//         lunchStart &&
+//         current.getTime() === lunchStart.getTime())
+//     ) {
+//       continue;
+//     }
 
-    // ☕ Normal break
-    current = new Date(current.getTime() + breakDuration * 60000);
-  }
+//     // ☕ Normal break
+//     current = new Date(current.getTime() + breakDuration * 60000);
+//   }
 
-  return slots;
-}
+//   return slots;
+// }
+
+
+
 
 // 🔹 Main Component
 export default function TimetableManager() {
@@ -203,6 +206,7 @@ export default function TimetableManager() {
   const [selectedClassId, setSelectedClassId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSlot, setModalSlot] = useState(null);
+  const [id, setId] = useState();
   console.log("modalslot", modalSlot);
   const [localAssignments, setLocalAssignments] = useState({});
 
@@ -306,13 +310,29 @@ export default function TimetableManager() {
 
   // 🔹 Time slots
   const settingsData = settingsQuery.data?.results;
-  console.log("settingdata",settingsData);
-  console.log("generatetimeslots",generateTimeSlotsFromSettings(settingsData))
-  const timeSlots = useMemo(
-    () => (settingsData ? generateTimeSlotsFromSettings(settingsData) : []),
-    [settingsData]
-  );
-  console.log("timeslots", timeSlots);
+  console.log("settingdata", settingsData);
+  // console.log("generatetimeslots", generateTimeSlotsFromSettings(settingsData))
+  // const timeSlots = useMemo(
+  //   () => (settingsData ? generateTimeSlotsFromSettings(settingsData) : []),
+  //   [settingsData]
+  // );
+
+  useEffect(() => {
+    if (!settingsData) return;
+    setId(settingsData._id);
+
+  }, [settingsData])
+  const { data: timeslots } = useQuery(
+    {
+      queryKey: ["timeslotdata"],
+      queryFn: async () => apiGet(`${apiPath.generateTimeSlots}/${id}`),
+      enabled: !!id,
+    }
+  )
+  // console.log("timeslots",timeslots)
+  const timeSlots = timeslots?.results?.periodTimings;
+
+
   // 🔹 Load existing assignments
   // useEffect(() => {
   //   if (!filteredAssignments?.length || !timeSlots?.length) return;
@@ -405,15 +425,15 @@ export default function TimetableManager() {
 
   }, [assignmentsQuery.data, timeSlots, selectedClassId]);
 
-const removeLocalAssignment = (day, slot) => {
-  const key = `${day}_${slot.startTime}_${slot.endTime}`;
+  const removeLocalAssignment = (day, slot) => {
+    const key = `${day}_${slot.startTime}_${slot.endTime}`;
 
-  setLocalAssignments((prev) => {
-    const updated = { ...prev };
-    delete updated[key];
-    return updated;
-  });
-};
+    setLocalAssignments((prev) => {
+      const updated = { ...prev };
+      delete updated[key];
+      return updated;
+    });
+  };
 
 
   // 🔹 Helpers
@@ -483,7 +503,7 @@ const removeLocalAssignment = (day, slot) => {
 
   const handleSaveAll = () => {
     const payloads = collectUnsavedPayloads();
-    console.log("payloads",payloads);
+    console.log("payloads", payloads);
 
     if (!payloads.length) return;
     bulkSaveMutation.mutate(payloads);
@@ -663,7 +683,7 @@ const removeLocalAssignment = (day, slot) => {
           teachers={filteredTeachers}
           subjects={subjects}
           assignments={filteredAssignments}
-            onLocalReset={removeLocalAssignment}  
+          onLocalReset={removeLocalAssignment}
           createAssignment={{
             mutateAsync: (payload) =>
 
