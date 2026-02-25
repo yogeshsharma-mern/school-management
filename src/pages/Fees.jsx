@@ -3,9 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Select from "react-select";
 import ConfirmBox from "../components/ConfirmBox";
 import {
-  Card,
-  CardContent,
-  CardHeader,
+  Card, CardContent, CardHeader,
   Typography,
   Button,
   IconButton,
@@ -22,7 +20,63 @@ import apiPath from "../api/apiPath";
 import Modal from "../components/Modal";
 import ToggleButton from "../components/ToggleButton";
 import { useEffect } from "react";
-
+const customSelectStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    minHeight: "56px",
+    height: "56px",
+    borderColor: state.isFocused ? "#1976d2" : "#e5e7eb",
+    boxShadow: state.isFocused ? "0 0 0 2px rgba(25, 118, 210, 0.2)" : "none",
+    "&:hover": { borderColor: "#1976d2" },
+    borderRadius: "8px",
+    fontSize: "0.95rem",
+    backgroundColor: state.isDisabled ? "#f9fafb" : "white",
+    cursor: state.isDisabled ? "not-allowed" : "pointer",
+  }),
+  valueContainer: (provided) => ({
+    ...provided,
+    height: "56px",
+    padding: "0 12px",
+  }),
+  input: (provided) => ({
+    ...provided,
+    margin: "0",
+    padding: "0",
+  }),
+  indicatorsContainer: (provided) => ({
+    ...provided,
+    height: "56px",
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    color: "#9ca3af",
+  }),
+  menu: (provided) => ({
+    ...provided,
+    borderRadius: "8px",
+    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+    zIndex: 9999,
+  }),
+  menuPortal: (provided) => ({
+    ...provided,
+    zIndex: 9999,
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected
+      ? "#1976d2"
+      : state.isFocused
+        ? "#e8f0fe"
+        : "white",
+    color: state.isSelected ? "white" : "#1f2937",
+    cursor: "pointer",
+    padding: "10px 12px",
+    fontSize: "0.95rem",
+    "&:active": {
+      backgroundColor: "#1565c0",
+    },
+  }),
+};
 export default function FeesStructure() {
   const queryClient = useQueryClient();
 
@@ -57,21 +111,33 @@ export default function FeesStructure() {
       apiGet(`${apiPath.getFeesStructure}?classIdentifier=${selectedClass}`),
     enabled: !!selectedClass,
   });
-  const { data: academicSessionData, isLoading: sessionLoading } = useQuery({
-    queryKey: ["current-academic-session"],
-    queryFn: () => apiGet(apiPath.currentSession),
+  const { data: academicSessions, isLoading: loading, error } = useQuery({
+    queryKey: ['academicSessionsssss',selectedClass],
+    queryFn: () => apiGet(apiPath.getAcademicSessions)
   });
-  const currentSession =
-    academicSessionData?.results?.academicSession?.currentSession || "";
-
+  
+  const formatDate = (isoDate) => {
+    if (!isoDate) return "";
+    return new Date(isoDate).toISOString().slice(0, 10);
+  };
+  const academicYearOptions = academicSessions?.results?.map(session => ({
+    value: `${formatDate(session.startDate)}-${formatDate(session.endDate)}`,
+    label: session.academicSession,   // what user sees
+  }));
   useEffect(() => {
-    if (!currentSession) return;
+  if (!feesData?.results) return;
 
-    setFormData(prev => ({
-      ...prev,
-      academicYear: currentSession,
-    }));
-  }, [currentSession]);
+  const data = feesData.results;
+
+  setFormData(prev => ({
+    ...prev,
+    academicYear: data.academicYear || "",
+    feeHeads: data.feeHeads || prev.feeHeads,
+    totalAmount: data.totalAmount || 0,
+  }));
+
+}, [feesData]);
+  console.log("academicYearOptions", academicYearOptions);
   const formatAcademicSession = (session) => {
     if (!session || session.length < 21) return session;
 
@@ -166,7 +232,7 @@ export default function FeesStructure() {
 
   const resetForm = () =>
     setFormData({
-      academicYear: currentSession,
+      academicYear: "",
       feeHeads: [
         { type: "Tuition Fee", amount: 0, isOptional: false },
         { type: "Exam Fee", amount: 0, isOptional: false },
@@ -345,7 +411,7 @@ export default function FeesStructure() {
               {/* <Typography className="mb-4 text-gray-700 font-medium">
                 Academic Year: <b>{feesData.results.academicYear}</b>
               </Typography> */}
-              <TextField
+              {/* <TextField
                 fullWidth
                 name="academicYear"
                 label="Academic Year"
@@ -357,7 +423,23 @@ export default function FeesStructure() {
                     ? "Loading academic session..."
                     : "Academic session from school settings"
                 }
-              />
+              /> */}
+<Select
+  options={academicYearOptions}
+  styles={customSelectStyles}
+  className="mb-3"
+  placeholder="Select Academic Year"
+  value={academicYearOptions?.find(
+    opt => opt.value === formData.academicYear
+  )}
+  isDisabled={true}
+  onChange={(selected) => {
+    setFormData(prev => ({
+      ...prev,
+      academicYear: selected.value,
+    }));
+  }}
+/>
 
               <div className="bg-yellow-50 p-4 rounded-xl shadow-inner">
                 {feesData.results.feeHeads.map((head, idx) => (
@@ -455,13 +537,28 @@ export default function FeesStructure() {
         >
           {/* Academic Year */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
+            {/* <label className="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
             <input
               type="text"
               value={formatAcademicSession(formData.academicYear)}
               readOnly
               className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-sm text-gray-700 cursor-not-allowed"
+            /> */}
+            <Select
+              options={academicYearOptions}
+              styles={customSelectStyles}
+              placeholder="Select Academic Year"
+              value={academicYearOptions?.find(
+                opt => opt.value === formData.academicYear
+              )}
+              onChange={(selected) => {
+                setFormData(prev => ({
+                  ...prev,
+                  academicYear: selected.value,   // EXACT payload format
+                }));
+              }}
             />
+
           </div>
 
           {/* Fee Heads */}

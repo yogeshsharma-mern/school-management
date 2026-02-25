@@ -202,13 +202,19 @@ export default function CreateStudentPage() {
     queryKey: ["classesForStudent"],
     queryFn: () => apiGet(apiPath.activeClasses),
   });
-  const { data: academicSessionData, isLoading: sessionLoading } = useQuery({
-    queryKey: ["current-academic-session"],
-    queryFn: () => apiGet(apiPath.currentSession),
+  const { data: academicSessions, isLoading: loading, error } = useQuery({
+    queryKey: ['academicSessions'],
+    queryFn: () => apiGet(apiPath.getAcademicSessions)
   });
-  const currentSession =
-    academicSessionData?.results?.academicSession?.currentSession || "";
-  console.log("currentSession", currentSession);
+  const formatDate = (isoDate) => {
+    if (!isoDate) return "";
+    return new Date(isoDate).toISOString().slice(0, 10);
+  };
+  const academicYearOptions = academicSessions?.results?.map(session => ({
+    value: `${formatDate(session.startDate)}-${formatDate(session.endDate)}`,
+    label: session.academicSession,   // what user sees
+  }));
+  console.log("currentSession", academicYearOptions);
   const formatAcademicSession = (session) => {
     if (!session || session.length < 21) return session;
 
@@ -229,14 +235,14 @@ export default function CreateStudentPage() {
 
     return `${formatDate(start)} - ${formatDate(end)}`;
   };
-  useEffect(() => {
-    if (!currentSession) return;
+  // useEffect(() => {
+  //   if (!currentSession) return;
 
-    setStudent(prev => ({
-      ...prev,
-      academicYear: currentSession,
-    }));
-  }, [currentSession]);
+  //   setStudent(prev => ({
+  //     ...prev,
+  //     academicYear: currentSession,
+  //   }));
+  // }, [currentSession]);
 
   const classOptions = (() => {
     if (!classes?.results?.docs) return [];
@@ -1626,7 +1632,7 @@ export default function CreateStudentPage() {
                   </TextField>
 
                   {/* Academic Year */}
-                  <TextField
+                  {/* <TextField
                     fullWidth
                     name="academicYear"
                     label="Academic Year"
@@ -1638,6 +1644,20 @@ export default function CreateStudentPage() {
                         ? "Loading academic session..."
                         : "Academic session from school settings"
                     }
+                  /> */}
+                  <Select
+                    options={academicYearOptions}
+                    styles={customSelectStyles}
+                    placeholder="Select Academic Year"
+                    value={academicYearOptions?.find(
+                      opt => opt.value === student.academicYear
+                    )}
+                    onChange={(selected) => {
+                      setStudent(prev => ({
+                        ...prev,
+                        academicYear: selected.value,   // EXACT payload format
+                      }));
+                    }}
                   />
                 </div>
               </div>

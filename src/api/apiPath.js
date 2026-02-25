@@ -92,7 +92,12 @@ const apiPath = Object.freeze({
   currentSession: "/admins/setting/current-session",
   fetchAcademicYears: "/admins/setting/academic-years",
   getCordinates: "/admins/ipAddress/school-location",
-  updateSchoolLocation: "/admins/ipAddress/schools"
+  updateSchoolLocation: "/admins/ipAddress/schools",
+  createAcademicSession: '/admins/setting/create-academicSession',
+  getAcademicSessions: '/admins/setting/get-academicSessions',
+  getAcademicSession: '/admins/setting/get-academicSession',
+  updateAcademeicSession:'/admins/setting/update-academicSession'
+
 
 
 

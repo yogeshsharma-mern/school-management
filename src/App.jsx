@@ -10,6 +10,7 @@ import SalaryDetail from "./pages/SalaryDetail.jsx";
 
 import ScrollToTop from "./ScrollToTop";
 import ExamSchedule from "./pages/ExamSchedule.jsx";
+// import AcademicYear from "./pages/AcademicYear.jsx";
 
 
 
@@ -49,6 +50,7 @@ const GallerySetting = lazy(() => import('./pages/GallerySetting.jsx'));
 const LeaderShip = lazy(() => import('./pages/LeaderShip.jsx'));
 const AboutUs = lazy(() => import('./pages/AboutUs.jsx'));
 const TransactionDetails = lazy(() => import('./pages/TransactionDetails.jsx'));
+const AcademicYear = lazy(()=>import('./pages/AcademicYear.jsx'));
 
 export default function App() {
   const queryClient = new QueryClient();
@@ -81,6 +83,8 @@ export default function App() {
             <Route path="students/:id" element={<StudentDetail />} />
             <Route path="students/edit/:id" element={<EditStudent />} />
             {/* <Route path="students/edit/fees/:id" element={<EditFeesForm />} /> */}
+            <Route path="academic/year" element={<AcademicYear />} />
+
 
             <Route path="profile" element={<AdminProfile />} />
             <Route path="students/create" element={<CreateStudent />} />
@@ -124,6 +128,7 @@ export default function App() {
             <Route path="school/ip-setting" element={<IpSetting />} />
             <Route path="password" element={<ChangePassword />} />
             <Route path="assign" element={<Assign />} />
+
 
 
 

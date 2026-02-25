@@ -229,7 +229,7 @@ import { useEffect, useState } from "react";
 import { logout } from "../redux/features/auth/authslice";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoCalendar } from "react-icons/io5";
-import { HiMenuAlt3 } from "react-icons/hi";
+import { HiAcademicCap, HiMenuAlt3 } from "react-icons/hi";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleSidebarCollapse } from "../redux/features/ui/uislic";
 import { RiLogoutCircleRLine } from "react-icons/ri";
@@ -479,6 +479,14 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
               >
                 <BsPeopleFill size={15} />
                 <span>School Setting</span>
+              </NavLink>
+                            <NavLink
+                to="/admin/academic/year"
+                className={subItemClass}
+                onClick={handleSubmenuClick}
+              >
+                <HiAcademicCap size={15} />
+                <span>Academic Year</span>
               </NavLink>
               <NavLink
                 to="/admin/setting/gallery"

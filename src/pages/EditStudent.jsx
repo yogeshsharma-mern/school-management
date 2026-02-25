@@ -116,7 +116,7 @@ export default function CreateStudentPage() {
       certificates: [],
     },
   });
-
+console.log("student",student);
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
@@ -396,6 +396,19 @@ export default function CreateStudentPage() {
       apiGet(`${apiPath.getFeesStructure}?classIdentifier=${selectedClass}`),
     enabled: !!selectedClass,
   });
+    const { data: academicSessions, isLoading: loading, error } = useQuery({
+      queryKey: ['academicSessionsss'],
+      queryFn: () => apiGet(apiPath.getAcademicSessions)
+    });
+    const formatDate = (isoDate) => {
+      if (!isoDate) return "";
+      return new Date(isoDate).toISOString().slice(0, 10);
+    };
+    const academicYearOptions = academicSessions?.results?.map(session => ({
+      value: `${formatDate(session.startDate)}-${formatDate(session.endDate)}`,
+      label: session.academicSession,   // what user sees
+    }));
+    console.log("academicyearoptions",academicYearOptions);
   // 🔄 Sync fees data into formData whenever it changes
   // console.log("feedata",feesData);
   useEffect(() => {
@@ -1663,14 +1676,20 @@ export default function CreateStudentPage() {
                   </TextField>
 
                   {/* Academic Year */}
-                  <TextField
-                    fullWidth
-                    label="Academic Session"
-                    value={displaySession}
-                    disabled
-                    InputProps={{ readOnly: true }}
-                    helperText="Academic session from school settings"
-                  />           </div>
+                 <Select
+  options={academicYearOptions}
+  styles={customSelectStyles}
+  placeholder="Select Academic Year"
+  value={academicYearOptions?.find(
+    opt => opt.value === student.academicYear
+  )}
+  onChange={(selected) => {
+    setStudent(prev => ({
+      ...prev,
+      academicYear: selected.value,   // EXACT payload format
+    }));
+  }}
+/>      </div>
               </div>
 
               {/* === Form Section === */}
