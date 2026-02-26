@@ -88,6 +88,7 @@ const customSelectStyles = {
 export default function CreateStudentPage() {
   const [selectedClass, setSelectedClass] = useState(null);
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [student, setStudent] = useState({
     name: "",
@@ -753,6 +754,7 @@ console.log("student",student);
     if (!validateStep()) return;
 
     try {
+       setIsSubmitting(true);
       const formDataToSend = new FormData();
 
       // 🔹 Add simple fields
@@ -800,11 +802,14 @@ console.log("student",student);
       }
       else {
         toast.error(res.message || "Failed to save student ❌");
+        
 
       }
     } catch (err) {
       console.error(err);
       toast.error(err?.response?.data?.message);
+    }finally{
+      setIsSubmitting(false); // ✅ STOP LOADER (ALWAYS RUNS)
     }
   };
 
@@ -1877,13 +1882,39 @@ console.log("student",student);
               Next
             </Button>
           ) : (
-            <button
-              type="submit"
-              className="p-2 cursor-pointer bg-[image:var(--gradient-primary)] rounded-md"
-            // style={{ backgroundColor: isEditMode ? "#f3c621ff" : "#4caf50", color: "black" }}
-            >
-              {isEditMode ? "Update" : "Submit"}
-            </button>
+         <button
+  type="submit"
+  disabled={isSubmitting}
+  className="p-2 cursor-pointer bg-[image:var(--gradient-primary)] rounded-md flex items-center justify-center gap-2 disabled:opacity-70"
+>
+  {isSubmitting ? (
+    <>
+      <svg
+        className="animate-spin h-5 w-5 text-white"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+        />
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8v8z"
+        />
+      </svg>
+      Submitting...
+    </>
+  ) : (
+    isEditMode ? "Update" : "Submit"
+  )}
+</button>
 
           )}
         </div>

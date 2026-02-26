@@ -145,6 +145,7 @@ export default function CreateStudentPage() {
     marksheets: [],
     certificates: [],
   });
+  console.log("previews",previews);
   const states = [
     { value: "Rajasthan", label: "Rajasthan" },
     // { value: "Karnataka", label: "Karnataka" },
@@ -576,6 +577,12 @@ export default function CreateStudentPage() {
 
       if (!student.address?.country) {
         newErrors.address.country = "Country is required";
+      }
+      if (!student.documents?.profilePic) {
+        newErrors.documents = {
+          ...newErrors.documents,
+          profilePic: "Profile picture is required",
+        };
       }
 
       // Clean empty address object

@@ -38,6 +38,8 @@ export default function StudentDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("profile");
+    const isPDF = (url) => url?.toLowerCase().endsWith(".pdf");
+
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["studentDetail", id],
@@ -46,7 +48,7 @@ export default function StudentDetailPage() {
   });
 
   const [showFeesModal, setShowFeesModal] = useState(false);
-console.log("data",data);
+  console.log("data", data);
   const student = data?.results;
   // console.log("studentdata", student);
 
@@ -63,7 +65,9 @@ console.log("data",data);
     pdf.addImage(img, "JPEG", 0, 0, pdfWidth, pdfHeight);
     pdf.save(`${filename}.pdf`);
   };
-
+  const hasGuardianInfo =
+    student?.guardian &&
+    Object.values(student.guardian).some(value => value && value.trim() !== "");
   const loadImage = (url) =>
     new Promise((resolve, reject) => {
       const img = new Image();
@@ -94,7 +98,20 @@ console.log("data",data);
     const content = await zip.generateAsync({ type: "blob" });
     saveAs(content, `${student.name}_marksheets.zip`);
   };
-
+const renderPreview = (url) =>
+    isPDF(url) ? (
+      <iframe
+        src={url}
+        className="w-full h-40 rounded-lg border"
+        title="pdf"
+      />
+    ) : (
+      <img
+        src={url}
+        className="w-full h-40 object-cover rounded-lg"
+        alt="doc"
+      />
+    );
   // ✅ Mutation for toggling status
   const toggleStatusMutation = useMutation({
     mutationFn: () =>
@@ -259,32 +276,22 @@ console.log("data",data);
             </div>
 
             {/* Guardian Info */}
-            <div>
-              <h3 className="text-xl font-semibold mt-8 mb-3 text-gray-800 flex items-center gap-2">
-                <Home className="w-5 h-5 text-green-600" /> Guardian Information
-              </h3>
+            {hasGuardianInfo && (
+              <div>
+                <h3 className="text-xl font-semibold mt-8 mb-3 text-gray-800 flex items-center gap-2">
+                  <Home className="w-5 h-5 text-green-600" /> Guardian Information
+                </h3>
 
-              {student.guardian ? (
                 <div className="p-5 rounded-2xl bg-gradient-to-tr from-green-50 to-white border border-green-100 shadow-sm hover:shadow-md transition">
                   <div className="grid md:grid-cols-2 gap-3 text-gray-700">
-                    <p>
-                      <strong>Name:</strong> {student.guardian.name}
-                    </p>
-                    <p>
-                      <strong>Relation:</strong> {student.guardian.relation}
-                    </p>
-                    <p>
-                      <strong>Occupation:</strong> {student.guardian.occupation}
-                    </p>
-                    <p>
-                      <strong>Phone:</strong> {student.guardian.phone}
-                    </p>
+                    <p><strong>Name:</strong> {student.guardian.name}</p>
+                    <p><strong>Relation:</strong> {student.guardian.relation}</p>
+                    <p><strong>Occupation:</strong> {student.guardian.occupation}</p>
+                    <p><strong>Phone:</strong> {student.guardian.phone}</p>
                   </div>
                 </div>
-              ) : (
-                <p className="text-gray-500 italic">No guardian info available</p>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Emergency Contact */}
             <div>
@@ -346,12 +353,12 @@ console.log("data",data);
                         {enroll.classInfo?.name} ({enroll.classInfo?.section})
                       </h3>
                       <span
-                        className={`text-xs font-medium px-3 py-1 rounded-full ${enroll.status === "Active"
+                        className={`text-xs font-medium px-3 py-1 rounded-full ${enroll?.status === "Active"
                           ? "bg-green-100 text-green-700"
                           : "bg-gray-200 text-gray-600"
                           }`}
                       >
-                        {enroll.status}
+                        {enroll?.status}
                       </span>
                     </div>
 
@@ -359,20 +366,20 @@ console.log("data",data);
                       <p className="flex items-center gap-2">
                         <Badge className="w-4 h-4 text-indigo-500" />
                         <span>
-                          <strong>Roll No:</strong> {enroll.rollNo}
+                          <strong>Roll No:</strong> {enroll?.rollNo}
                         </span>
                       </p>
                       <p className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-indigo-500" />
                         <span>
-                          <strong>Academic Year:</strong> {enroll.academicYear}
+                          <strong>Academic Year:</strong> {enroll?.academicYear}
                         </span>
                       </p>
                       <p className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-indigo-500" />
                         <span>
-                          <strong>Timing:</strong> {enroll.classInfo?.startTime} –{" "}
-                          {enroll.classInfo?.endTime}
+                          <strong>Timing:</strong> {student?.schoolTiming?.startTime} –{" "}
+                          {student?.schoolTiming?.endTime}
                         </span>
                       </p>
                     </div>
@@ -636,7 +643,7 @@ console.log("data",data);
             </div>
 
             {/* Marksheets */}
-            <div>
+            {/* <div>
               <h3 className="text-lg font-semibold mb-3">Marksheets</h3>
               {student.marksheets?.length ? (
                 <div className="grid  md:grid-cols-3 gap-4">
@@ -665,23 +672,51 @@ console.log("data",data);
               ) : (
                 <p className="text-gray-500">No marksheets uploaded</p>
               )}
-              <button
-                onClick={downloadAllMarksheetsAsPDF}
-                className="px-4 py-2 bg-[image:var(--gradient-primary)] text-black rounded-sm cursor-pointer transition mt-4"
-              >
-                Download All Marksheets as ZIP
-              </button>
-            </div>
+              {
+                student?.marksheets?.length > 0 &&
+                (
+                  <button
+                    onClick={downloadAllMarksheetsAsPDF}
+                    className="px-4 py-2 bg-[image:var(--gradient-primary)] text-black rounded-sm cursor-pointer transition mt-4"
+                  >
+                    Download All Marksheets as ZIP
+                  </button>
+                )
+              }
+
+            </div> */}
+             {student.marksheets?.length ? (
+              <div className="grid md:grid-cols-3 gap-4">
+                {student.marksheets.map(ms => (
+                  <div key={ms._id} className="border p-3 rounded-lg">
+                    {renderPreview(ms.fileUrl)}
+
+                    <p className="text-sm mt-2">{ms.exam}</p>
+
+                    <button
+                      onClick={() =>
+                        window.open(ms.fileUrl, "_blank")
+                      }
+                      className="text-blue-600 text-sm"
+                    >
+                      View
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p>No marksheets uploaded</p>
+            )}
 
             {/* Certificates */}
-            <div>
+            {/* <div>
               <h3 className="text-lg font-semibold mb-3">Certificates</h3>
               {student.certificates?.length ? (
                 <div className="grid md:grid-cols-3 gap-4">
                   {student.certificates.map((cert) => (
                     <div
                       key={cert._id}
-                      className="p-4 border rounded-lg shadow-sm flex flex-col items-center gap-2 hover:shadow-md transition"
+                      className="p-4 border border-gray-300 rounded-lg shadow-sm flex flex-col items-center gap-2 hover:shadow-md transition"
                     >
                       <img
                         src={`${cert.fileUrl}`}
@@ -708,7 +743,29 @@ console.log("data",data);
               ) : (
                 <p className="text-gray-500">No certificates uploaded</p>
               )}
-            </div>
+            </div> */}
+             {student.certificates?.length ? (
+              <div className="grid md:grid-cols-3 gap-4">
+                {student.certificates.map(cert => (
+                  <div key={cert._id} className="border p-3 rounded-lg">
+                    {renderPreview(cert.fileUrl)}
+
+                    <p className="text-sm mt-2">{cert.name}</p>
+
+                    <button
+                      onClick={() =>
+                        window.open(cert.fileUrl, "_blank")
+                      }
+                      className="text-blue-600 text-sm"
+                    >
+                      View
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p>No certificates uploaded</p>
+            )}
           </div>
         )}
 
