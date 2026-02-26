@@ -608,7 +608,7 @@ export default function TimetableManager() {
             </Typography>
           ))}
 
-          {timeSlots.map((slot) => (
+          {timeSlots?.map((slot) => (
             <React.Fragment key={slot.id}>
               <Box className="font-medium text-gray-700 p-2 text-center bg-indigo-50">
                 <div>{slot.period}</div>

@@ -724,7 +724,7 @@ export default function ClassPage() {
             disabled={classMutation.isLoading}
             className="w-full cursor-pointer bg-[image:var(--gradient-primary)] text-white py-2 rounded-lg  transition"
           >
-            {classMutation.isLoading ? "Saving..." : editingClass ? "Update Class" : "Add Class"}
+            {classMutation.isPending ? "Saving..." : editingClass ? "Update Class" : "Add Class"}
           </button>
         </form>
       </Modal>
