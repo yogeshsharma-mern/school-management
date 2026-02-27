@@ -96,6 +96,15 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://api.example.com";
 
 export default function SchoolSettings() {
   const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [academicYearFilter, setAcademicYearFilter] = useState("");
+  console.log(
+    "academicYearFilter",academicYearFilter
+  );
+  const [formData, setFormData] = useState({
+    name: "",
+    section: ""
+  });
   const [schoolData, setSchoolData] = useState({
     schoolName: "",
     status: "inactive",
@@ -149,7 +158,7 @@ export default function SchoolSettings() {
     schoolLogo: null,
     marks: []
   });
-  console.log("schooldata",schoolData);
+  console.log("schooldata", schoolData);
   const [locationData, setLocationData] = useState({
     latitude: "",
     longitude: "",
@@ -158,10 +167,28 @@ export default function SchoolSettings() {
   });
   const [urlErrors, setUrlErrors] = useState([]);
   const [aboutImagePreview, setAboutImagePreview] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
   const [cordinateModalOpen, setCordinateModalOpen] = useState(false);
   const [schoolId, setSchoolId] = useState(null);
   console.log("schoolId", schoolId);
+  const addMarksRow = () => {
+    if (!classOptions.length) {
+      toast.error("No class found. Please add the class first.");
+      return;
+    }
 
+    setSchoolData(prev => ({
+      ...prev,
+      marks: [
+        ...prev.marks,
+        {
+          className: "",
+          halfYearlyMarks: "",
+          finalYearMarks: "",
+        }
+      ]
+    }));
+  };
   // console.log("urlerrors", urlErrors);
   const [logoPreview, setLogoPreview] = useState(null);
   const formatDateForInput = (isoDate) => {
@@ -176,6 +203,7 @@ export default function SchoolSettings() {
     label: cls,
     value: cls,
   }));
+
   console.log("classoptions", classOptions);
   const selected = schoolData.marks.map(m => m.className);
   console.log("selected", selected)
@@ -187,27 +215,33 @@ export default function SchoolSettings() {
   console.log("available ooptions", availableOptions);
 
   const { data: studentData, isLoading } = useQuery({
-    queryKey: ["school-settings"],
-    queryFn: () => apiGet(apiPath.SchoolSettings) // only fetch if id exists
+    queryKey: ["school-settings",academicYearFilter],
+    queryFn: () => apiGet(apiPath.SchoolSettings, { currentSession: academicYearFilter }) // only fetch if id exists
   });
-  // console.log("first", studentData);
+  console.log("first", studentData);
   const { data: cordinatesData, isLoading: cordiLoading } = useQuery({
     queryKey: ["school-coordinates"],
     queryFn: () => apiGet(`${apiPath.getCordinates}`)
   });
-    const { data: academicSessions, isLoading: loading, error } = useQuery({
-      queryKey: ['academicSessions'],
-      queryFn: () => apiGet(apiPath.getAcademicSessions)
-    });
-    const formatDate = (isoDate) => {
-      if (!isoDate) return "";
-      return new Date(isoDate).toISOString().slice(0, 10);
-    };
-const academicYearOptions = academicSessions?.results?.map(session => ({
-  value: session,   // ✅ FULL OBJECT (critical)
-  label: session.academicSession,
-}));
-console.log("academicyearoptions",academicYearOptions);
+  const { data: academicSessions, isLoading: loading, error } = useQuery({
+    queryKey: ['academicSessions'],
+    queryFn: () => apiGet(apiPath.getAcademicSessions)
+  });
+  console.log("academicSessions",academicSessions);
+  const formatDate = (isoDate) => {
+    if (!isoDate) return "";
+    return new Date(isoDate).toISOString().slice(0, 10);
+  };
+  const academicYearOptionss = academicSessions?.results?.map(session => ({
+    value: session.academicSession,
+    label: session.academicSession,   // what user sees
+  }));
+  const academicYearOptions = academicSessions?.results?.map(session => ({
+    value: session,   // ✅ FULL OBJECT (critical)
+    label: session.academicSession,
+  }));
+  
+  console.log("academicyearoptions", academicYearOptions);
   console.log("cordinatesdata", cordinatesData);
   useEffect(() => {
     if (!cordinatesData?.results) return;
@@ -404,14 +438,15 @@ console.log("academicyearoptions",academicYearOptions);
     return `${startDate}-${endDate}`;
   };
   useEffect(() => {
-    const { startDate, endDate } = schoolData.academicSession;
+    const { startDate, endDate,currentSession} = schoolData.academicSession;
+    console.log("third",schoolData.academicSession);
 
     if (!startDate || !endDate) return;
 
     const session = calculateAcademicSession(startDate, endDate);
 
     if (session !== schoolData.academicSession.currentSession) {
-      handleChange("academicSession.currentSession", session);
+      handleChange("academicSession.currentSession", currentSession);
     }
   }, [
     schoolData.academicSession.startDate,
@@ -523,7 +558,7 @@ console.log("academicyearoptions",academicYearOptions);
     mutationFn: (formData) => {
       const config = { headers: { "Content-Type": "multipart/form-data" } };
       return studentData?.results
-        ? apiPut(apiPath.updateSchoolSettings, formData, config)
+        ? apiPut(`${apiPath.updateSchoolSettings}/${schoolId}`, formData, config)
         : apiPost(apiPath.createSchoolSettings, formData, config);
     },
     onSuccess: (data) => {
@@ -640,6 +675,23 @@ console.log("academicyearoptions",academicYearOptions);
       toast.success(data.message || "Settings reset to defaults");
     },
   });
+  const createClassMutation = useMutation({
+    mutationFn: (payload) =>
+      apiPost(apiPath.createClassess, payload),
+
+    onSuccess: (data) => {
+      toast.success(data.message || "Class created successfully");
+
+      queryClient.invalidateQueries(["classes"]);
+
+      setIsModalOpen(false);
+      setFormData({ name: "", section: "" });
+    },
+
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || "Failed to create class");
+    },
+  });
   const getImagePreview = (img) => {
     if (img instanceof File || img instanceof Blob)
       return URL.createObjectURL(img);
@@ -741,11 +793,44 @@ console.log("academicyearoptions",academicYearOptions);
       return newData;
     });
   };
+  const handleMarksChange = (index, field, value) => {
+    setSchoolData(prev => ({
+      ...prev,
+      marks: prev.marks.map((m, i) =>
+        i === index ? { ...m, [field]: value } : m
+      )
+    }));
+  };
+  const validateMarks = () => {
+    if (!schoolData.marks.length) {
+      toast.error("Please add at least one class marks");
+      return false;
+    }
+
+    for (let mark of schoolData.marks) {
+      if (!mark.className) {
+        toast.error("Class is required");
+        return false;
+      }
+
+      if (!mark.halfYearlyMarks) {
+        toast.error("Half yearly marks required");
+        return false;
+      }
+
+      if (!mark.finalYearMarks) {
+        toast.error("Final yearly marks required");
+        return false;
+      }
+    }
+
+    return true;
+  };
 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    if (!validateMarks()) return;
     const formData = new FormData();
 
     // ✅ Basic fields
@@ -1019,9 +1104,33 @@ console.log("academicyearoptions",academicYearOptions);
         >
           🏫 School Settings
         </Typography>
-        <div className="flex items-center justify-end mb-3">
+        <div className="flex gap-3 items-center justify-end mb-3">
           <button onClick={() => setCordinateModalOpen(true)} className="bg-[image:var(--gradient-primary)] cursor-pointer py-2 px-3 rounded ">Add Cordinates</button>
+          <select
+            value={academicYearFilter}
+            onChange={(e) => setAcademicYearFilter(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 outline-none"
+          >
+            <option value="">All Academic Years</option>
+
+            {academicYearOptionss?.map((year, i) => (
+              <option key={i} value={year.value}>
+                {year.label}
+              </option>
+            ))}
+          </select>
         </div>
+            {!studentData?.results ? (
+      <div className="h-[50vh] flex flex-col items-center justify-center text-center">
+        <Typography variant="h6" gutterBottom>
+          No School Data Found
+        </Typography>
+
+        <Typography variant="body2" color="text.secondary">
+          Please select an academic year or create school settings.
+        </Typography>
+      </div>
+    ) : (
         <form onSubmit={handleSubmit}>
           {/* Basic Info + Status */}
           <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
@@ -1399,122 +1508,130 @@ console.log("academicyearoptions",academicYearOptions);
 
 
           </Card>
-          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+          <Card sx={{ mb: 4, borderRadius: 4, boxShadow: 4 }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                📊 Class-wise Marks
-              </Typography>
-
-              {(schoolData.marks || []).map((item, index) => (
-                <Box
-                  key={index}
-                  display="flex"
-                  gap={2}
-                  alignItems="center"
-                  mb={2}
-                // pr={3}
-                >
-                  {/* Class Name */}
-                  <Select
-                    options={availableOptions}
-                    value={classOptions.find(
-                      (opt) => opt.value === item.className
-                    )}
-                    onChange={(option) =>
-                      handleChange(`marks.${index}.className`, option.value)
-                    }
-                    placeholder="Select Class"
-                    menuPortalTarget={document.body}
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        width: 150,          // 👈 yahan width badhao
-                        minWidth: 150,
-                      }),
-                      menuPortal: (base) => ({
-                        ...base,
-                        zIndex: 9999,
-                      }),
-                    }}
-                  />
-
-
-                  {/* Per Subject Marks */}
-                  {/* <TextField
-                  type="number"
-                  label="Per Subject Marks"
-                  value={item.perSubjectMarks}
-                  onChange={(e) =>
-                    handleChange(`marks.${index}.perSubjectMarks`, e.target.value)
-                  }
-                  inputProps={{ min: 0, max: 100 }}
-                  fullWidth
-                /> */}
-                  <TextField
-                    type="number"
-                    label="Per Subject Marks"
-                    value={item.perSubjectMarks}
-                    onChange={(e) => {
-                      let value = e.target.value;
-
-                      // ❌ empty allow
-                      if (value === "") {
-                        handleChange(`marks.${index}.perSubjectMarks`, "");
-                        return;
-                      }
-
-                      // ❌ only digits
-                      value = value.replace(/\D/g, "");
-
-                      // ❌ max 3 digits
-                      if (value.length > 3) return;
-
-                      const num = Number(value);
-
-                      // ❌ max 100
-                      if (num > 100) {
-                        toast.error("Marks cannot be more than 100");
-                        return;
-                      }
-
-                      handleChange(`marks.${index}.perSubjectMarks`, value);
-                    }}
-                    inputProps={{
-                      min: 0,
-                      max: 100,
-                    }}
-                    fullWidth
-                  />
-
-
-                  {/* Delete */}
-                  <Button
-                    color="error"
-                    variant="outlined"
-                    onClick={() =>
-                      handleChange(
-                        "marks",
-                        schoolData.marks.filter((_, i) => i !== index)
-                      )
-                    }
-                  >
-                    ✕
-                  </Button>
-                </Box>
-              ))}
-
-              {/* Add New Class */}
-              <Button
-                variant="outlined"
-                onClick={() =>
-                  handleChange("marks", [
-                    ...(schoolData.marks || []),
-                    { className: "", perSubjectMarks: "" },
-                  ])
-                }
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={3}
               >
-                ➕ Add Class Marks
-              </Button>
+                <Typography variant="h6" fontWeight={600}>
+                  📊 Class-wise Marks
+                </Typography>
+
+                <Box display="flex" gap={2}>
+                  {/* Always show Add Class */}
+                  <Button
+                    variant="outlined"
+                    onClick={() => setIsModalOpen(true)}
+                    sx={{
+                      borderRadius: 3,
+                      textTransform: "none",
+                      fontWeight: 600,
+                    }}
+                  >
+                    + Add Class
+                  </Button>
+
+                  {/* Add Class Marks only if classes exist */}
+                  {classOptions.length > 0 && (
+                    <Button
+                      variant="contained"
+                      onClick={addMarksRow}
+                      sx={{
+                        borderRadius: 3,
+                        textTransform: "none",
+                        backgroundImage: "var(--gradient-primary)",
+                        color: "#000",
+                        fontWeight: 600,
+                      }}
+                    >
+                      + Add Class Marks
+                    </Button>
+                  )}
+                </Box>
+              </Box>
+
+              {/* ❌ NO CLASS FOUND MESSAGE */}
+              {classOptions.length === 0 && (
+                <Typography color="error" mb={2}>
+                  No class found. You have to add the class first.
+                </Typography>
+              )}
+
+              {/* MARKS LIST */}
+              {schoolData.marks.map((item, index) => (
+                <Card key={index} sx={{ mb: 2, p: 2, borderRadius: 3 }}>
+                  <Box display="flex" gap={2} flexWrap="wrap">
+
+                    {/* Class Select */}
+                    <Box sx={{ minWidth: 180 }}>
+                   <Select
+  options={availableOptions}
+  value={classOptions.find(
+    (opt) => opt.value === item.className
+  )}
+  onChange={(option) =>
+    handleMarksChange(index, "className", option?.value || "")
+  }
+  placeholder="Select Class"
+  menuPortalTarget={document.body}
+  styles={{
+    ...customSelectStyles,
+    menuPortal: (base) => ({
+      ...base,
+      zIndex: 99999,   // 🔥 increase this
+    }),
+    menu: (base) => ({
+      ...base,
+      zIndex: 99999,   // 🔥 increase this
+    }),
+  }}
+/>
+                    </Box>
+
+                    {/* Half Yearly */}
+                    <TextField
+                      label="Half Yearly"
+                      type="number"
+                      value={item.halfYearlyMarks}
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/\D/g, "");
+                        if (Number(value) > 100) return;
+                        handleMarksChange(index, "halfYearlyMarks", Number(value));
+                      }}
+                      sx={{ width: 150 }}
+                    />
+
+                    {/* Final Year */}
+                    <TextField
+                      label="Final Year"
+                      type="number"
+                      value={item.finalYearMarks}
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/\D/g, "");
+                        if (Number(value) > 100) return;
+                        handleMarksChange(index, "finalYearMarks", Number(value));
+                      }}
+                      sx={{ width: 150 }}
+                    />
+
+                    <Button
+                      color="error"
+                      variant="outlined"
+                      onClick={() =>
+                        setSchoolData(prev => ({
+                          ...prev,
+                          marks: prev.marks.filter((_, i) => i !== index)
+                        }))
+                      }
+                    >
+                      ✕
+                    </Button>
+                  </Box>
+                </Card>
+              ))}
             </CardContent>
           </Card>
 
@@ -1561,42 +1678,47 @@ console.log("academicyearoptions",academicYearOptions);
                     required
                   />
                 </Grid> */}
-<Select
-  options={academicYearOptions}
-  styles={customSelectStyles}
-  placeholder="Select Academic Year"
-  menuPortalTarget={document.body}     // ✅ CRITICAL FIX
-  menuPosition="fixed"                 // ✅ prevents clipping
-value={academicYearOptions?.find(opt => {
-  const sessionValue = schoolData.academicSession.currentSession;
+                <Select
+                  options={academicYearOptions}
+                  styles={customSelectStyles}
+                  placeholder="Select Academic Year"
+                  menuPortalTarget={document.body}     // ✅ CRITICAL FIX
+                  menuPosition="fixed"                 // ✅ prevents clipping
+                  value={academicYearOptions?.find(opt => {
+                    // const sessionValue = schoolData.academicSession.currentSession;
 
-  if (typeof sessionValue !== "string" || sessionValue.length < 21)
-    return false;
+                    // if (typeof sessionValue !== "string" || sessionValue.length < 21)
+                    //   return false;
 
-  const start = sessionValue.substring(0, 10);
-  const end = sessionValue.substring(11, 21);
+                    // const start = sessionValue.substring(0, 10);
+                    // const end = sessionValue.substring(11, 21);
 
-  const optStart = formatDateForInput(opt.value.startDate);
-  const optEnd = formatDateForInput(opt.value.endDate);
+                    // const optStart = formatDateForInput(opt.value.startDate);
+                    // const optEnd = formatDateForInput(opt.value.endDate);
 
-  return optStart === start && optEnd === end;
-})}
-onChange={(selected) => {
-  const session = selected.value;
+                    // return optStart === start && optEnd === end;
+                    console.log("opt",opt);
+                    console.log("schooldataopt",schoolData.academicSession.currentSession)
 
-  const formattedStart = formatDateForInput(session.startDate);
-  const formattedEnd = formatDateForInput(session.endDate);
+                return    opt?.value?.academicSession===schoolData?.academicSession?.currentSession
+                  })}
+                  onChange={(selected) => {
+                    const session = selected.value;
+                    console.log("session6789",session);
 
-  setSchoolData(prev => ({
-    ...prev,
-    academicSession: {
-      startDate: formattedStart,
-      endDate: formattedEnd,
-      currentSession: `${formattedStart}-${formattedEnd}`, // ✅ FIXED
-    }
-  }));
-}}
-/>
+                    const formattedStart = formatDateForInput(session.startDate);
+                    const formattedEnd = formatDateForInput(session.endDate);
+
+                    setSchoolData(prev => ({
+                      ...prev,
+                      academicSession: {
+                        startDate: formattedStart,
+                        endDate: formattedEnd,
+                        currentSession: `${session?.academicSession}`, // ✅ FIXED
+                      }
+                    }));
+                  }}
+                />
                 {/* Current Session */}
                 {/* <Grid item xs={12} sm={4}>
                   <Select
@@ -1693,7 +1815,7 @@ onChange={(selected) => {
           </Card>
 
           {/* About Section */}
-      
+
 
           {/* FAQs Section */}
           {/* FAQs Section */}
@@ -2189,6 +2311,7 @@ onChange={(selected) => {
             </Button>
           </Box>
         </form>
+    )}
       </Box>
       <Modal
         isOpen={cordinateModalOpen}
@@ -2293,6 +2416,101 @@ onChange={(selected) => {
           </div>
         </div>
       </Modal>
+     <Modal
+  isOpen={isModalOpen}
+  title="Add Class"
+  onClose={() => {
+    setIsModalOpen(false);
+    setFormErrors({});
+  }}
+>
+  <form
+    onSubmit={(e) => {
+      e.preventDefault();
+
+      const newErrors = {};
+      const validClasses = [
+        "Prep", "1st", "2nd", "3rd", "4th", "5th", "6th",
+        "7th", "8th", "9th", "10th", "11th", "12th",
+      ];
+
+      // Class Name validation
+      if (!formData.name.trim()) {
+        newErrors.name = "Class name is required";
+      } else if (!validClasses.includes(formData.name.trim())) {
+        newErrors.name =
+          "Invalid class name. Must be Prep or 1st to 12th";
+      }
+
+      // Section validation
+      if (!formData.section.trim()) {
+        newErrors.section = "Section is required";
+      } else if (!/^[A-D]$/.test(formData.section.trim())) {
+        newErrors.section =
+          "Section must be A, B, C, or D";
+      }
+
+      setFormErrors(newErrors);
+
+      if (Object.keys(newErrors).length > 0) {
+        return;
+      }
+
+      createClassMutation.mutate({
+        name: formData.name.trim(),
+        section: formData.section.trim(),
+      });
+    }}
+    className="space-y-4"
+  >
+    <TextField
+      label="Class Name"
+      fullWidth
+      value={formData.name}
+      error={!!formErrors.name}
+      helperText={formErrors.name}
+      onChange={(e) =>
+        setFormData((prev) => ({
+          ...prev,
+          name: e.target.value,
+        }))
+      }
+    />
+
+    <TextField
+      label="Section"
+      fullWidth
+      sx={{ mt: 2 }}
+      value={formData.section}
+      error={!!formErrors.section}
+      helperText={formErrors.section}
+      onChange={(e) =>
+        setFormData((prev) => ({
+          ...prev,
+          section: e.target.value.toUpperCase(),
+        }))
+      }
+    />
+
+    <Button
+      type="submit"
+      fullWidth
+      variant="contained"
+      disabled={createClassMutation.isPending}
+      sx={{
+        mt: 3,
+        backgroundImage: "var(--gradient-primary)",
+        color: "black",
+        fontWeight: 600,
+        textTransform: "none",
+      }}
+    >
+      {createClassMutation.isPending
+        ? "Saving..."
+        : "Add Class"}
+    </Button>
+  </form>
+</Modal>
     </>
   );
 }

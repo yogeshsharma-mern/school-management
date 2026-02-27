@@ -261,7 +261,7 @@ export default function StudentPage() {
     value: `${formatDate(session.startDate)}-${formatDate(session.endDate)}`,
     label: session.academicSession,   // what user sees
   }));
-  console.log("academicyearoptionss",academicYearOptionss);
+  console.log("academicyearoptionss", academicYearOptionss);
   // ✅ Fetch students
   // const { data: studentsData, isLoading, isFetching, error } = useQuery({
   //   queryKey: [
@@ -646,9 +646,9 @@ export default function StudentPage() {
             >
               <option value="">All Academic Years</option>
 
-              {academicYearOptionss?.map((year,i) => (
+              {academicYearOptionss?.map((year, i) => (
                 <option key={i} value={year.value}>
-                 {year.label}
+                  {year.label}
                 </option>
               ))}
             </select>

@@ -45,6 +45,8 @@ const AdminAboutUs = () => {
   const [errors, setErrors] = useState({});
   const [images, setImages] = useState([]); // File[]
   const [imagePreviews, setImagePreviews] = useState([]); // string[]
+  const [deletingImageId, setDeletingImageId] = useState(null);
+  console.log("imagePreviews",imagePreviews);
 
   /* ================= FETCH ================= */
 
@@ -111,9 +113,14 @@ useEffect(() => {
       : [createEmptyCounter()],
   });
 
-  if (data.results.story?.images?.length) {
-    setImagePreviews(data.results.story.images);
-  }
+  // ✅ ALWAYS SET IMAGE PREVIEWS
+  setImagePreviews(
+    (data.results.story?.images || []).map((img) => ({
+      _id: img._id,
+      url: img.imageUrl,
+    }))
+  );
+
 }, [data]);
 
 
@@ -203,16 +210,28 @@ const handleCounterChange = (index, field, value) => {
 
   /* ================= SAVE ================= */
 const deleteImageMutation = useMutation({
-  mutationFn: (imageUrl) =>
-    apiDelete(`${apiPath.deleteAboutImage}`, { imageUrl }),
+  mutationFn: (imageId) =>
+    apiDelete(apiPath.deleteAboutUsImages, {
+      imageIds: [imageId],
+    }),
+
+  onMutate: (imageId) => {
+    setDeletingImageId(imageId);   // 🔥 start loader
+  },
 
   onSuccess: () => {
     toast.success("Image deleted successfully");
     queryClient.invalidateQueries(["about-us"]);
   },
 
-  onError: () => {
-    toast.error("Failed to delete image");
+  onError: (error) => {
+    toast.error(
+      error?.response?.data?.message || "Failed to delete image"
+    );
+  },
+
+  onSettled: () => {
+    setDeletingImageId(null);   // 🔥 stop loader
   },
 });
 const saveMutation = useMutation({
@@ -430,57 +449,51 @@ const resetMutation = useMutation({
 
           {imagePreviews.length > 0 && (
             <Grid container spacing={2} mt={2}>
-              {imagePreviews.map((src, i) => (
-                <Grid item xs={6} sm={3} key={i}>
-                  <Box
-                    sx={{
-                      borderRadius: 2,
-                      overflow: "hidden",
-                      boxShadow: 3,
-                    }}
-                  >
-         <Box
-  sx={{
-    borderRadius: 2,
-    overflow: "hidden",
-    boxShadow: 3,
-    position: "relative",
+             {imagePreviews.map((src, i) => (
+  <Grid item xs={6} sm={3} key={i}>
+    <Box sx={{ position: "relative", borderRadius: 2, overflow: "hidden" }}>
+      
+    <img
+  src={src.url || src}
+  alt="preview"
+  style={{
+    width: "100%",
+    height: 140,
+    objectFit: "cover",
+    opacity:
+      deletingImageId === src?._id ? 0.5 : 1, // fade effect
   }}
->
-  <img
-    src={src}
-    alt="preview"
-    style={{
-      width: "100%",
-      height: 140,
-      objectFit: "cover",
-    }}
-  />
+/>
 
-  {/* DELETE BUTTON */}
-  {aboutId && (
-    <IconButton
-      size="small"
-      color="error"
-      sx={{
-        position: "absolute",
-        top: 5,
-        right: 5,
-        backgroundColor: "#fff",
-      }}
-      onClick={() => {
-
-          deleteImageMutation.mutate(src);
-        
-      }}
-    >
-      <Delete fontSize="small" />
-    </IconButton>
-  )}
-</Box>
-                  </Box>
-                </Grid>
-              ))}
+      {aboutId && (
+        <IconButton
+          size="small"
+          color="error"
+          sx={{
+            position: "absolute",
+            top: 5,
+            right: 5,
+            backgroundColor: "#fff",
+          }}
+          onClick={() => {
+            if (src?._id) {
+              deleteImageMutation.mutate(src._id);
+            } else {
+              setImagePreviews((prev) =>
+                prev.filter((_, index) => index !== i)
+              );
+              setImages((prev) =>
+                prev.filter((_, index) => index !== i)
+              );
+            }
+          }}
+        >
+          <Delete fontSize="small" />
+        </IconButton>
+      )}
+    </Box>
+  </Grid>
+))}
             </Grid>
           )}
         </CardContent>
