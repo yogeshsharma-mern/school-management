@@ -1770,6 +1770,7 @@ export default function CreateStudentPage() {
                                 type="number"
                                 placeholder="Amount"
                                 value={head.amount}
+                                disabled
                                 onChange={(e) =>
                                   handleFeeHeadChange(
                                     index,
@@ -1791,6 +1792,7 @@ export default function CreateStudentPage() {
                                       e.target.checked
                                     )
                                   }
+      
                                   disabled={isMandatory}
                                   className="h-4 w-4 text-yellow-500 cursor-pointer border-gray-300 rounded focus:ring-yellow-300"
                                 />

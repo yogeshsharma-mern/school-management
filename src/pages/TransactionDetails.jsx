@@ -683,9 +683,9 @@ export default function TransactionDetails() {
                 <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Date & Time
                 </th>
-                <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                {/* <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Reference
-                </th>
+                </th> */}
                 <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Description
                 </th>
@@ -728,11 +728,11 @@ export default function TransactionDetails() {
                       </div>
                     </td>
 
-                    <td className="px-6 py-4">
+                    {/* <td className="px-6 py-4">
                       <div className="text-sm font-mono bg-gray-50 px-3 py-1.5 rounded-md text-gray-700 group-hover:bg-gray-100 transition-colors">
                         {tx.referenceId}
                       </div>
-                    </td>
+                    </td> */}
 
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900 max-w-xs truncate">
@@ -888,9 +888,9 @@ export default function TransactionDetails() {
               </div>
             </div>
             
-            <div className="text-sm text-gray-500">
+            {/* <div className="text-sm text-gray-500">
               Last updated: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

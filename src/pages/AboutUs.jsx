@@ -42,6 +42,7 @@ const AdminAboutUs = () => {
   const queryClient = useQueryClient();
 
   const [form, setForm] = useState(emptyForm);
+  const [errors, setErrors] = useState({});
   const [images, setImages] = useState([]); // File[]
   const [imagePreviews, setImagePreviews] = useState([]); // string[]
 
@@ -51,7 +52,43 @@ const { data, isPending } = useQuery({
   queryKey: ["about-us"],
   queryFn: () => apiGet(apiPath.GetAboutSection),
 });
+const validateForm = () => {
+  const newErrors = {};
 
+  if (!form.story.title.trim())
+    newErrors.storyTitle = "Story title is required";
+
+  if (!form.story.description.trim())
+    newErrors.storyDescription = "Story description is required";
+
+  if (!form.vision.title.trim())
+    newErrors.visionTitle = "Vision title is required";
+
+  if (!form.vision.description.trim())
+    newErrors.visionDescription = "Vision description is required";
+
+  if (!form.mission.title.trim())
+    newErrors.missionTitle = "Mission title is required";
+
+  if (!form.mission.description.trim())
+    newErrors.missionDescription = "Mission description is required";
+
+  form.counters.forEach((c, i) => {
+    if (!c.label.trim())
+      newErrors[`counterLabel${i}`] = "Label is required";
+
+    if (!c.value)
+      newErrors[`counterValue${i}`] = "Value is required";
+    // else if (isNaN(c.value))
+    //   newErrors[`counterValue${i}`] = "Value must be a number";
+  });
+
+  if (!aboutId && imagePreviews.length === 0)
+    newErrors.images = "At least one image is required";
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
 console.log("data",data)
 useEffect(() => {
   if (!data?.results) return;
@@ -85,21 +122,46 @@ const aboutId = data?.results?._id || null;
 
   /* ================= HANDLERS ================= */
 
-  const handleChange = (section, field, value) => {
-    setForm((prev) => ({
-      ...prev,
-      [section]: { ...prev[section], [field]: value },
-    }));
-  };
+const handleChange = (section, field, value) => {
+  setForm((prev) => ({
+    ...prev,
+    [section]: { ...prev[section], [field]: value },
+  }));
 
-  const handleCounterChange = (index, field, value) => {
-    setForm((prev) => ({
-      ...prev,
-      counters: prev.counters.map((c, i) =>
-        i === index ? { ...c, [field]: value } : c
-      ),
-    }));
-  };
+  // 🔥 Remove error for that specific field
+  const errorKey =
+    section === "story"
+      ? field === "title"
+        ? "storyTitle"
+        : "storyDescription"
+      : `${section}${field.charAt(0).toUpperCase() + field.slice(1)}`;
+
+  setErrors((prev) => {
+    const updated = { ...prev };
+    delete updated[errorKey];
+    return updated;
+  });
+};
+
+const handleCounterChange = (index, field, value) => {
+  setForm((prev) => ({
+    ...prev,
+    counters: prev.counters.map((c, i) =>
+      i === index ? { ...c, [field]: value } : c
+    ),
+  }));
+
+  const errorKey =
+    field === "label"
+      ? `counterLabel${index}`
+      : `counterValue${index}`;
+
+  setErrors((prev) => {
+    const updated = { ...prev };
+    delete updated[errorKey];
+    return updated;
+  });
+};
 
   const addCounter = () => {
     setForm((prev) => ({
@@ -140,7 +202,19 @@ const aboutId = data?.results?._id || null;
   };
 
   /* ================= SAVE ================= */
+const deleteImageMutation = useMutation({
+  mutationFn: (imageUrl) =>
+    apiDelete(`${apiPath.deleteAboutImage}`, { imageUrl }),
 
+  onSuccess: () => {
+    toast.success("Image deleted successfully");
+    queryClient.invalidateQueries(["about-us"]);
+  },
+
+  onError: () => {
+    toast.error("Failed to delete image");
+  },
+});
 const saveMutation = useMutation({
   mutationFn: async () => {
     const fd = buildFormData();
@@ -212,6 +286,7 @@ const resetMutation = useMutation({
             <Grid item xs={12}>
               <TextField
                 label="Story Title"
+                 error={!!errors.storyTitle}
                 fullWidth
                 value={form.story.title}
                 onChange={(e) =>
@@ -220,38 +295,45 @@ const resetMutation = useMutation({
                 sx={{ mb: 2 }}
               />
               <TextField
-                label="Story Description"
-                multiline
-                rows={4}
-                fullWidth
-                value={form.story.description}
-                onChange={(e) =>
-                  handleChange("story", "description", e.target.value)
-                }
-              />
+  label="Story Description"
+  multiline
+  rows={4}
+  fullWidth
+  value={form.story.description}
+  error={!!errors.storyDescription}
+  helperText={errors.storyDescription}
+  onChange={(e) =>
+    handleChange("story", "description", e.target.value)
+  }
+/>
             </Grid>
 
             {["vision", "mission"].map((key) => (
               <Grid item xs={12} md={6} key={key}>
-                <TextField
-                  label={`${key.charAt(0).toUpperCase() + key.slice(1)} Title`}
-                  fullWidth
-                  value={form[key].title}
-                  onChange={(e) =>
-                    handleChange(key, "title", e.target.value)
-                  }
-                  sx={{ mb: 2 }}
-                />
-                <TextField
-                  label={`${key.charAt(0).toUpperCase() + key.slice(1)} Description`}
-                  multiline
-                  rows={4}
-                  fullWidth
-                  value={form[key].description}
-                  onChange={(e) =>
-                    handleChange(key, "description", e.target.value)
-                  }
-                />
+               <TextField
+  label={`${key.charAt(0).toUpperCase() + key.slice(1)} Title`}
+  fullWidth
+  value={form[key].title}
+  error={!!errors[`${key}Title`]}
+  helperText={errors[`${key}Title`]}
+  onChange={(e) =>
+    handleChange(key, "title", e.target.value)
+  }
+  sx={{ mb: 2 }}
+/>
+
+<TextField
+  label={`${key.charAt(0).toUpperCase() + key.slice(1)} Description`}
+  multiline
+  rows={4}
+  fullWidth
+  value={form[key].description}
+  error={!!errors[`${key}Description`]}
+  helperText={errors[`${key}Description`]}
+  onChange={(e) =>
+    handleChange(key, "description", e.target.value)
+  }
+/>
               </Grid>
             ))}
           </Grid>
@@ -282,23 +364,28 @@ const resetMutation = useMutation({
                     <Delete fontSize="small" />
                   </IconButton>
 
-                  <TextField
-                    label="Label"
-                    fullWidth
-                    value={c.label}
-                    onChange={(e) =>
-                      handleCounterChange(i, "label", e.target.value)
-                    }
-                    sx={{ mb: 2 }}
-                  />
-                  <TextField
-                    label="Value"
-                    fullWidth
-                    value={c.value}
-                    onChange={(e) =>
-                      handleCounterChange(i, "value", e.target.value)
-                    }
-                  />
+                 <TextField
+  label="Label"
+  fullWidth
+  value={c.label}
+  error={!!errors[`counterLabel${i}`]}
+  helperText={errors[`counterLabel${i}`]}
+  onChange={(e) =>
+    handleCounterChange(i, "label", e.target.value)
+  }
+  sx={{ mb: 2 }}
+/>
+
+<TextField
+  label="Value"
+  fullWidth
+  value={c.value}
+  error={!!errors[`counterValue${i}`]}
+  helperText={errors[`counterValue${i}`]}
+  onChange={(e) =>
+    handleCounterChange(i, "value", e.target.value)
+  }
+/>
                 </Card>
               </Grid>
             ))}
@@ -317,16 +404,29 @@ const resetMutation = useMutation({
               type="file"
               multiple
               accept="image/*"
-              onChange={(e) => {
-                const files = Array.from(e.target.files);
-                setImages((prev) => [...prev, ...files]);
-                setImagePreviews((prev) => [
-                  ...prev,
-                  ...files.map((f) => URL.createObjectURL(f)),
-                ]);
-              }}
+             onChange={(e) => {
+  const files = Array.from(e.target.files);
+
+  setImages((prev) => [...prev, ...files]);
+  setImagePreviews((prev) => [
+    ...prev,
+    ...files.map((f) => URL.createObjectURL(f)),
+  ]);
+
+  // 🔥 remove image error
+  setErrors((prev) => {
+    const updated = { ...prev };
+    delete updated.images;
+    return updated;
+  });
+}}
             />
           </Button>
+          {errors.images && (
+  <Typography color="error" variant="body2" mt={1}>
+    {errors.images}
+  </Typography>
+)}
 
           {imagePreviews.length > 0 && (
             <Grid container spacing={2} mt={2}>
@@ -339,15 +439,45 @@ const resetMutation = useMutation({
                       boxShadow: 3,
                     }}
                   >
-                    <img
-                      src={src}
-                      alt="preview"
-                      style={{
-                        width: "100%",
-                        height: 140,
-                        objectFit: "cover",
-                      }}
-                    />
+         <Box
+  sx={{
+    borderRadius: 2,
+    overflow: "hidden",
+    boxShadow: 3,
+    position: "relative",
+  }}
+>
+  <img
+    src={src}
+    alt="preview"
+    style={{
+      width: "100%",
+      height: 140,
+      objectFit: "cover",
+    }}
+  />
+
+  {/* DELETE BUTTON */}
+  {aboutId && (
+    <IconButton
+      size="small"
+      color="error"
+      sx={{
+        position: "absolute",
+        top: 5,
+        right: 5,
+        backgroundColor: "#fff",
+      }}
+      onClick={() => {
+
+          deleteImageMutation.mutate(src);
+        
+      }}
+    >
+      <Delete fontSize="small" />
+    </IconButton>
+  )}
+</Box>
                   </Box>
                 </Grid>
               ))}
@@ -405,7 +535,10 @@ const resetMutation = useMutation({
       color: "#000",
       fontWeight: 700,
     }}
-    onClick={() => saveMutation.mutate()}
+onClick={() => {
+  if (!validateForm()) return;
+  saveMutation.mutate();
+}}
     disabled={saveMutation.isPending || isPending}
   >
     Save About Us

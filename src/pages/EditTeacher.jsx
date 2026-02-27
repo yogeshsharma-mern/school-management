@@ -309,6 +309,22 @@ const cityOptions = (teacher.address.country && teacher.address.state)
         label: city.name,
     }))
     : [];
+     const isPDF = (url) => url?.toLowerCase().endsWith(".pdf");
+      const renderPreview = (url) =>
+    isPDF(url) ? (
+      <iframe
+        src={url}
+        className="w-full h-40 rounded-lg border"
+        title="pdf"
+      />
+    ) : (
+      <img
+        src={url}
+        className="w-full h-40 object-cover rounded-lg"
+        alt="doc"
+      />
+    );
+
 useEffect(() => {
     if (!teacherData?.results) return;
     const t = teacherData.results;
@@ -1992,11 +2008,27 @@ useEffect(() => {
                                             </div>
                                         ) : (
                                             <div className="relative mt-2">
-                                                <img
+                                                {/* <img
                                                     src={previews[side]}
                                                     alt={side}
                                                     className="w-full h-56 object-cover rounded-xl border border-gray-200 shadow-sm"
-                                                />
+                                                /> */}
+                                              
+                  <div  className="border p-3 rounded-lg">
+                    {renderPreview(previews[side])}
+
+                    {/* <p className="text-sm mt-2">{ms.exam}</p> */}
+
+                    <button
+                      onClick={() =>
+                        window.open(previews[side], "_blank")
+                      }
+                      className="text-blue-600 text-sm"
+                    >
+                      View
+                    </button>
+                  </div>
+       
                                                 <button
                                                     type="button"
                                                     onClick={() => {

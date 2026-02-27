@@ -203,7 +203,8 @@ const ProfilePhotoUpload = ({ photoUrl, onPhotoChange, isLoading, error }) => {
 };
 
 // Leader Form Modal Component
-const LeaderFormModal = ({ isOpen, onClose, leader = null, onSave }) => {
+const LeaderFormModal = ({ isOpen, onClose, leader = null, onSave, isCreating,
+    isUpdating }) => {
     const [formData, setFormData] = useState({
         profilephoto: null,
         name: '',
@@ -399,12 +400,22 @@ const LeaderFormModal = ({ isOpen, onClose, leader = null, onSave }) => {
                                     <input
                                         type="text"
                                         value={formData.experience}
-                                        onChange={(e) => handleChange('experience', e.target.value)}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+
+                                            // ✅ allow only digits
+                                            if (!/^\d*$/.test(value)) return;
+
+                                            // ✅ prevent value above 50
+                                            if (Number(value) > 50) return;
+
+                                            handleChange('experience', value);
+                                        }}
                                         className={`
                       w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
                       transition-all duration-200 ${errors.experience ? 'border-red-500' : 'border-gray-300'}
                     `}
-                                        placeholder="e.g., 15+ Years"
+                                          placeholder="Enter experience (max 50)"
                                     />
                                     {errors.experience && (
                                         <p className="text-red-500 text-sm mt-1">{errors.experience}</p>
@@ -419,7 +430,14 @@ const LeaderFormModal = ({ isOpen, onClose, leader = null, onSave }) => {
                                     </label>
                                     <textarea
                                         value={formData.qualification}
-                                        onChange={(e) => handleChange('qualification', e.target.value)}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+
+                                            // ✅ allow letters, spaces, dot, comma
+                                            if (!/^[a-zA-Z\s.,]*$/.test(value)) return;
+
+                                            handleChange('qualification', value);
+                                        }}
                                         rows="2"
                                         className={`
                       w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
@@ -456,7 +474,15 @@ const LeaderFormModal = ({ isOpen, onClose, leader = null, onSave }) => {
                                         type="submit"
                                         className="px-6 py-2 bg-blue-600 text-white cursor-pointer bg-[image:var(--gradient-primary)] rounded-lg font-medium hover:bg-blue-700 transition-colors"
                                     >
-                                        {leader ? 'Update' : 'Create'}
+                                        {
+                                            leader
+                                                ? isUpdating
+                                                    ? 'Updating...'
+                                                    : 'Update'
+                                                : isCreating
+                                                    ? 'Creating...'
+                                                    : 'Create'
+                                        }
                                     </button>
                                 </div>
                             </form>
@@ -836,6 +862,8 @@ const LeadersManagement = () => {
                     }}
                     leader={editingLeader}
                     onSave={handleSaveLeader}
+                    isCreating={createLeaderMutation.isPending}
+                    isUpdating={updateLeaderMutation.isPending}
                 />
             </div>
         </div>

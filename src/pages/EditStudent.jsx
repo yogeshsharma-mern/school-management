@@ -117,7 +117,7 @@ export default function CreateStudentPage() {
       certificates: [],
     },
   });
-console.log("student",student);
+  console.log("student", student);
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
@@ -128,7 +128,21 @@ console.log("student",student);
     marksheets: [],
     certificates: [],
   });
-
+  const isPDF = (url) => url?.toLowerCase().endsWith(".pdf");
+  const renderPreview = (url) =>
+    isPDF(url) ? (
+      <iframe
+        src={url}
+        className="w-full h-40 rounded-lg border border-gray-700"
+        title="pdf"
+      />
+    ) : (
+      <img
+        src={url}
+        className="w-full h-40 object-cover rounded-lg"
+        alt="doc"
+      />
+    );
   // console.log("profileppic", previews.profilePic);
   // console.log("studentinfo", student);
   const states = [
@@ -397,19 +411,19 @@ console.log("student",student);
       apiGet(`${apiPath.getFeesStructure}?classIdentifier=${selectedClass}`),
     enabled: !!selectedClass,
   });
-    const { data: academicSessions, isLoading: loading, error } = useQuery({
-      queryKey: ['academicSessionsss'],
-      queryFn: () => apiGet(apiPath.getAcademicSessions)
-    });
-    const formatDate = (isoDate) => {
-      if (!isoDate) return "";
-      return new Date(isoDate).toISOString().slice(0, 10);
-    };
-    const academicYearOptions = academicSessions?.results?.map(session => ({
-      value: `${formatDate(session.startDate)}-${formatDate(session.endDate)}`,
-      label: session.academicSession,   // what user sees
-    }));
-    console.log("academicyearoptions",academicYearOptions);
+  const { data: academicSessions, isLoading: loading, error } = useQuery({
+    queryKey: ['academicSessionsss'],
+    queryFn: () => apiGet(apiPath.getAcademicSessions)
+  });
+  const formatDate = (isoDate) => {
+    if (!isoDate) return "";
+    return new Date(isoDate).toISOString().slice(0, 10);
+  };
+  const academicYearOptions = academicSessions?.results?.map(session => ({
+    value: `${formatDate(session.startDate)}-${formatDate(session.endDate)}`,
+    label: session.academicSession,   // what user sees
+  }));
+  console.log("academicyearoptions", academicYearOptions);
   // 🔄 Sync fees data into formData whenever it changes
   // console.log("feedata",feesData);
   useEffect(() => {
@@ -754,7 +768,7 @@ console.log("student",student);
     if (!validateStep()) return;
 
     try {
-       setIsSubmitting(true);
+      setIsSubmitting(true);
       const formDataToSend = new FormData();
 
       // 🔹 Add simple fields
@@ -802,13 +816,13 @@ console.log("student",student);
       }
       else {
         toast.error(res.message || "Failed to save student ❌");
-        
+
 
       }
     } catch (err) {
       console.error(err);
       toast.error(err?.response?.data?.message);
-    }finally{
+    } finally {
       setIsSubmitting(false); // ✅ STOP LOADER (ALWAYS RUNS)
     }
   };
@@ -1471,11 +1485,25 @@ console.log("student",student);
                       className="cursor-pointer flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl hover:bg-yellow-50 transition"
                     >
                       {previews[side] ? (
-                        <img
-                          src={previews[side]}
-                          alt={side}
-                          className="w-40 h-28 object-cover rounded-lg shadow"
-                        />
+                        // <img
+                        //   src={previews[side]}
+                        //   alt={side}
+                        //   className="w-40 h-28 object-cover rounded-lg shadow"
+                        // />
+                        <div className="border border-gray-200 p-3 rounded-lg">
+                          {renderPreview(previews[side])}
+
+                          {/* <p className="text-sm mt-2">{ms.exam}</p> */}
+
+                          <button
+                            onClick={() =>
+                              window.open(previews[side], "_blank")
+                            }
+                            className="text-blue-600 text-sm"
+                          >
+                            View
+                          </button>
+                        </div>
                       ) : (
                         <>
                           <div className="w-12 h-12 mb-2 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-2xl font-bold">
@@ -1540,11 +1568,25 @@ console.log("student",student);
                       key={idx}
                       className="relative group border rounded-lg overflow-hidden shadow hover:scale-105 transition-transform duration-200"
                     >
-                      <img
+                      {/* <img
                         src={src}
                         alt={`marksheet-${idx}`}
                         className="w-full h-32 object-cover"
-                      />
+                      /> */}
+                      <div className="border border-gray-200 p-3 rounded-lg">
+                        {renderPreview(src)}
+
+                        {/* <p className="text-sm mt-2">{ms.exam}</p> */}
+
+                        <button
+                          onClick={() =>
+                            window.open(src, "_blank")
+                          }
+                          className="text-blue-600 text-sm"
+                        >
+                          View
+                        </button>
+                      </div>
                       <button
                         type="button"
                         className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -1603,11 +1645,25 @@ console.log("student",student);
                       key={idx}
                       className="relative group border rounded-lg overflow-hidden shadow hover:scale-105 transition-transform duration-200"
                     >
-                      <img
+                      {/* <img
                         src={src}
                         alt={`certificate-${idx}`}
                         className="w-full h-32 object-cover"
-                      />
+                      /> */}
+                      <div className="border border-gray-200 p-3 rounded-lg">
+                        {renderPreview(src)}
+
+                        {/* <p className="text-sm mt-2">{ms.exam}</p> */}
+
+                        <button
+                          onClick={() =>
+                            window.open(src, "_blank")
+                          }
+                          className="text-blue-600 text-sm"
+                        >
+                          View
+                        </button>
+                      </div>
                       <button
                         type="button"
                         className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -1681,20 +1737,20 @@ console.log("student",student);
                   </TextField>
 
                   {/* Academic Year */}
-                 <Select
-  options={academicYearOptions}
-  styles={customSelectStyles}
-  placeholder="Select Academic Year"
-  value={academicYearOptions?.find(
-    opt => opt.value === student.academicYear
-  )}
-  onChange={(selected) => {
-    setStudent(prev => ({
-      ...prev,
-      academicYear: selected.value,   // EXACT payload format
-    }));
-  }}
-/>      </div>
+                  <Select
+                    options={academicYearOptions}
+                    styles={customSelectStyles}
+                    placeholder="Select Academic Year"
+                    value={academicYearOptions?.find(
+                      opt => opt.value === student.academicYear
+                    )}
+                    onChange={(selected) => {
+                      setStudent(prev => ({
+                        ...prev,
+                        academicYear: selected.value,   // EXACT payload format
+                      }));
+                    }}
+                  />      </div>
               </div>
 
               {/* === Form Section === */}
@@ -1882,39 +1938,39 @@ console.log("student",student);
               Next
             </Button>
           ) : (
-         <button
-  type="submit"
-  disabled={isSubmitting}
-  className="p-2 cursor-pointer bg-[image:var(--gradient-primary)] rounded-md flex items-center justify-center gap-2 disabled:opacity-70"
->
-  {isSubmitting ? (
-    <>
-      <svg
-        className="animate-spin h-5 w-5 text-white"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <circle
-          className="opacity-25"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          strokeWidth="4"
-        />
-        <path
-          className="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8v8z"
-        />
-      </svg>
-      Submitting...
-    </>
-  ) : (
-    isEditMode ? "Update" : "Submit"
-  )}
-</button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="p-2 cursor-pointer bg-[image:var(--gradient-primary)] rounded-md flex items-center justify-center gap-2 disabled:opacity-70"
+            >
+              {isSubmitting ? (
+                <>
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    />
+                  </svg>
+                  Submitting...
+                </>
+              ) : (
+                isEditMode ? "Update" : "Submit"
+              )}
+            </button>
 
           )}
         </div>

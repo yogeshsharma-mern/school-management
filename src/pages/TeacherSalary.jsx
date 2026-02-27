@@ -21,6 +21,16 @@ export default function TeacherSalaryPage() {
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState([]);
+    const getLastMonth = () => {
+    const now = new Date();
+    const date = new Date(now.getFullYear(), now.getMonth() , 1);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+
+    return `${year}-${month}`;
+  };
+  const [selectedMonth, setSelectedMonth] = useState(getLastMonth());
   const collapsed = useSelector((state) => state.ui.sidebarCollapsed);
 
   const [isSalaryModalOpen, setIsSalaryModalOpen] = useState(false);
@@ -64,37 +74,29 @@ export default function TeacherSalaryPage() {
 
   //   return options;
   // };
-  const getSalaryMonthOptions = () => {
-    const now = new Date();
-    const options = [];
+const getSalaryMonthOptions = () => {
+  const now = new Date();
+  const options = [];
 
-    for (let i = 0; i < 3; i++) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+  for (let i = 0; i < 2; i++) { // only 2 months
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
 
-      const year = date.getFullYear();
-      const monthNumber = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    const monthNumber = String(date.getMonth() + 1).padStart(2, "0");
 
-      options.push({
-        label: `${date.toLocaleString("default", { month: "long" })} ${year}`,
-        value: `${year}-${monthNumber}`,
-      });
-    }
+    options.push({
+      label: `${date.toLocaleString("default", { month: "long" })} ${year}`,
+      value: `${year}-${monthNumber}`,
+    });
+  }
 
-    return options;
-  };
+  return options;
+};
 
 
   const monthOptions = useMemo(() => getSalaryMonthOptions(), []);
 
-  const getLastMonth = () => {
-    const now = new Date();
-    const date = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-
-    return `${year}-${month}`;
-  };
 
   // ✅ Fetch Teacher Salary List
   const { data: TeacherSalary, isLoading, isFetching, error } = useQuery({
@@ -103,10 +105,11 @@ export default function TeacherSalaryPage() {
       pagination.pageIndex,
       pagination.pageSize,
       debouncedSearch,
+      selectedMonth
     ],
     queryFn: () => {
       const formattedMonth = getLastMonth();
-      return apiGet(`${apiPath.TeacherSalary}?month=${formattedMonth}`, {
+      return apiGet(`${apiPath.TeacherSalary}?month=${selectedMonth}`, {
         page: pagination.pageIndex + 1,
         limit: pagination.pageSize,
         name: debouncedSearch,
@@ -254,14 +257,34 @@ export default function TeacherSalaryPage() {
     <div className="md:p-2 p-2">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Teachers Salary</h1>
+   <div className="mt-3">
+         <h1 className="text-2xl font-bold text-gray-800">Teachers Salary</h1>
       </div>
+       <div className="w-64">
+<select
+  value={selectedMonth}
+  onChange={(e) => setSelectedMonth(e.target.value)}
+  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 outline-none cursor-pointer"
+>
+  <option value="">Select Month</option>
+
+  {monthOptions?.map((month, i) => (
+    <option key={i} value={month.value}>
+      {month.label}
+    </option>
+  ))}
+</select>
+   </div>
+  </div>
 
       {/* Table */}
       <div className={`
   overflow-x-auto transition-all duration-300 w-[98vw]
   ${collapsed ? "md:w-[92vw]" : "md:w-[82vw]"}
 `}>
+  <div className="flex justify-end mb-4 w-[98vw]">
+ 
+</div>
         <ReusableTable
           columns={columns}
           data={tableData}

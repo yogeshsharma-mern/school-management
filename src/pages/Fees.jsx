@@ -104,6 +104,15 @@ export default function FeesStructure() {
   });
 
   // Fetch fees structure
+useEffect(() => {
+  if (!selectedClass && classData?.results?.docs?.length) {
+    const firstClass = classData.results.docs[0];
+
+    const baseName = firstClass.name.split(" ")[0].trim();
+
+    setSelectedClass(baseName);
+  }
+}, [classData]);
   const { data: feesData, isLoading: feesLoading } = useQuery({
     queryKey: ["feesStructure", selectedClass],
     queryFn: () =>

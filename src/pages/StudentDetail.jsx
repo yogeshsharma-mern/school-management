@@ -38,7 +38,7 @@ export default function StudentDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("profile");
-    const isPDF = (url) => url?.toLowerCase().endsWith(".pdf");
+  const isPDF = (url) => url?.toLowerCase().endsWith(".pdf");
 
 
   const { data, isLoading, error } = useQuery({
@@ -98,7 +98,7 @@ export default function StudentDetailPage() {
     const content = await zip.generateAsync({ type: "blob" });
     saveAs(content, `${student.name}_marksheets.zip`);
   };
-const renderPreview = (url) =>
+  const renderPreview = (url) =>
     isPDF(url) ? (
       <iframe
         src={url}
@@ -617,11 +617,29 @@ const renderPreview = (url) =>
                   className="p-4 border border-gray-300 rounded-lg flex flex-col items-center gap-2 hover:shadow-md transition"
                 >
                   {doc.file ? (
-                    <img
-                      src={`${doc.file}`}
-                      alt={doc.label}
-                      className="w-full h-40 object-cover rounded-lg"
-                    />
+                    // <img
+                    //   src={`${doc.file}`}
+                    //   alt={doc.label}
+                    //   className="w-full h-40 object-cover rounded-lg"
+                    // />
+                    
+                  <div  className="border p-3 rounded-lg">
+                    {renderPreview(doc.file)}
+
+                    {/* <p className="text-sm mt-2">{ms.exam}</p> */}
+
+                    <button
+                      onClick={() =>
+                        window.open(doc.file, "_blank")
+                      }
+                      className="text-blue-600 text-sm"
+                    >
+                      View
+                    </button>
+                  </div>
+            
+           
+          
                   ) : (
                     <div className="w-full h-40 bg-gray-100 flex items-center justify-center rounded-lg text-gray-400">
                       No File
@@ -685,7 +703,7 @@ const renderPreview = (url) =>
               }
 
             </div> */}
-             {student.marksheets?.length ? (
+            {student.marksheets?.length ? (
               <div className="grid md:grid-cols-3 gap-4">
                 {student.marksheets.map(ms => (
                   <div key={ms._id} className="border p-3 rounded-lg">
@@ -744,7 +762,7 @@ const renderPreview = (url) =>
                 <p className="text-gray-500">No certificates uploaded</p>
               )}
             </div> */}
-             {student.certificates?.length ? (
+            {student.certificates?.length ? (
               <div className="grid md:grid-cols-3 gap-4">
                 {student.certificates.map(cert => (
                   <div key={cert._id} className="border p-3 rounded-lg">

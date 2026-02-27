@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import apiPath from '../api/apiPath';
-import { apiGet, apiPost, apiPut, apiDelete,apiPatch } from '../api/apiFetch';
+import { apiGet, apiPost, apiPut, apiDelete, apiPatch } from '../api/apiFetch';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Select from "react-select";
 
@@ -8,6 +8,7 @@ export default function AcademicYear() {
     const queryClient = useQueryClient();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
+    const [errors, setErrors] = useState({});
     const [formData, setFormData] = useState({
         academicSession: '',
         startDate: '',
@@ -28,7 +29,53 @@ export default function AcademicYear() {
         }
         return years;
     };
+const validateForm = () => {
+    const newErrors = {};
 
+    // 1️⃣ Academic Session required
+    if (!formData.academicSession) {
+        newErrors.academicSession = "Academic session is required";
+    }
+
+    // 2️⃣ Start Date required
+    if (!formData.startDate) {
+        newErrors.startDate = "Start date is required";
+    }
+
+    // 3️⃣ End Date required
+    if (!formData.endDate) {
+        newErrors.endDate = "End date is required";
+    }
+
+    if (formData.academicSession && formData.startDate && formData.endDate) {
+
+        const [startYear, endYear] = formData.academicSession.split("-");
+
+        const start = new Date(formData.startDate);
+        const end = new Date(formData.endDate);
+
+        // 4️⃣ Check start year matches first year
+        if (start.getFullYear().toString() !== startYear) {
+            newErrors.startDate =
+                `Start date must be in year ${startYear}`;
+        }
+
+        // 5️⃣ Check end year matches second year
+        if (end.getFullYear().toString() !== endYear) {
+            newErrors.endDate =
+                `End date must be in year ${endYear}`;
+        }
+
+        // 6️⃣ End must be after start
+        if (end <= start) {
+            newErrors.endDate =
+                "End date must be after start date";
+        }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+};
     const academicYearOptions = generateAcademicYears();
 
     // Custom styles for react-select
@@ -67,7 +114,11 @@ export default function AcademicYear() {
         onSuccess: () => {
             queryClient.invalidateQueries(['academicSessions']);
             closeModal();
+        },
+        onError: (error) => {
+            toast.error(error?.response?.data?.message || "Something went wrong");
         }
+
     });
 
     // Update mutation
@@ -87,52 +138,83 @@ export default function AcademicYear() {
         }
     });
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        console.log("name,value",name,value);
+    // const handleInputChange = (e) => {
+    //     const { name, value } = e.target;
+    //     console.log("name,value", name, value);
+    //     setFormData(prev => ({
+    //         ...prev,
+    //         [name]: value
+    //     }));
+
+    //     if (name === 'startDate' && value) {
+    //         const startDate = new Date(value);
+    //         console.log("startdate", startDate);
+
+    //         const endDate = new Date(startDate);
+
+    //         endDate.setFullYear(startDate.getFullYear() + 1);
+    //         // console.log("enddate",endDate.toISOString());
+    //         setFormData(prev => ({
+    //             ...prev,
+    //             endDate: endDate.toISOString().split('T')[0]
+    //         }));
+    //     }
+    // };
+const handleInputChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData(prev => ({
+        ...prev,
+        [name]: value
+    }));
+
+    // ✅ remove error for that field
+    setErrors(prev => ({
+        ...prev,
+        [name]: ""
+    }));
+
+    if (name === 'startDate' && value) {
+        const startDate = new Date(value);
+        const endDate = new Date(startDate);
+        endDate.setFullYear(startDate.getFullYear() + 1);
+
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            endDate: endDate.toISOString().split('T')[0]
         }));
+    }
+};
+const handleAcademicSessionSelect = (selectedOption) => {
+    setFormData(prev => ({
+        ...prev,
+        academicSession: selectedOption.value
+    }));
 
-        if (name === 'startDate' && value) {
-            const startDate = new Date(value);
-            console.log("startdate",startDate);
+    setErrors(prev => ({
+        ...prev,
+        academicSession: ""
+    }));
+};
 
-            const endDate = new Date(startDate);
-        
-            endDate.setFullYear(startDate.getFullYear() + 1);
-            // console.log("enddate",endDate.toISOString());
-            setFormData(prev => ({
-                ...prev,
-                endDate: endDate.toISOString().split('T')[0]
-            }));
-        }
+const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    const payload = {
+        academicSession: formData.academicSession,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        status: formData.status
     };
 
-    const handleAcademicSessionSelect = (selectedOption) => {
-        setFormData(prev => ({
-            ...prev,
-            academicSession: selectedOption.value
-        }));
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
-        const payload = {
-            academicSession: formData.academicSession,
-            startDate: formData.startDate,
-            endDate: formData.endDate,
-              status: formData.status
-        };
-
-        if (editingItem) {
-            updateMutation.mutate({ id: editingItem._id, data: payload });
-        } else {
-            createMutation.mutate(payload);
-        }
-    };
+    if (editingItem) {
+        updateMutation.mutate({ id: editingItem._id, data: payload });
+    } else {
+        createMutation.mutate(payload);
+    }
+};
 
     const handleEdit = (item) => {
         setEditingItem(item);
@@ -151,16 +233,17 @@ export default function AcademicYear() {
         }
     };
 
-    const closeModal = () => {
-        setIsModalOpen(false);
-        setEditingItem(null);
-        setFormData({
-            academicSession: '',
-            startDate: '',
-            endDate: '',
-            status: 'inactive'
-        });
-    };
+const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingItem(null);
+    setErrors({}); // ✅ clear errors
+    setFormData({
+        academicSession: '',
+        startDate: '',
+        endDate: '',
+        status: 'inactive'
+    });
+};
 
     const openModal = () => {
         setIsModalOpen(true);
@@ -364,8 +447,13 @@ export default function AcademicYear() {
                                                 value={academicYearOptions.find(option => option.value === formData.academicSession)}
                                                 placeholder="Select session"
                                                 styles={selectStyles}
-                                                // isDisabled={!!editingItem}
+                                            // isDisabled={!!editingItem}
                                             />
+                                            {errors.academicSession && (
+  <p className="text-red-500 text-xs mt-1">
+    {errors.academicSession}
+  </p>
+)}
                                         </div>
 
                                         {/* Start Date */}
@@ -378,9 +466,14 @@ export default function AcademicYear() {
                                                 name="startDate"
                                                 value={formData.startDate}
                                                 onChange={handleInputChange}
-                                                required
+                                                // required
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500/20 focus:border-yellow-500 text-sm"
                                             />
+                                            {errors.startDate && (
+  <p className="text-red-500 text-xs mt-1">
+    {errors.startDate}
+  </p>
+)}
                                         </div>
 
                                         {/* End Date */}
@@ -393,9 +486,14 @@ export default function AcademicYear() {
                                                 name="endDate"
                                                 value={formData.endDate}
                                                 onChange={handleInputChange}
-                                                required
+                                                // required
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500/20 focus:border-yellow-500 text-sm"
                                             />
+                                            {errors.endDate && (
+  <p className="text-red-500 text-xs mt-1">
+    {errors.endDate}
+  </p>
+)}
                                         </div>
 
                                         {/* Status */}
