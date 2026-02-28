@@ -1154,7 +1154,7 @@ export default function SchoolSettings() {
                   />
 
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                {/* <Grid item xs={12} sm={6}>
                   <Typography variant="subtitle1" gutterBottom>
                     Status
                   </Typography>
@@ -1167,7 +1167,7 @@ export default function SchoolSettings() {
                       )
                     }
                   />
-                </Grid>
+                </Grid> */}
               </Grid>
             </CardContent>
           </Card>

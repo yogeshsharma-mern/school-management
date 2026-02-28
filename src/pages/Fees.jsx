@@ -80,6 +80,7 @@ const customSelectStyles = {
 export default function FeesStructure() {
   const queryClient = useQueryClient();
   const [selectedClass, setSelectedClass] = useState(null);
+  console.log("selectedclass",selectedClass);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState(null);
   const [confirmModal, setConfirmModal] = useState(false);
@@ -108,9 +109,7 @@ useEffect(() => {
   if (!selectedClass && classData?.results?.docs?.length) {
     const firstClass = classData.results.docs[0];
 
-    const baseName = firstClass.name.split(" ")[0].trim();
-
-    setSelectedClass(baseName);
+  setSelectedClass(firstClass._id);
   }
 }, [classData]);
   const { data: feesData, isLoading: feesLoading } = useQuery({
@@ -129,7 +128,7 @@ useEffect(() => {
     return new Date(isoDate).toISOString().slice(0, 10);
   };
   const academicYearOptions = academicSessions?.results?.map(session => ({
-    value: `${formatDate(session.startDate)}-${formatDate(session.endDate)}`,
+    value:session.academicSession,
     label: session.academicSession,   // what user sees
   }));
   useEffect(() => {
@@ -282,12 +281,13 @@ useEffect(() => {
     const uniqueMap = new Map();
 
     classData.results.docs.forEach((cls) => {
+      console.log("cls",cls);
       // Extract base class name (e.g., "10th" from "10th A" or "10th-B")
       const baseName = cls.name.split(" ")[0].trim();
 
-      if (!uniqueMap.has(baseName)) {
+      if (!uniqueMap.has(cls._id)) {
         uniqueMap.set(baseName, {
-          value: baseName, // or cls.classIdentifier if consistent
+          value: cls._id, // or cls.classIdentifier if consistent
           label: baseName,
         });
       }
@@ -296,9 +296,10 @@ useEffect(() => {
     return Array.from(uniqueMap.values());
   })();
 
+  console.log("classoptions",classOptions);
 
-  const selectedClassLabel =
-    classOptions.find((cls) => cls.value === selectedClass)?.label || "N/A";
+const selectedClassLabel =
+  classOptions?.find((cls) => cls?.value === selectedClass)?.label || "N/A";
 
   // Check if we should show the fees structure or empty state
   const showFeesStructure = feesData?.results && !deleteMutation.isSuccess;
@@ -322,8 +323,9 @@ useEffect(() => {
             options={classOptions}
             isLoading={classLoading}
             placeholder="Choose class..."
-            value={classOptions.find(opt => opt.value === selectedClass)}
+          value={classOptions.find(opt => opt.value === selectedClass)}
             onChange={(opt) => {
+              console.log("opt",opt);
               setSelectedClass(opt?.value || null);
               // Reset delete state when changing class
               deleteMutation.reset();
