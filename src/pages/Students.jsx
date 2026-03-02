@@ -440,13 +440,13 @@ export default function StudentPage() {
       {
         "name": "john",
         "email": "john@gmail.com",           // e.g., 10th
-        "phone": "9876543210",         // e.g., A
+        "phone": "919876543210",         // e.g., A
         "dob": "2004/10/08",
         "gender": "Male",
         "bloodGroup": "A+",          // Male/Female/Other
         "parent1Name": "Doe",             // 2025-11-10 or 10/11/2025
         "parent1Occupation": "doctor",
-        "parent1Phone": "8767673647",
+        "parent1Phone": "918767673647",
         "parent1Email": "doe@gmail.coom",    // active/inactive (optional)
         "parent2Name": "Fiza",
         "parent2Occupation": "teacher",
@@ -455,10 +455,10 @@ export default function StudentPage() {
         "guardianName": "amily",
         "guardianRelation": "sister",
         "guardianOccupation": "teacher",
-        "guardianPhone": "9867463546",
+        "guardianPhone": "919867463546",
         "emergencyContactName": "honey",
         "emergencyContactRelation": "brother",
-        "emergencyContactPhone": "9867475748",
+        "emergencyContactPhone": "919867475748",
         "street": "first",
         "city": "jaipur",
         "state": "RJ",
