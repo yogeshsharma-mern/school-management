@@ -126,9 +126,9 @@ export default function Subject() {
             }),
     });
 
-    console.log("Selected Class:", selectedClassId);
-    console.log("Subjects Data:", subjectsData);
-    console.log("Available Classes:", classes);
+    // console.log("Selected Class:", selectedClassId);
+    // console.log("Subjects Data:", subjectsData);
+    // console.log("Available Classes:", classes);
 
     const toggleMutation = useMutation({
         mutationFn: ({ id, status }) =>

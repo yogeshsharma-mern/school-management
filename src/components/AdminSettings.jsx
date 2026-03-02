@@ -97,10 +97,10 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://api.example.com";
 export default function SchoolSettings() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [academicYearFilter, setAcademicYearFilter] = useState("");
-  console.log(
-    "academicYearFilter",academicYearFilter
-  );
+const [academicYearFilter, setAcademicYearFilter] = useState(null);
+  // console.log(
+  //   "academicYearFilter",academicYearFilter
+  // );
   const [formData, setFormData] = useState({
     name: "",
     section: ""
@@ -158,7 +158,7 @@ export default function SchoolSettings() {
     schoolLogo: null,
     marks: []
   });
-  console.log("schooldata", schoolData);
+  // console.log("schooldata", schoolData);
   const [locationData, setLocationData] = useState({
     latitude: "",
     longitude: "",
@@ -170,7 +170,7 @@ export default function SchoolSettings() {
   const [formErrors, setFormErrors] = useState({});
   const [cordinateModalOpen, setCordinateModalOpen] = useState(false);
   const [schoolId, setSchoolId] = useState(null);
-  console.log("schoolId", schoolId);
+  // console.log("schoolId", schoolId);
   const addMarksRow = () => {
     if (!classOptions.length) {
       toast.error("No class found. Please add the class first.");
@@ -204,21 +204,24 @@ export default function SchoolSettings() {
     value: cls,
   }));
 
-  console.log("classoptions", classOptions);
+  // console.log("classoptions", classOptions);
   const selected = schoolData.marks.map(m => m.className);
-  console.log("selected", selected)
-  console.log("classoptions", classOptions);
+  // console.log("selected", selected)
+  // console.log("classoptions", classOptions);
   const availableOptions = classOptions.filter(
     opt => !selected.includes(opt.value)
   );
 
-  console.log("available ooptions", availableOptions);
+  // console.log("available ooptions", availableOptions);
 
   const { data: studentData, isLoading } = useQuery({
-    queryKey: ["school-settings",academicYearFilter],
-    queryFn: () => apiGet(apiPath.SchoolSettings, { currentSession: academicYearFilter }) // only fetch if id exists
+    queryKey: ["school-settings", academicYearFilter],
+    queryFn: () => apiGet(apiPath.SchoolSettings, { currentSession: academicYearFilter }),
+    enabled:academicYearFilter !==null,
+    staleTime:0, // only fetch if id exists
+     cacheTime: 0,
   });
-  console.log("first", studentData);
+  // console.log("first", studentData);
   const { data: cordinatesData, isLoading: cordiLoading } = useQuery({
     queryKey: ["school-coordinates"],
     queryFn: () => apiGet(`${apiPath.getCordinates}`)
@@ -227,7 +230,11 @@ export default function SchoolSettings() {
     queryKey: ['academicSessions'],
     queryFn: () => apiGet(apiPath.getAcademicSessions)
   });
-  console.log("academicSessions",academicSessions);
+
+  console.log("academicsessionyogesh",academicSessions);
+  const currentSession = academicSessions?.results?.filter((session)=>session.status==='active');
+  console.log("currentSession",currentSession);
+  // console.log("academicSessions",academicSessions);
   const formatDate = (isoDate) => {
     if (!isoDate) return "";
     return new Date(isoDate).toISOString().slice(0, 10);
@@ -240,9 +247,9 @@ export default function SchoolSettings() {
     value: session,   // ✅ FULL OBJECT (critical)
     label: session.academicSession,
   }));
-  
-  console.log("academicyearoptions", academicYearOptions);
-  console.log("cordinatesdata", cordinatesData);
+
+  // console.log("academicyearoptions", academicYearOptions);
+  // console.log("cordinatesdata", cordinatesData);
   useEffect(() => {
     if (!cordinatesData?.results) return;
 
@@ -272,9 +279,21 @@ export default function SchoolSettings() {
     }
   }, [cordinatesData]);
   useEffect(() => {
+  if (!academicSessions?.results?.length) return;
+
+  const active = academicSessions.results.find(
+    (session) => session.status === "active"
+  );
+
+  // ✅ Only set if filter is null (first load only)
+  if (active && academicYearFilter === null) {
+    setAcademicYearFilter(active.academicSession);
+  }
+}, [academicSessions]);
+  useEffect(() => {
     if (!studentData?.results) return;
     const s = studentData.results;
-    console.log("s", s);
+    // console.log("s", s);
     setSchoolId(s._id);
     const formatDateForInput = (isoDate) =>
       isoDate ? isoDate.split("T")[0] : "";
@@ -438,8 +457,8 @@ export default function SchoolSettings() {
     return `${startDate}-${endDate}`;
   };
   useEffect(() => {
-    const { startDate, endDate,currentSession} = schoolData.academicSession;
-    console.log("third",schoolData.academicSession);
+    const { startDate, endDate, currentSession } = schoolData.academicSession;
+    // console.log("third",schoolData.academicSession);
 
     if (!startDate || !endDate) return;
 
@@ -760,8 +779,8 @@ export default function SchoolSettings() {
 
   // Nested state updater
   const handleChange = (path, value) => {
-    console.log("path", path);
-    console.log("value", value);
+    // console.log("path", path);
+    // console.log("value", value);
     setSchoolData((prev) => {
       console.log("prev", prev);
       const newData = { ...prev };
@@ -1120,41 +1139,41 @@ export default function SchoolSettings() {
             ))}
           </select>
         </div>
-            {!studentData?.results ? (
-      <div className="h-[50vh] flex flex-col items-center justify-center text-center">
-        <Typography variant="h6" gutterBottom>
-          No School Data Found
-        </Typography>
+        {!studentData?.results ? (
+          <div className="h-[50vh] flex flex-col items-center justify-center text-center">
+            <Typography variant="h6" gutterBottom>
+              No School Data Found
+            </Typography>
 
-        <Typography variant="body2" color="text.secondary">
-          Please select an academic year or create school settings.
-        </Typography>
-      </div>
-    ) : (
-        <form onSubmit={handleSubmit}>
-          {/* Basic Info + Status */}
-          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-            <CardContent>
-              <Grid container spacing={2} alignItems="center">
-                <Grid item xs={12} sm={6}>
-                  {/* <TextField
+            <Typography variant="body2" color="text.secondary">
+              Please select an academic year or create school settings.
+            </Typography>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            {/* Basic Info + Status */}
+            <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+              <CardContent>
+                <Grid container spacing={2} alignItems="center">
+                  <Grid item xs={12} sm={6}>
+                    {/* <TextField
                   label="School Name"
                   value={schoolData.schoolName || ""}
                   onChange={(e) => handleChange("schoolName", e.target.value)}
                   fullWidth
                 /> */}
-                  <TextField
-                    label="School Name"
-                    value={schoolData.schoolName || ""}
-                    onChange={(e) => {
-                      const onlyLetters = e.target.value.replace(/[^a-zA-Z\s]/g, ""); // allow letters and spaces
-                      handleChange("schoolName", onlyLetters);
-                    }}
-                    fullWidth
-                  />
+                    <TextField
+                      label="School Name"
+                      value={schoolData.schoolName || ""}
+                      onChange={(e) => {
+                        const onlyLetters = e.target.value.replace(/[^a-zA-Z\s]/g, ""); // allow letters and spaces
+                        handleChange("schoolName", onlyLetters);
+                      }}
+                      fullWidth
+                    />
 
-                </Grid>
-                {/* <Grid item xs={12} sm={6}>
+                  </Grid>
+                  {/* <Grid item xs={12} sm={6}>
                   <Typography variant="subtitle1" gutterBottom>
                     Status
                   </Typography>
@@ -1168,75 +1187,75 @@ export default function SchoolSettings() {
                     }
                   />
                 </Grid> */}
-              </Grid>
-            </CardContent>
-          </Card>
-
-          {/* Contact */}
-          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                📞 Contact Info
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
-                  <PhoneInput
-                    country={"in"}
-                    value={schoolData.contact.phone || ""}
-                    onChange={(phone) => handleChange("contact.phone", phone)}
-                    inputStyle={{ width: "100%" }}
-                  />
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    label="Email"
-                    value={schoolData.contact.email || ""}
-                    onChange={(e) => handleChange("contact.email", e.target.value)}
-                    fullWidth
-                  />
+              </CardContent>
+            </Card>
+
+            {/* Contact */}
+            <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  📞 Contact Info
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={4}>
+                    <PhoneInput
+                      country={"in"}
+                      value={schoolData.contact.phone || ""}
+                      onChange={(phone) => handleChange("contact.phone", phone)}
+                      inputStyle={{ width: "100%" }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      label="Email"
+                      value={schoolData.contact.email || ""}
+                      onChange={(e) => handleChange("contact.email", e.target.value)}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      label="Website"
+                      value={schoolData.contact.website || ""}
+                      onChange={(e) => {
+                        const input = e.target.value.trim();
+
+                        // ✅ Allow only letters, digits, dots, hyphens, slashes, and colons
+                        const clean = input.replace(/[^a-zA-Z0-9\-._:/]/g, "");
+
+                        handleChange("contact.website", clean);
+                      }}
+                      fullWidth
+                      placeholder="https://www.example.com"
+                    />
+
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    label="Website"
-                    value={schoolData.contact.website || ""}
-                    onChange={(e) => {
-                      const input = e.target.value.trim();
+              </CardContent>
+            </Card>
 
-                      // ✅ Allow only letters, digits, dots, hyphens, slashes, and colons
-                      const clean = input.replace(/[^a-zA-Z0-9\-._:/]/g, "");
+            {/* Address */}
+            <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  📍 Address
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label="Street"
+                      value={schoolData.address.street || ""}
+                      onChange={(e) => {
+                        // allow letters, numbers, and spaces only
+                        const cleanValue = e.target.value.replace(/[^a-zA-Z0-9\s]/g, "");
+                        handleChange("address.street", cleanValue);
+                      }}
+                      fullWidth
+                    />
 
-                      handleChange("contact.website", clean);
-                    }}
-                    fullWidth
-                    placeholder="https://www.example.com"
-                  />
-
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-
-          {/* Address */}
-          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                📍 Address
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Street"
-                    value={schoolData.address.street || ""}
-                    onChange={(e) => {
-                      // allow letters, numbers, and spaces only
-                      const cleanValue = e.target.value.replace(/[^a-zA-Z0-9\s]/g, "");
-                      handleChange("address.street", cleanValue);
-                    }}
-                    fullWidth
-                  />
-
-                </Grid>
-                {/* <Grid item xs={12} sm={6}>
+                  </Grid>
+                  {/* <Grid item xs={12} sm={6}>
                   <TextField
                     label="City"
                     value={schoolData.address.city || ""}
@@ -1248,7 +1267,7 @@ export default function SchoolSettings() {
                   />
 
                 </Grid> */}
-                {/* <Grid item xs={12} sm={6}>
+                  {/* <Grid item xs={12} sm={6}>
                   <Select
                     options={stateOptions}
                     value={stateOptions.find((s) => s.value === schoolData.address.state)}
@@ -1261,392 +1280,392 @@ export default function SchoolSettings() {
                   />
 
                 </Grid> */}
-                <Grid item xs={12} sm={6}>
-                  <Select
-                    options={countryOptions}
-                    styles={customSelectStyles}
-                    value={
-                      countryOptions.find(c => c.value === schoolData.address.country) || null
-                    }
-                    menuPortalTarget={document.body}
-                    menuPosition="fixed"
-                    styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
-                    onChange={(selected) =>
-                      handleChange("address.country", selected?.value || "")
-                    }
-                    placeholder="Select Country"
-                    isClearable
-                  />
-
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Select
-                    options={stateOptions}
-                    styles={customSelectStyles}
-                    menuPortalTarget={document.body}
-                    menuPosition="fixed"
-
-                    styles={{ menuPortal: base => ({ ...base, zIndex: 9999, height: "23px" }) }}
-                    value={
-                      stateOptions.find(s => s.value === schoolData.address.state) || null
-                    }
-                    onChange={(selected) =>
-                      handleChange("address.state", selected?.value || "")
-                    }
-                    placeholder={
-                      schoolData.address.country ? "Select State" : "Select Country First"
-                    }
-                    isDisabled={!schoolData.address.country}
-                    isClearable
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Select
-                    options={cityOptions}
-                    styles={customSelectStyles}
-                    value={
-                      cityOptions.find(c => c.value === schoolData.address.city) || null
-                    }
-                    menuPortalTarget={document.body}
-                    menuPosition="fixed"
-                    styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
-                    onChange={(selected) =>
-                      handleChange("address.city", selected?.value || "")
-                    }
-                    placeholder={
-                      schoolData.address.state ? "Select City" : "Select State First"
-                    }
-                    isDisabled={!schoolData.address.state}
-                    isClearable
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="ZIP"
-                    value={schoolData.address.zip || ""}
-                    onChange={(e) => {
-                      // Allow only numbers and limit to 6 digits
-                      const onlyDigits = e.target.value.replace(/\D/g, "").slice(0, 6);
-                      handleChange("address.zip", onlyDigits);
-                    }}
-                    fullWidth
-                  />
-
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-
-          {/* School Timing */}
-          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                ⏰ School Timing
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    type="time"
-                    label="Start Time"
-                    value={schoolData.schoolTiming.startTime}
-                    onChange={(e) => {
-                      const newStart = e.target.value;
-                      const end = schoolData.schoolTiming.endTime;
-                      if (end && !validateSchoolTiming(newStart, end)) return;
-                      handleChange("schoolTiming.startTime", newStart);
-                    }}
-                    fullWidth
-                    InputLabelProps={{ shrink: true }}
-                  />
-
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    type="time"
-                    label="End Time"
-                    value={schoolData.schoolTiming.endTime}
-                    onChange={(e) => {
-                      const newEnd = e.target.value;
-                      const start = schoolData.schoolTiming.startTime;
-                      if (start && !validateSchoolTiming(start, newEnd)) return;
-                      handleChange("schoolTiming.endTime", newEnd);
-                    }}
-                    fullWidth
-                    InputLabelProps={{ shrink: true }}
-                  />
-
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-
-          {/* Periods */}
-          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                📘 Periods
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    type="number"
-                    label="Total Periods"
-                    value={schoolData.periods.totalPeriods || ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === "" || (Number(value) >= 1 && Number(value) <= 10)) {
-                        handleChange("periods.totalPeriods", value);
+                  <Grid item xs={12} sm={6}>
+                    <Select
+                      options={countryOptions}
+                      styles={customSelectStyles}
+                      value={
+                        countryOptions.find(c => c.value === schoolData.address.country) || null
                       }
-                    }}
-                    onBlur={runPeriodsValidation}
-                    fullWidth
-                  />
-
-
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    type="number"
-                    label="Period Duration (min)"
-                    value={schoolData.periods.periodDuration || ""}
-                    onChange={(e) => {
-                      let value = e.target.value.replace(/\D/g, "");
-                      if (value.length > 3) value = value.slice(0, 3);
-                      handleChange("periods.periodDuration", value);
-                    }}
-                    onBlur={runPeriodsValidation}
-                    fullWidth
-                  />
-
-
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    type="number"
-                    label="Break Duration (min)"
-                    value={schoolData.periods.breakDuration || ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (Number(value) > 30) {
-                        toast.error("Break duration cannot exceed 30 minutes");
-                        return;
+                      menuPortalTarget={document.body}
+                      menuPosition="fixed"
+                      styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+                      onChange={(selected) =>
+                        handleChange("address.country", selected?.value || "")
                       }
-                      handleChange("periods.breakDuration", value);
-                    }}
-                    onBlur={runPeriodsValidation}
-                    fullWidth
-                  />
+                      placeholder="Select Country"
+                      isClearable
+                    />
 
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Select
+                      options={stateOptions}
+                      styles={customSelectStyles}
+                      menuPortalTarget={document.body}
+                      menuPosition="fixed"
+
+                      styles={{ menuPortal: base => ({ ...base, zIndex: 9999, height: "23px" }) }}
+                      value={
+                        stateOptions.find(s => s.value === schoolData.address.state) || null
+                      }
+                      onChange={(selected) =>
+                        handleChange("address.state", selected?.value || "")
+                      }
+                      placeholder={
+                        schoolData.address.country ? "Select State" : "Select Country First"
+                      }
+                      isDisabled={!schoolData.address.country}
+                      isClearable
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Select
+                      options={cityOptions}
+                      styles={customSelectStyles}
+                      value={
+                        cityOptions.find(c => c.value === schoolData.address.city) || null
+                      }
+                      menuPortalTarget={document.body}
+                      menuPosition="fixed"
+                      styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+                      onChange={(selected) =>
+                        handleChange("address.city", selected?.value || "")
+                      }
+                      placeholder={
+                        schoolData.address.state ? "Select City" : "Select State First"
+                      }
+                      isDisabled={!schoolData.address.state}
+                      isClearable
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label="ZIP"
+                      value={schoolData.address.zip || ""}
+                      onChange={(e) => {
+                        // Allow only numbers and limit to 6 digits
+                        const onlyDigits = e.target.value.replace(/\D/g, "").slice(0, 6);
+                        handleChange("address.zip", onlyDigits);
+                      }}
+                      fullWidth
+                    />
+
+                  </Grid>
                 </Grid>
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={schoolData.periods.lunchBreak.isEnabled || false}
-                        onChange={(e) => {
-                          handleChange("periods.lunchBreak.isEnabled", e.target.checked);
-                          setTimeout(runPeriodsValidation, 0);
-                        }}
-                      />
+              </CardContent>
+            </Card>
 
-                    }
-                    label="Enable Lunch Break"
-                  />
-                </Grid>
-                {schoolData.periods.lunchBreak.isEnabled && (
-                  <>
-                    <Grid item xs={12} sm={6}>
-                      <Select
-                        options={getPossibleLunchTimes(schoolData)}
-                        value={getPossibleLunchTimes(schoolData).find(
-                          o => o.value === schoolData.periods.lunchBreak.time
-                        )}
-                        onChange={(opt) =>
-                          handleChange("periods.lunchBreak.time", opt.value)
-                        }
-                        placeholder="Select Lunch Time"
-                        menuPortalTarget={document.body}
-                        styles={{
-                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                        }}
-                      />
-
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        type="number"
-                        label="Lunch Duration (min)"
-                        value={schoolData.periods.lunchBreak.duration || ""}
-                        onChange={(e) =>
-                          handleChange("periods.lunchBreak.duration", e.target.value)
-                        }
-                        fullWidth
-                      />
-                    </Grid>
-                  </>
-                )}
-              </Grid>
-              {(() => {
-                const used = getUsedMinutes(schoolData);
-                const school = getSchoolTotalMinutes(schoolData);
-                const status = getTimingStatus(schoolData);
-
-                if (!used || !school) return null;
-
-                return (
-                  <Typography
-                    variant="body2"
-                    sx={{ color: status.color, fontWeight: 600, marginTop: 2 }}
-                  >
-                    Used: {used} min / School: {school} min — {status.msg}
-                  </Typography>
-                );
-              })()}
-            </CardContent>
-
-
-
-
-          </Card>
-          <Card sx={{ mb: 4, borderRadius: 4, boxShadow: 4 }}>
-            <CardContent>
-              <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                mb={3}
-              >
-                <Typography variant="h6" fontWeight={600}>
-                  📊 Class-wise Marks
+            {/* School Timing */}
+            <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  ⏰ School Timing
                 </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      type="time"
+                      label="Start Time"
+                      value={schoolData.schoolTiming.startTime}
+                      onChange={(e) => {
+                        const newStart = e.target.value;
+                        const end = schoolData.schoolTiming.endTime;
+                        if (end && !validateSchoolTiming(newStart, end)) return;
+                        handleChange("schoolTiming.startTime", newStart);
+                      }}
+                      fullWidth
+                      InputLabelProps={{ shrink: true }}
+                    />
 
-                <Box display="flex" gap={2}>
-                  {/* Always show Add Class */}
-                  <Button
-                    variant="outlined"
-                    onClick={() => setIsModalOpen(true)}
-                    sx={{
-                      borderRadius: 3,
-                      textTransform: "none",
-                      fontWeight: 600,
-                    }}
-                  >
-                    + Add Class
-                  </Button>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      type="time"
+                      label="End Time"
+                      value={schoolData.schoolTiming.endTime}
+                      onChange={(e) => {
+                        const newEnd = e.target.value;
+                        const start = schoolData.schoolTiming.startTime;
+                        if (start && !validateSchoolTiming(start, newEnd)) return;
+                        handleChange("schoolTiming.endTime", newEnd);
+                      }}
+                      fullWidth
+                      InputLabelProps={{ shrink: true }}
+                    />
 
-                  {/* Add Class Marks only if classes exist */}
-                  {classOptions.length > 0 && (
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+
+            {/* Periods */}
+            <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  📘 Periods
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      type="number"
+                      label="Total Periods"
+                      value={schoolData.periods.totalPeriods || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === "" || (Number(value) >= 1 && Number(value) <= 10)) {
+                          handleChange("periods.totalPeriods", value);
+                        }
+                      }}
+                      onBlur={runPeriodsValidation}
+                      fullWidth
+                    />
+
+
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      type="number"
+                      label="Period Duration (min)"
+                      value={schoolData.periods.periodDuration || ""}
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/\D/g, "");
+                        if (value.length > 3) value = value.slice(0, 3);
+                        handleChange("periods.periodDuration", value);
+                      }}
+                      onBlur={runPeriodsValidation}
+                      fullWidth
+                    />
+
+
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      type="number"
+                      label="Break Duration (min)"
+                      value={schoolData.periods.breakDuration || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (Number(value) > 30) {
+                          toast.error("Break duration cannot exceed 30 minutes");
+                          return;
+                        }
+                        handleChange("periods.breakDuration", value);
+                      }}
+                      onBlur={runPeriodsValidation}
+                      fullWidth
+                    />
+
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={schoolData.periods.lunchBreak.isEnabled || false}
+                          onChange={(e) => {
+                            handleChange("periods.lunchBreak.isEnabled", e.target.checked);
+                            setTimeout(runPeriodsValidation, 0);
+                          }}
+                        />
+
+                      }
+                      label="Enable Lunch Break"
+                    />
+                  </Grid>
+                  {schoolData.periods.lunchBreak.isEnabled && (
+                    <>
+                      <Grid item xs={12} sm={6}>
+                        <Select
+                          options={getPossibleLunchTimes(schoolData)}
+                          value={getPossibleLunchTimes(schoolData).find(
+                            o => o.value === schoolData.periods.lunchBreak.time
+                          )}
+                          onChange={(opt) =>
+                            handleChange("periods.lunchBreak.time", opt.value)
+                          }
+                          placeholder="Select Lunch Time"
+                          menuPortalTarget={document.body}
+                          styles={{
+                            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                          }}
+                        />
+
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          type="number"
+                          label="Lunch Duration (min)"
+                          value={schoolData.periods.lunchBreak.duration || ""}
+                          onChange={(e) =>
+                            handleChange("periods.lunchBreak.duration", e.target.value)
+                          }
+                          fullWidth
+                        />
+                      </Grid>
+                    </>
+                  )}
+                </Grid>
+                {(() => {
+                  const used = getUsedMinutes(schoolData);
+                  const school = getSchoolTotalMinutes(schoolData);
+                  const status = getTimingStatus(schoolData);
+
+                  if (!used || !school) return null;
+
+                  return (
+                    <Typography
+                      variant="body2"
+                      sx={{ color: status.color, fontWeight: 600, marginTop: 2 }}
+                    >
+                      Used: {used} min / School: {school} min — {status.msg}
+                    </Typography>
+                  );
+                })()}
+              </CardContent>
+
+
+
+
+            </Card>
+            <Card sx={{ mb: 4, borderRadius: 4, boxShadow: 4 }}>
+              <CardContent>
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  mb={3}
+                >
+                  <Typography variant="h6" fontWeight={600}>
+                    📊 Class-wise Marks
+                  </Typography>
+
+                  <Box display="flex" gap={2}>
+                    {/* Always show Add Class */}
                     <Button
-                      variant="contained"
-                      onClick={addMarksRow}
+                      variant="outlined"
+                      onClick={() => setIsModalOpen(true)}
                       sx={{
                         borderRadius: 3,
                         textTransform: "none",
-                        backgroundImage: "var(--gradient-primary)",
-                        color: "#000",
                         fontWeight: 600,
                       }}
                     >
-                      + Add Class Marks
+                      + Add Class
                     </Button>
-                  )}
-                </Box>
-              </Box>
 
-              {/* ❌ NO CLASS FOUND MESSAGE */}
-              {classOptions.length === 0 && (
-                <Typography color="error" mb={2}>
-                  No class found. You have to add the class first.
-                </Typography>
-              )}
-
-              {/* MARKS LIST */}
-              {schoolData.marks.map((item, index) => (
-                <Card key={index} sx={{ mb: 2, p: 2, borderRadius: 3 }}>
-                  <Box display="flex" gap={2} flexWrap="wrap">
-
-                    {/* Class Select */}
-                    <Box sx={{ minWidth: 180 }}>
-                   <Select
-  options={availableOptions}
-  value={classOptions.find(
-    (opt) => opt.value === item.className
-  )}
-  onChange={(option) =>
-    handleMarksChange(index, "className", option?.value || "")
-  }
-  placeholder="Select Class"
-  menuPortalTarget={document.body}
-  styles={{
-    ...customSelectStyles,
-    menuPortal: (base) => ({
-      ...base,
-      zIndex: 99999,   // 🔥 increase this
-    }),
-    menu: (base) => ({
-      ...base,
-      zIndex: 99999,   // 🔥 increase this
-    }),
-  }}
-/>
-                    </Box>
-
-                    {/* Half Yearly */}
-                    <TextField
-                      label="Half Yearly"
-                      type="number"
-                      value={item.halfYearlyMarks}
-                      onChange={(e) => {
-                        let value = e.target.value.replace(/\D/g, "");
-                        if (Number(value) > 100) return;
-                        handleMarksChange(index, "halfYearlyMarks", Number(value));
-                      }}
-                      sx={{ width: 150 }}
-                    />
-
-                    {/* Final Year */}
-                    <TextField
-                      label="Final Year"
-                      type="number"
-                      value={item.finalYearMarks}
-                      onChange={(e) => {
-                        let value = e.target.value.replace(/\D/g, "");
-                        if (Number(value) > 100) return;
-                        handleMarksChange(index, "finalYearMarks", Number(value));
-                      }}
-                      sx={{ width: 150 }}
-                    />
-
-                    <Button
-                      color="error"
-                      variant="outlined"
-                      onClick={() =>
-                        setSchoolData(prev => ({
-                          ...prev,
-                          marks: prev.marks.filter((_, i) => i !== index)
-                        }))
-                      }
-                    >
-                      ✕
-                    </Button>
+                    {/* Add Class Marks only if classes exist */}
+                    {classOptions.length > 0 && (
+                      <Button
+                        variant="contained"
+                        onClick={addMarksRow}
+                        sx={{
+                          borderRadius: 3,
+                          textTransform: "none",
+                          backgroundImage: "var(--gradient-primary)",
+                          color: "#000",
+                          fontWeight: 600,
+                        }}
+                      >
+                        + Add Class Marks
+                      </Button>
+                    )}
                   </Box>
-                </Card>
-              ))}
-            </CardContent>
-          </Card>
+                </Box>
 
-          {/* // Add this snippet inside your <form> before the buttons section */}
-          {/* Academic Session */}
-          {/* Academic Session */}
-          {/* Academic Session */}
-          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                🎓 Academic Session
-              </Typography>
-              <Grid container spacing={2}>
-                {/* Start Date */}
-                {/* <Grid item xs={12} sm={4}>
+                {/* ❌ NO CLASS FOUND MESSAGE */}
+                {classOptions.length === 0 && (
+                  <Typography color="error" mb={2}>
+                    No class found. You have to add the class first.
+                  </Typography>
+                )}
+
+                {/* MARKS LIST */}
+                {schoolData.marks.map((item, index) => (
+                  <Card key={index} sx={{ mb: 2, p: 2, borderRadius: 3 }}>
+                    <Box display="flex" gap={2} flexWrap="wrap">
+
+                      {/* Class Select */}
+                      <Box sx={{ minWidth: 180 }}>
+                        <Select
+                          options={availableOptions}
+                          value={classOptions.find(
+                            (opt) => opt.value === item.className
+                          )}
+                          onChange={(option) =>
+                            handleMarksChange(index, "className", option?.value || "")
+                          }
+                          placeholder="Select Class"
+                          menuPortalTarget={document.body}
+                          styles={{
+                            ...customSelectStyles,
+                            menuPortal: (base) => ({
+                              ...base,
+                              zIndex: 99999,   // 🔥 increase this
+                            }),
+                            menu: (base) => ({
+                              ...base,
+                              zIndex: 99999,   // 🔥 increase this
+                            }),
+                          }}
+                        />
+                      </Box>
+
+                      {/* Half Yearly */}
+                      <TextField
+                        label="Half Yearly"
+                        type="number"
+                        value={item.halfYearlyMarks}
+                        onChange={(e) => {
+                          let value = e.target.value.replace(/\D/g, "");
+                          if (Number(value) > 100) return;
+                          handleMarksChange(index, "halfYearlyMarks", Number(value));
+                        }}
+                        sx={{ width: 150 }}
+                      />
+
+                      {/* Final Year */}
+                      <TextField
+                        label="Final Year"
+                        type="number"
+                        value={item.finalYearMarks}
+                        onChange={(e) => {
+                          let value = e.target.value.replace(/\D/g, "");
+                          if (Number(value) > 100) return;
+                          handleMarksChange(index, "finalYearMarks", Number(value));
+                        }}
+                        sx={{ width: 150 }}
+                      />
+
+                      <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={() =>
+                          setSchoolData(prev => ({
+                            ...prev,
+                            marks: prev.marks.filter((_, i) => i !== index)
+                          }))
+                        }
+                      >
+                        ✕
+                      </Button>
+                    </Box>
+                  </Card>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* // Add this snippet inside your <form> before the buttons section */}
+            {/* Academic Session */}
+            {/* Academic Session */}
+            {/* Academic Session */}
+            <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  🎓 Academic Session
+                </Typography>
+                <Grid container spacing={2}>
+                  {/* Start Date */}
+                  {/* <Grid item xs={12} sm={4}>
                   <TextField
                     type="date"
                     label="Start Date"
@@ -1662,8 +1681,8 @@ export default function SchoolSettings() {
                   />
                 </Grid> */}
 
-                {/* End Date */}
-                {/* <Grid item xs={12} sm={4}>
+                  {/* End Date */}
+                  {/* <Grid item xs={12} sm={4}>
                   <TextField
                     type="date"
                     label="End Date"
@@ -1678,49 +1697,49 @@ export default function SchoolSettings() {
                     required
                   />
                 </Grid> */}
-                <Select
-                  options={academicYearOptions}
-                  styles={customSelectStyles}
-                  placeholder="Select Academic Year"
-                  menuPortalTarget={document.body}     // ✅ CRITICAL FIX
-                  menuPosition="fixed"                 // ✅ prevents clipping
-                  value={academicYearOptions?.find(opt => {
-                    // const sessionValue = schoolData.academicSession.currentSession;
+                  <Select
+                    options={academicYearOptions}
+                    styles={customSelectStyles}
+                    placeholder="Select Academic Year"
+                    menuPortalTarget={document.body}     // ✅ CRITICAL FIX
+                    menuPosition="fixed"                 // ✅ prevents clipping
+                    value={academicYearOptions?.find(opt => {
+                      // const sessionValue = schoolData.academicSession.currentSession;
 
-                    // if (typeof sessionValue !== "string" || sessionValue.length < 21)
-                    //   return false;
+                      // if (typeof sessionValue !== "string" || sessionValue.length < 21)
+                      //   return false;
 
-                    // const start = sessionValue.substring(0, 10);
-                    // const end = sessionValue.substring(11, 21);
+                      // const start = sessionValue.substring(0, 10);
+                      // const end = sessionValue.substring(11, 21);
 
-                    // const optStart = formatDateForInput(opt.value.startDate);
-                    // const optEnd = formatDateForInput(opt.value.endDate);
+                      // const optStart = formatDateForInput(opt.value.startDate);
+                      // const optEnd = formatDateForInput(opt.value.endDate);
 
-                    // return optStart === start && optEnd === end;
-                    console.log("opt",opt);
-                    console.log("schooldataopt",schoolData.academicSession.currentSession)
+                      // return optStart === start && optEnd === end;
+                      // console.log("opt",opt);
+                      // console.log("schooldataopt",schoolData.academicSession.currentSession)
 
-                return    opt?.value?.academicSession===schoolData?.academicSession?.currentSession
-                  })}
-                  onChange={(selected) => {
-                    const session = selected.value;
-                    console.log("session6789",session);
+                      return opt?.value?.academicSession === schoolData?.academicSession?.currentSession
+                    })}
+                    onChange={(selected) => {
+                      const session = selected.value;
+                      // console.log("session6789",session);
 
-                    const formattedStart = formatDateForInput(session.startDate);
-                    const formattedEnd = formatDateForInput(session.endDate);
+                      const formattedStart = formatDateForInput(session.startDate);
+                      const formattedEnd = formatDateForInput(session.endDate);
 
-                    setSchoolData(prev => ({
-                      ...prev,
-                      academicSession: {
-                        startDate: formattedStart,
-                        endDate: formattedEnd,
-                        currentSession: `${session?.academicSession}`, // ✅ FIXED
-                      }
-                    }));
-                  }}
-                />
-                {/* Current Session */}
-                {/* <Grid item xs={12} sm={4}>
+                      setSchoolData(prev => ({
+                        ...prev,
+                        academicSession: {
+                          startDate: formattedStart,
+                          endDate: formattedEnd,
+                          currentSession: `${session?.academicSession}`, // ✅ FIXED
+                        }
+                      }));
+                    }}
+                  />
+                  {/* Current Session */}
+                  {/* <Grid item xs={12} sm={4}>
                   <Select
 
                     options={generateSessionOptions(
@@ -1750,240 +1769,240 @@ export default function SchoolSettings() {
                     </Typography>
                   )}
                 </Grid> */}
-              </Grid>
-            </CardContent>
-          </Card>
+                </Grid>
+              </CardContent>
+            </Card>
 
 
 
 
-          {/* School Logo */}
-          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                🏫 School Logo
-              </Typography>
-              <Button style={{ background: "var(--gradient-primary)", color: "black" }} component="label">
-                Upload Logo
-                <input
-                  hidden
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      handleChange("schoolLogo", file);
-                      setLogoPreview(URL.createObjectURL(file));
-                    }
-                  }}
-                />
-              </Button>
-              {logoPreview && (
-                <Box mt={2}>
-                  <img
-                    src={logoPreview}
-                    alt="Preview"
-                    style={{ width: 120, height: 120, borderRadius: 12 }}
+            {/* School Logo */}
+            <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  🏫 School Logo
+                </Typography>
+                <Button style={{ background: "var(--gradient-primary)", color: "black" }} component="label">
+                  Upload Logo
+                  <input
+                    hidden
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        handleChange("schoolLogo", file);
+                        setLogoPreview(URL.createObjectURL(file));
+                      }
+                    }}
                   />
-                </Box>
-              )}
-            </CardContent>
-          </Card>
-          {/* Toll-Free Number */}
-          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                ☎️ Toll-Free Number
-              </Typography>
-              <TextField
-                fullWidth
-                label="Toll-Free Number"
-                value={schoolData.tollFree || ""}
-                onChange={(e) => {
-                  let value = e.target.value.replace(/\D/g, ""); // only digits allowed
+                </Button>
+                {logoPreview && (
+                  <Box mt={2}>
+                    <img
+                      src={logoPreview}
+                      alt="Preview"
+                      style={{ width: 120, height: 120, borderRadius: 12 }}
+                    />
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+            {/* Toll-Free Number */}
+            <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  ☎️ Toll-Free Number
+                </Typography>
+                <TextField
+                  fullWidth
+                  label="Toll-Free Number"
+                  value={schoolData.tollFree || ""}
+                  onChange={(e) => {
+                    let value = e.target.value.replace(/\D/g, ""); // only digits allowed
 
-                  if (value.length > 11) {
-                    toast.error("Toll-free number must be 11 digits only");
-                    value = value.slice(0, 11); // limit to 11 digits
-                  }
-
-                  handleChange("tollFree", value);
-                }}
-                inputProps={{ maxLength: 11 }}
-              />
-            </CardContent>
-          </Card>
-
-          {/* About Section */}
-
-
-          {/* FAQs Section */}
-          {/* FAQs Section */}
-          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                ❓ Frequently Asked Questions
-              </Typography>
-
-              {(schoolData.faqs || []).map((faq, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    border: "1px solid #e0e0e0",
-                    borderRadius: 2,
-                    p: 4,
-                    mb: 2,
-                    background: "#fafafa",
-                    position: "relative",
-
-                  }}
-                >
-                  {/* ❌ Remove Button */}
-                  <Button
-                    size="small"
-                    color="error"
-                    onClick={() =>
-                      handleChange(
-                        "faqs",
-                        schoolData.faqs.filter((_, i) => i !== index)
-                      )
+                    if (value.length > 11) {
+                      toast.error("Toll-free number must be 11 digits only");
+                      value = value.slice(0, 11); // limit to 11 digits
                     }
+
+                    handleChange("tollFree", value);
+                  }}
+                  inputProps={{ maxLength: 11 }}
+                />
+              </CardContent>
+            </Card>
+
+            {/* About Section */}
+
+
+            {/* FAQs Section */}
+            {/* FAQs Section */}
+            <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  ❓ Frequently Asked Questions
+                </Typography>
+
+                {(schoolData.faqs || []).map((faq, index) => (
+                  <Box
+                    key={index}
                     sx={{
-                      position: "absolute",
-                      top: 4,
-                      right: 4,
-                      minWidth: "30px",
-                      height: "30px",
-                      borderRadius: "50%",
-                      fontSize: "16px",
-                      lineHeight: "1",
-                      fontWeight: "bold",
+                      border: "1px solid #e0e0e0",
+                      borderRadius: 2,
+                      p: 4,
+                      mb: 2,
+                      background: "#fafafa",
+                      position: "relative",
+
                     }}
                   >
-                    ✕
-                  </Button>
-
-                  <TextField
-                    fullWidth
-                    label={`Question ${index + 1}`}
-                    value={faq.question}
-                    onChange={(e) =>
-                      handleChange(`faqs.${index}.question`, e.target.value)
-                    }
-                    sx={{ mb: 1 }}
-                  />
-
-                  <TextField
-                    fullWidth
-                    label={`Answer ${index + 1}`}
-                    value={faq.answer}
-                    onChange={(e) =>
-                      handleChange(`faqs.${index}.answer`, e.target.value)
-                    }
-                    multiline
-                    minRows={2}
-                  />
-                </Box>
-              ))}
-
-              {/* ➕ Add FAQ button */}
-              <Button
-                variant="outlined"
-                onClick={() =>
-                  handleChange("faqs", [
-                    ...(schoolData.faqs || []),
-                    { question: "", answer: "" },
-                  ])
-                }
-              >
-                ➕ Add FAQ
-              </Button>
-            </CardContent>
-          </Card>
-
-
-          {/* Banner Images */}
-          {/* Banner Images */}
-          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                🖼️ Banner Images
-              </Typography>
-
-              <Button
-                variant="contained"
-                component="label"
-                sx={{ background: "var(--gradient-primary)", color: "black", mb: 2 }}
-              >
-                Upload Banner
-                <input
-                  hidden
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={(e) => {
-                    const files = Array.from(e.target.files);
-                    handleChange("banner", [
-                      ...(schoolData.banner || []),
-                      ...files, // can stay as File objects
-                    ]);
-                  }}
-                />
-              </Button>
-
-              <Box display="flex" flexWrap="wrap" gap={2} mt={2}>
-                {(schoolData.banner || []).map((img, idx) => {
-                  const preview = getImagePreview(img);
-                  return (
-                    <Box
-                      key={idx}
-                      position="relative"
+                    {/* ❌ Remove Button */}
+                    <Button
+                      size="small"
+                      color="error"
+                      onClick={() =>
+                        handleChange(
+                          "faqs",
+                          schoolData.faqs.filter((_, i) => i !== index)
+                        )
+                      }
                       sx={{
-                        width: 100,
-                        height: 100,
-                        borderRadius: 2,
-                        overflow: "hidden",
-                        boxShadow: 2,
+                        position: "absolute",
+                        top: 4,
+                        right: 4,
+                        minWidth: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        fontSize: "16px",
+                        lineHeight: "1",
+                        fontWeight: "bold",
                       }}
                     >
-                      <img
-                        src={preview}
-                        alt={`Banner ${idx}`}
-                        width="100%"
-                        height="100%"
-                        style={{ objectFit: "cover" }}
-                      />
-                      <Button
-                        size="small"
-                        color="error"
-                        onClick={() => handleDeleteBanner(img, idx)}
+                      ✕
+                    </Button>
+
+                    <TextField
+                      fullWidth
+                      label={`Question ${index + 1}`}
+                      value={faq.question}
+                      onChange={(e) =>
+                        handleChange(`faqs.${index}.question`, e.target.value)
+                      }
+                      sx={{ mb: 1 }}
+                    />
+
+                    <TextField
+                      fullWidth
+                      label={`Answer ${index + 1}`}
+                      value={faq.answer}
+                      onChange={(e) =>
+                        handleChange(`faqs.${index}.answer`, e.target.value)
+                      }
+                      multiline
+                      minRows={2}
+                    />
+                  </Box>
+                ))}
+
+                {/* ➕ Add FAQ button */}
+                <Button
+                  variant="outlined"
+                  onClick={() =>
+                    handleChange("faqs", [
+                      ...(schoolData.faqs || []),
+                      { question: "", answer: "" },
+                    ])
+                  }
+                >
+                  ➕ Add FAQ
+                </Button>
+              </CardContent>
+            </Card>
 
 
+            {/* Banner Images */}
+            {/* Banner Images */}
+            <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  🖼️ Banner Images
+                </Typography>
+
+                <Button
+                  variant="contained"
+                  component="label"
+                  sx={{ background: "var(--gradient-primary)", color: "black", mb: 2 }}
+                >
+                  Upload Banner
+                  <input
+                    hidden
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files);
+                      handleChange("banner", [
+                        ...(schoolData.banner || []),
+                        ...files, // can stay as File objects
+                      ]);
+                    }}
+                  />
+                </Button>
+
+                <Box display="flex" flexWrap="wrap" gap={2} mt={2}>
+                  {(schoolData.banner || []).map((img, idx) => {
+                    const preview = getImagePreview(img);
+                    return (
+                      <Box
+                        key={idx}
+                        position="relative"
                         sx={{
-                          position: "absolute",
-                          top: -8,
-                          right: -8,
-                          minWidth: 28,
-                          height: 28,
-                          borderRadius: "50%",
-                          fontSize: 14,
-                          background: "white",
-                          "&:hover": { background: "#ffebee" },
+                          width: 100,
+                          height: 100,
+                          borderRadius: 2,
+                          overflow: "hidden",
+                          boxShadow: 2,
                         }}
                       >
-                        ✕
-                      </Button>
-                    </Box>
-                  );
-                })}
-              </Box>
-            </CardContent>
-          </Card>
+                        <img
+                          src={preview}
+                          alt={`Banner ${idx}`}
+                          width="100%"
+                          height="100%"
+                          style={{ objectFit: "cover" }}
+                        />
+                        <Button
+                          size="small"
+                          color="error"
+                          onClick={() => handleDeleteBanner(img, idx)}
 
 
-          {/* Gallery Images */}
-          {/* Gallery Images */}
-          {/* <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+                          sx={{
+                            position: "absolute",
+                            top: -8,
+                            right: -8,
+                            minWidth: 28,
+                            height: 28,
+                            borderRadius: "50%",
+                            fontSize: 14,
+                            background: "white",
+                            "&:hover": { background: "#ffebee" },
+                          }}
+                        >
+                          ✕
+                        </Button>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </CardContent>
+            </Card>
+
+
+            {/* Gallery Images */}
+            {/* Gallery Images */}
+            {/* <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               🖼️ Gallery Images
@@ -2060,180 +2079,93 @@ export default function SchoolSettings() {
         </Card> */}
 
 
-          {/* Social URLs */}
-          {/* Social URLs */}
-          <div className="overflow-auto">
+            {/* Social URLs */}
+            {/* Social URLs */}
             <div className="overflow-auto">
-              <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    🌐 Social Media Links
-                  </Typography>
+              <div className="overflow-auto">
+                <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      🌐 Social Media Links
+                    </Typography>
 
-                  {(schoolData.socialLinks || []).map((item, index) => {
-                    const preview = getSocialLogoPreview(item.logo);
+                    {(schoolData.socialLinks || []).map((item, index) => {
+                      const preview = getSocialLogoPreview(item.logo);
 
-                    return (
-                      <Box
-                        key={index}
-                        sx={{
-                          display: "grid",
-                          gridTemplateColumns: {
-                            xs: "1fr", // Mobile: single column
-                            sm: "1fr 1fr", // Tablet: 2 columns
-                            md: "160px 1fr 90px auto", // Desktop: 4 columns (original)
-                          },
-                          gap: { xs: 1.5, sm: 2 }, // Responsive gap
-                          alignItems: "center",
-                          mb: 2,
-                          p: { xs: 1.5, sm: 2 }, // Responsive padding
-                          border: "1px solid #e0e0e0",
-                          borderRadius: 2,
-                          backgroundColor: "#fafafa",
-                        }}
-                      >
-                        {/* Platform Name */}
-                        <TextField
-                          label="Platform"
-                          placeholder="Facebook"
-                          value={item.platform}
-                          onChange={(e) =>
-                            handleSocialChange(index, "platform", e.target.value)
-                          }
-                          fullWidth
-                          sx={{
-                            gridColumn: {
-                              xs: "span 1", // Mobile: full width
-                              sm: "span 1", // Tablet: first column
-                              md: "span 1", // Desktop: first column
-                            }
-                          }}
-                        />
-
-                        {/* URL */}
-                        <TextField
-                          fullWidth
-                          label="Profile URL"
-                          placeholder="https://facebook.com/yourpage"
-                          value={item.url}
-                          onChange={(e) =>
-                            handleSocialChange(index, "url", e.target.value)
-                          }
-                          error={Boolean(urlErrors[index])}
-                          helperText={urlErrors[index]}
-                          sx={{
-                            gridColumn: {
-                              xs: "span 1", // Mobile: full width
-                              sm: "span 1", // Tablet: second column
-                              md: "span 1", // Desktop: second column
-                            }
-                          }}
-                        />
-
-                        {/* Logo Preview - Hidden on mobile, shown on tablet+ */}
+                      return (
                         <Box
+                          key={index}
                           sx={{
-                            width: 44,
-                            height: 44,
-                            borderRadius: "50%",
-                            border: "1px solid #ddd",
-                            display: { xs: "none", sm: "flex" }, // Hidden on mobile
-                            alignItems: "center",
-                            justifyContent: "center",
-                            overflow: "hidden",
-                            background: "#fff",
-                            justifySelf: { sm: "center", md: "auto" }, // Center on tablet
-                            gridColumn: {
-                              sm: "span 1", // Tablet: third column
-                              md: "span 1", // Desktop: third column
-                            }
-                          }}
-                        >
-                          {preview ? (
-                            <img
-                              src={preview}
-                              alt="Logo"
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover",
-                              }}
-                            />
-                          ) : (
-                            <Typography variant="caption" color="text.secondary">
-                              No Logo
-                            </Typography>
-                          )}
-                        </Box>
-
-                        {/* Actions - Hidden on mobile, shown on tablet+ */}
-                        <Box
-                          display="flex"
-                          gap={1}
-                          sx={{
-                            display: { xs: "none", sm: "flex" }, // Hidden on mobile
-                            gridColumn: {
-                              sm: "span 1", // Tablet: fourth column
-                              md: "span 1", // Desktop: fourth column
+                            display: "grid",
+                            gridTemplateColumns: {
+                              xs: "1fr", // Mobile: single column
+                              sm: "1fr 1fr", // Tablet: 2 columns
+                              md: "160px 1fr 90px auto", // Desktop: 4 columns (original)
                             },
-                            justifyContent: {
-                              sm: "flex-start", // Tablet+: align left
-                            }
-                          }}
-                        >
-                          <Button
-                            variant="outlined"
-                            component="label"
-                            size="small"
-                            fullWidth={false}
-                          >
-                            {item.logo ? "Change" : "Upload"}
-                            <input
-                              hidden
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) =>
-                                handleSocialChange(index, "logo", e.target.files[0])
-                              }
-                            />
-                          </Button>
-
-                          <IconButton
-                            color="error"
-                            onClick={() => removeSocial(index)}
-                            sx={{
-                              ml: 1
-                            }}
-                          >
-                            ✕
-                          </IconButton>
-                        </Box>
-
-                        {/* Mobile View - Logo and Actions in a row (Only shown on mobile) */}
-                        <Box
-                          sx={{
-                            display: { xs: "flex", sm: "none" }, // Only show on mobile
-                            gridColumn: "span 1",
-                            gap: 2,
+                            gap: { xs: 1.5, sm: 2 }, // Responsive gap
                             alignItems: "center",
-                            mt: 1,
-                            pt: 1,
-                            borderTop: "1px solid #e0e0e0",
+                            mb: 2,
+                            p: { xs: 1.5, sm: 2 }, // Responsive padding
+                            border: "1px solid #e0e0e0",
+                            borderRadius: 2,
+                            backgroundColor: "#fafafa",
                           }}
                         >
-                          {/* Mobile Logo Preview */}
+                          {/* Platform Name */}
+                          <TextField
+                            label="Platform"
+                            placeholder="Facebook"
+                            value={item.platform}
+                            onChange={(e) =>
+                              handleSocialChange(index, "platform", e.target.value)
+                            }
+                            fullWidth
+                            sx={{
+                              gridColumn: {
+                                xs: "span 1", // Mobile: full width
+                                sm: "span 1", // Tablet: first column
+                                md: "span 1", // Desktop: first column
+                              }
+                            }}
+                          />
+
+                          {/* URL */}
+                          <TextField
+                            fullWidth
+                            label="Profile URL"
+                            placeholder="https://facebook.com/yourpage"
+                            value={item.url}
+                            onChange={(e) =>
+                              handleSocialChange(index, "url", e.target.value)
+                            }
+                            error={Boolean(urlErrors[index])}
+                            helperText={urlErrors[index]}
+                            sx={{
+                              gridColumn: {
+                                xs: "span 1", // Mobile: full width
+                                sm: "span 1", // Tablet: second column
+                                md: "span 1", // Desktop: second column
+                              }
+                            }}
+                          />
+
+                          {/* Logo Preview - Hidden on mobile, shown on tablet+ */}
                           <Box
                             sx={{
-                              width: 36,
-                              height: 36,
+                              width: 44,
+                              height: 44,
                               borderRadius: "50%",
                               border: "1px solid #ddd",
-                              display: "flex",
+                              display: { xs: "none", sm: "flex" }, // Hidden on mobile
                               alignItems: "center",
                               justifyContent: "center",
                               overflow: "hidden",
                               background: "#fff",
-                              flexShrink: 0,
+                              justifySelf: { sm: "center", md: "auto" }, // Center on tablet
+                              gridColumn: {
+                                sm: "span 1", // Tablet: third column
+                                md: "span 1", // Desktop: third column
+                              }
                             }}
                           >
                             {preview ? (
@@ -2247,71 +2179,158 @@ export default function SchoolSettings() {
                                 }}
                               />
                             ) : (
-                              <Typography variant="caption" color="text.secondary" fontSize="0.6rem">
+                              <Typography variant="caption" color="text.secondary">
                                 No Logo
                               </Typography>
                             )}
                           </Box>
 
-                          {/* Mobile Upload Button */}
-                          <Button
-                            variant="outlined"
-                            component="label"
-                            size="small"
-                            sx={{ flex: 1 }}
-                          >
-                            {item.logo ? "Change Logo" : "Upload Logo"}
-                            <input
-                              hidden
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) =>
-                                handleSocialChange(index, "logo", e.target.files[0])
+                          {/* Actions - Hidden on mobile, shown on tablet+ */}
+                          <Box
+                            display="flex"
+                            gap={1}
+                            sx={{
+                              display: { xs: "none", sm: "flex" }, // Hidden on mobile
+                              gridColumn: {
+                                sm: "span 1", // Tablet: fourth column
+                                md: "span 1", // Desktop: fourth column
+                              },
+                              justifyContent: {
+                                sm: "flex-start", // Tablet+: align left
                               }
-                            />
-                          </Button>
-
-                          <IconButton
-                            color="error"
-                            onClick={() => removeSocial(index)}
-                            size="small"
+                            }}
                           >
-                            ✕
-                          </IconButton>
+                            <Button
+                              variant="outlined"
+                              component="label"
+                              size="small"
+                              fullWidth={false}
+                            >
+                              {item.logo ? "Change" : "Upload"}
+                              <input
+                                hidden
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) =>
+                                  handleSocialChange(index, "logo", e.target.files[0])
+                                }
+                              />
+                            </Button>
+
+                            <IconButton
+                              color="error"
+                              onClick={() => removeSocial(index)}
+                              sx={{
+                                ml: 1
+                              }}
+                            >
+                              ✕
+                            </IconButton>
+                          </Box>
+
+                          {/* Mobile View - Logo and Actions in a row (Only shown on mobile) */}
+                          <Box
+                            sx={{
+                              display: { xs: "flex", sm: "none" }, // Only show on mobile
+                              gridColumn: "span 1",
+                              gap: 2,
+                              alignItems: "center",
+                              mt: 1,
+                              pt: 1,
+                              borderTop: "1px solid #e0e0e0",
+                            }}
+                          >
+                            {/* Mobile Logo Preview */}
+                            <Box
+                              sx={{
+                                width: 36,
+                                height: 36,
+                                borderRadius: "50%",
+                                border: "1px solid #ddd",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                overflow: "hidden",
+                                background: "#fff",
+                                flexShrink: 0,
+                              }}
+                            >
+                              {preview ? (
+                                <img
+                                  src={preview}
+                                  alt="Logo"
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                              ) : (
+                                <Typography variant="caption" color="text.secondary" fontSize="0.6rem">
+                                  No Logo
+                                </Typography>
+                              )}
+                            </Box>
+
+                            {/* Mobile Upload Button */}
+                            <Button
+                              variant="outlined"
+                              component="label"
+                              size="small"
+                              sx={{ flex: 1 }}
+                            >
+                              {item.logo ? "Change Logo" : "Upload Logo"}
+                              <input
+                                hidden
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) =>
+                                  handleSocialChange(index, "logo", e.target.files[0])
+                                }
+                              />
+                            </Button>
+
+                            <IconButton
+                              color="error"
+                              onClick={() => removeSocial(index)}
+                              size="small"
+                            >
+                              ✕
+                            </IconButton>
+                          </Box>
                         </Box>
-                      </Box>
-                    );
-                  })}
+                      );
+                    })}
 
-                  <Button variant="outlined" onClick={addSocial} sx={{ mt: 2 }}>
-                    ➕ Add Social Link
-                  </Button>
-                </CardContent>
-              </Card>
+                    <Button variant="outlined" onClick={addSocial} sx={{ mt: 2 }}>
+                      ➕ Add Social Link
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-          </div>
 
 
-          <Box display="flex" justifyContent="space-between" mt={4}>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => resetMutation.mutate()}
-            >
-              Reset Defaults
-            </Button>
-            <Button
-              type="submit"
-              // variant="contained"
-              style={{ background: "var(--gradient-primary)", color: "black" }}
-              // color="primary"
-              disabled={mutation.isPending}
-            >
-              {mutation.isPending ? "Saving..." : "Save Settings"}
-            </Button>
-          </Box>
-        </form>
-    )}
+            <Box display="flex" justifyContent="space-between" mt={4}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => resetMutation.mutate()}
+              >
+                Reset Defaults
+              </Button>
+              <Button
+                type="submit"
+                // variant="contained"
+                style={{ background: "var(--gradient-primary)", color: "black" }}
+                // color="primary"
+                disabled={mutation.isPending}
+              >
+                {mutation.isPending ? "Saving..." : "Save Settings"}
+              </Button>
+            </Box>
+          </form>
+        )}
       </Box>
       <Modal
         isOpen={cordinateModalOpen}
@@ -2416,101 +2435,101 @@ export default function SchoolSettings() {
           </div>
         </div>
       </Modal>
-     <Modal
-  isOpen={isModalOpen}
-  title="Add Class"
-  onClose={() => {
-    setIsModalOpen(false);
-    setFormErrors({});
-  }}
->
-  <form
-    onSubmit={(e) => {
-      e.preventDefault();
+      <Modal
+        isOpen={isModalOpen}
+        title="Add Class"
+        onClose={() => {
+          setIsModalOpen(false);
+          setFormErrors({});
+        }}
+      >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
 
-      const newErrors = {};
-      const validClasses = [
-        "Prep", "1st", "2nd", "3rd", "4th", "5th", "6th",
-        "7th", "8th", "9th", "10th", "11th", "12th",
-      ];
+            const newErrors = {};
+            const validClasses = [
+              "Prep", "1st", "2nd", "3rd", "4th", "5th", "6th",
+              "7th", "8th", "9th", "10th", "11th", "12th",
+            ];
 
-      // Class Name validation
-      if (!formData.name.trim()) {
-        newErrors.name = "Class name is required";
-      } else if (!validClasses.includes(formData.name.trim())) {
-        newErrors.name =
-          "Invalid class name. Must be Prep or 1st to 12th";
-      }
+            // Class Name validation
+            if (!formData.name.trim()) {
+              newErrors.name = "Class name is required";
+            } else if (!validClasses.includes(formData.name.trim())) {
+              newErrors.name =
+                "Invalid class name. Must be Prep or 1st to 12th";
+            }
 
-      // Section validation
-      if (!formData.section.trim()) {
-        newErrors.section = "Section is required";
-      } else if (!/^[A-D]$/.test(formData.section.trim())) {
-        newErrors.section =
-          "Section must be A, B, C, or D";
-      }
+            // Section validation
+            if (!formData.section.trim()) {
+              newErrors.section = "Section is required";
+            } else if (!/^[A-D]$/.test(formData.section.trim())) {
+              newErrors.section =
+                "Section must be A, B, C, or D";
+            }
 
-      setFormErrors(newErrors);
+            setFormErrors(newErrors);
 
-      if (Object.keys(newErrors).length > 0) {
-        return;
-      }
+            if (Object.keys(newErrors).length > 0) {
+              return;
+            }
 
-      createClassMutation.mutate({
-        name: formData.name.trim(),
-        section: formData.section.trim(),
-      });
-    }}
-    className="space-y-4"
-  >
-    <TextField
-      label="Class Name"
-      fullWidth
-      value={formData.name}
-      error={!!formErrors.name}
-      helperText={formErrors.name}
-      onChange={(e) =>
-        setFormData((prev) => ({
-          ...prev,
-          name: e.target.value,
-        }))
-      }
-    />
+            createClassMutation.mutate({
+              name: formData.name.trim(),
+              section: formData.section.trim(),
+            });
+          }}
+          className="space-y-4"
+        >
+          <TextField
+            label="Class Name"
+            fullWidth
+            value={formData.name}
+            error={!!formErrors.name}
+            helperText={formErrors.name}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                name: e.target.value,
+              }))
+            }
+          />
 
-    <TextField
-      label="Section"
-      fullWidth
-      sx={{ mt: 2 }}
-      value={formData.section}
-      error={!!formErrors.section}
-      helperText={formErrors.section}
-      onChange={(e) =>
-        setFormData((prev) => ({
-          ...prev,
-          section: e.target.value.toUpperCase(),
-        }))
-      }
-    />
+          <TextField
+            label="Section"
+            fullWidth
+            sx={{ mt: 2 }}
+            value={formData.section}
+            error={!!formErrors.section}
+            helperText={formErrors.section}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                section: e.target.value.toUpperCase(),
+              }))
+            }
+          />
 
-    <Button
-      type="submit"
-      fullWidth
-      variant="contained"
-      disabled={createClassMutation.isPending}
-      sx={{
-        mt: 3,
-        backgroundImage: "var(--gradient-primary)",
-        color: "black",
-        fontWeight: 600,
-        textTransform: "none",
-      }}
-    >
-      {createClassMutation.isPending
-        ? "Saving..."
-        : "Add Class"}
-    </Button>
-  </form>
-</Modal>
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            disabled={createClassMutation.isPending}
+            sx={{
+              mt: 3,
+              backgroundImage: "var(--gradient-primary)",
+              color: "black",
+              fontWeight: 600,
+              textTransform: "none",
+            }}
+          >
+            {createClassMutation.isPending
+              ? "Saving..."
+              : "Add Class"}
+          </Button>
+        </form>
+      </Modal>
     </>
   );
 }

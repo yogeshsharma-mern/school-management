@@ -207,7 +207,7 @@ export default function TimetableManager() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSlot, setModalSlot] = useState(null);
   const [id, setId] = useState();
-  console.log("modalslot", modalSlot);
+  // console.log("modalslot", modalSlot);
   const [localAssignments, setLocalAssignments] = useState({});
 
   // 🔹 Queries
@@ -261,7 +261,7 @@ export default function TimetableManager() {
   // console.log("subjects",subjects);
   const allAssignments =
     assignmentsQuery.data?.timetable?.timetable || assignmentsQuery.data || [];
-  console.log("allassignments", allAssignments);
+  // console.log("allassignments", allAssignments);
   // const filterdTeachers = teachers.filter((teacher)=> teacher?.classes?.includes(selectedClassId));
   const filteredTeachers = Array.isArray(teachers)
     ? teachers.filter((teacher) =>
@@ -296,7 +296,7 @@ export default function TimetableManager() {
     if (Array.isArray(allAssignments)) return allAssignments;
     return Object.values(allAssignments).flat();
   }, [allAssignments]);
-  console.log("flattenedassignements", flattenedAssignments);
+  // console.log("flattenedassignements", flattenedAssignments);
   const filteredAssignments = useMemo(() => {
     return flattenedAssignments.filter(
       (a) =>
@@ -310,7 +310,7 @@ export default function TimetableManager() {
 
   // 🔹 Time slots
   const settingsData = settingsQuery.data?.results;
-  console.log("settingdata", settingsData);
+  // console.log("settingdata", settingsData);
   // console.log("generatetimeslots", generateTimeSlotsFromSettings(settingsData))
   // const timeSlots = useMemo(
   //   () => (settingsData ? generateTimeSlotsFromSettings(settingsData) : []),
@@ -392,13 +392,13 @@ export default function TimetableManager() {
 
     const map = {};
     const timetable = assignmentsQuery.data.timetable; // backend timetable object
-    console.log("timetable", timetable);
+    // console.log("timetable", timetable);
 
     for (const [day, dayAssignments] of Object.entries(timetable)) {
       // // console.log("dayassigent",dayAssignments);
       if (!Array.isArray(dayAssignments)) continue; // safety
       dayAssignments.forEach((a) => {
-        console.log("aaa", a);
+        // console.log("aaa", a);
         // Find matching time slot by period
         const slot = timeSlots.find((s) => Number(s.period) === Number(a.period));
         if (!slot) return;
@@ -503,7 +503,7 @@ export default function TimetableManager() {
 
   const handleSaveAll = () => {
     const payloads = collectUnsavedPayloads();
-    console.log("payloads", payloads);
+    // console.log("payloads", payloads);
 
     if (!payloads.length) return;
     bulkSaveMutation.mutate(payloads);
@@ -620,7 +620,7 @@ export default function TimetableManager() {
               {days.map((day) => {
                 const a = getAssignmentFor(day, slot);
 
-                console.log("aaaaa", a);
+                // console.log("aaaaa", a);
                 const isLunch = slot.isBreak && slot.period === "Lunch Break";
 
                 if (isLunch) {

@@ -114,7 +114,7 @@ export default function ClassPage() {
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
-  console.log("editingclass", editingClass);
+  // console.log("editingclass", editingClass);
   const [formData, setFormData] = useState({
     name: "",
     section: "",
@@ -160,13 +160,13 @@ export default function ClassPage() {
 
   // console.log("subjectdata",subjectsData);
   const subjectsFromApi = subjectsData?.results;
-  console.log("subjectfromapi", subjectsFromApi);
+  // console.log("subjectfromapi", subjectsFromApi);
   const subjectOptions = subjectsFromApi?.map((s) => ({
     value: s._id,
     label: `${s.name} (${s.code})`,
     code: s.code,
   }));
-  console.log("subjectoptions", subjectOptions);
+  // console.log("subjectoptions", subjectOptions);
   // Get all teacher IDs already assigned as class teachers
   const assignedTeacherIds = classesData?.results?.docs
     ?.filter(cls => cls.classTeacher?._id)
@@ -435,7 +435,7 @@ export default function ClassPage() {
               // onClick={() => openDeleteModal(row.original)}
               onClick={() => {
                 const cls = row.original;
-                console.log("cls", cls)
+                // console.log("cls", cls)
                 setClassDetail(cls);
                 setDetailModal(true);
               }}

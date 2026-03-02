@@ -420,7 +420,7 @@ export default function AttendanceTable() {
   const [teacherSearch, setTeacherSearch] = useState("");
   const [timeModal, setTimeModal] = useState(false);
   const [timeDetail, setTimeDetail] = useState(null);
-  console.log("timedetail", timeDetail);
+  // console.log("timedetail", timeDetail);
 
 
   const daysInMonth = getDaysInMonth(selectedMonth, selectedYear);
@@ -710,7 +710,7 @@ Copy code */}
 
         // debug logs — keep them while testing, remove later
         // eslint-disable-next-line no-console
-        console.log("CLICK: teacher", item._id, "dateCell", d.dateString, "attendanceRecords", allAttendance, "matched", dayAttendance);
+        // console.log("CLICK: teacher", item._id, "dateCell", d.dateString, "attendanceRecords", allAttendance, "matched", dayAttendance);
 
         setTimeDetail({
           teacherName: item.name,

@@ -145,7 +145,7 @@ export default function CreateStudentPage() {
     marksheets: [],
     certificates: [],
   });
-  console.log("previews",previews);
+  console.log("previews", previews);
   const states = [
     { value: "Rajasthan", label: "Rajasthan" },
     // { value: "Karnataka", label: "Karnataka" },
@@ -1608,6 +1608,7 @@ export default function CreateStudentPage() {
                 </h2>
 
                 <div className="grid md:grid-cols-2 gap-6 bg-white p-5 rounded-xl border border-gray-200">
+
                   {/* Class Dropdown */}
                   <TextField
                     select
@@ -1622,7 +1623,6 @@ export default function CreateStudentPage() {
                       const selectedClassObj = classes?.results?.docs?.find(
                         (cls) => cls._id === selectedId
                       );
-
 
                       setStudent({ ...student, classId: selectedId });
                       setSelectedClass(selectedClassObj?.name || "");
@@ -1639,33 +1639,30 @@ export default function CreateStudentPage() {
                   </TextField>
 
                   {/* Academic Year */}
-                  {/* <TextField
-                    fullWidth
-                    name="academicYear"
-                    label="Academic Year"
-                    value={formatAcademicSession(student.academicYear) || ""}
-                    disabled   // ✅ LOCKED
-                    InputProps={{ readOnly: true }}  // extra safety
-                    helperText={
-                      sessionLoading
-                        ? "Loading academic session..."
-                        : "Academic session from school settings"
-                    }
-                  /> */}
-                  <Select
-                    options={academicYearOptions}
-                    styles={customSelectStyles}
-                    placeholder="Select Academic Year"
-                    value={academicYearOptions?.find(
-                      opt => opt.value === student.academicYear
+                  <div className="flex flex-col">
+                    <Select
+                      options={academicYearOptions}
+                      styles={customSelectStyles}
+                      placeholder="Select Academic Year"
+                      value={academicYearOptions?.find(
+                        opt => opt.value === student.academicYear
+                      )}
+                      onChange={(selected) => {
+                        setErrors((prev) => ({ ...prev, academicYear: "" }));
+                        setStudent(prev => ({
+                          ...prev,
+                          academicYear: selected?.value || "",
+                        }));
+                      }}
+                    />
+
+                    {errors?.academicYear && (
+                      <span className="text-red-500 text-sm mt-1">
+                        {errors.academicYear}
+                      </span>
                     )}
-                    onChange={(selected) => {
-                      setStudent(prev => ({
-                        ...prev,
-                        academicYear: selected.value,   // EXACT payload format
-                      }));
-                    }}
-                  />
+                  </div>
+
                 </div>
               </div>
 
@@ -1792,7 +1789,7 @@ export default function CreateStudentPage() {
                                       e.target.checked
                                     )
                                   }
-      
+
                                   disabled={isMandatory}
                                   className="h-4 w-4 text-yellow-500 cursor-pointer border-gray-300 rounded focus:ring-yellow-300"
                                 />

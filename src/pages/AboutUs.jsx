@@ -46,7 +46,7 @@ const AdminAboutUs = () => {
   const [images, setImages] = useState([]); // File[]
   const [imagePreviews, setImagePreviews] = useState([]); // string[]
   const [deletingImageId, setDeletingImageId] = useState(null);
-  console.log("imagePreviews",imagePreviews);
+  // console.log("imagePreviews",imagePreviews);
 
   /* ================= FETCH ================= */
 
@@ -91,7 +91,7 @@ const validateForm = () => {
   setErrors(newErrors);
   return Object.keys(newErrors).length === 0;
 };
-console.log("data",data)
+// console.log("data",data)
 useEffect(() => {
   if (!data?.results) return;
 
@@ -239,10 +239,10 @@ const saveMutation = useMutation({
     const fd = buildFormData();
 
     if (aboutId) {
-      console.log("UPDATE API CALLED");
+      // console.log("UPDATE API CALLED");
       return apiPut(apiPath.updateAboutSection,fd);
     } else {
-      console.log("CREATE API CALLED");
+      // console.log("CREATE API CALLED");
       return apiPost(apiPath.createAboutUsSection, fd);
     }
   },

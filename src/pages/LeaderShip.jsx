@@ -625,7 +625,7 @@ const LeadersManagement = () => {
         }
     });
     let leaders = leadersData?.results || [];
-    console.log("first")
+    // console.log("first")
     const buildFormData = (data) => {
         const fd = new FormData();
 

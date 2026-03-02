@@ -52,9 +52,9 @@ export default function StudentPage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [academicYear, setAcademicYear] = useState(null);
   const [selectedStudents, setSelectedStudents] = useState([]);
-  console.log("selectedstudetns", selectedStudents);
+  // console.log("selectedstudetns", selectedStudents);
 
-  console.log("classid", classId);
+  // console.log("classid", classId);
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState([]);
@@ -222,7 +222,7 @@ export default function StudentPage() {
     value: cls._id,
     label: cls.name
   })) || [];
-  console.log("classdata", classData);
+  // console.log("classdata", classData);
   const selectedClasss = classData?.results?.docs?.find(
     (item) => item._id === classId
   );
@@ -261,7 +261,7 @@ export default function StudentPage() {
     value: `${formatDate(session.startDate)}-${formatDate(session.endDate)}`,
     label: session.academicSession,   // what user sees
   }));
-  console.log("academicyearoptionss", academicYearOptionss);
+  // console.log("academicyearoptionss", academicYearOptionss);
   // ✅ Fetch students
   // const { data: studentsData, isLoading, isFetching, error } = useQuery({
   //   queryKey: [
@@ -488,7 +488,7 @@ export default function StudentPage() {
     () => studentsData?.results?.docs || [],
     [studentsData]
   );
-  console.log("tabledata", tableData);
+  // console.log("tabledata", tableData);
   const totalPages = studentsData?.results?.totalPages || 1;
   const handleUpdateSession = () => {
     if (!selectedStudents.length) {
@@ -512,12 +512,12 @@ export default function StudentPage() {
       feeStructureId: feesData.results._id,
     };
 
-    console.log("Payload", payload);
+    // console.log("Payload", payload);
 
     updateMutation.mutate(payload);
   };
   const allStudentIds = tableData.map(s => s._id);
-  console.log("allstudentids", allStudentIds);
+  // console.log("allstudentids", allStudentIds);
 
   const isAllSelected =
     allStudentIds.length > 0 &&

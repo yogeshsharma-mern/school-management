@@ -125,12 +125,12 @@ export default function StudentPage() {
           if (!dateString) return "";
           const date = new Date(dateString);
           const year = date.getFullYear();
-          console.log("year", year);
+          // console.log("year", year);
           const month = String(date.getMonth() + 1) // 01-12
           const day = String(date.getDate()).padStart(2, "0"); // 01-31
           return `${year}/${month}/${day}`; // → "2013/02/05"
         };
-        console.log("format?????????", formatDate(cls?.dob));
+        // console.log("format?????????", formatDate(cls?.dob));
 
         const formatcreatedandupdated = (dateStr) => {
           if (!dateStr) return "N/A";
@@ -255,7 +255,7 @@ export default function StudentPage() {
     },
 
     onError: (err) => {
-      console.log("err", err);
+      // console.log("err", err);
       toast.error(err?.response?.data?.message || "Import failed, (Invalid fields) ❌");
     },
   });

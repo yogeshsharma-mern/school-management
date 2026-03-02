@@ -137,21 +137,21 @@ const ResetPassword = () => {
 
           {/* New Password */}
           <div className="relative">
-           <input
-  type={show.new ? "text" : "password"}
-  value={form.password}
-  onChange={(e) => {
-    setForm((p) => ({ ...p, password: e.target.value }));
-    setErrors((p) => ({ ...p, password: "" }));
-  }}
-  placeholder="******"
-  className={`w-full h-12 border rounded-xl px-4 pr-10
+            <input
+              type={show.new ? "text" : "password"}
+              value={form.password}
+              onChange={(e) => {
+                setForm((p) => ({ ...p, password: e.target.value }));
+                setErrors((p) => ({ ...p, password: "" }));
+              }}
+              placeholder="******"
+              className={`w-full h-12 border rounded-xl px-4 pr-10
     ${errors.password ? "border-red-500" : "border-gray-300"}
   `}
-/>
-{errors.password && (
-  <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-)}
+            />
+            {errors.password && (
+              <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+            )}
 
             <button
               type="button"
@@ -169,22 +169,22 @@ const ResetPassword = () => {
           {/* Confirm Password */}
           <div className="relative">
             <input
-  type={show.confirm ? "text" : "password"}
-  value={form.confirmPassword}
-  placeholder="******"
-  onChange={(e) => {
-    setForm((p) => ({ ...p, confirmPassword: e.target.value }));
-    setErrors((p) => ({ ...p, confirmPassword: "" }));
-  }}
-  className={`w-full h-12 border rounded-xl px-4 pr-10
+              type={show.confirm ? "text" : "password"}
+              value={form.confirmPassword}
+              placeholder="******"
+              onChange={(e) => {
+                setForm((p) => ({ ...p, confirmPassword: e.target.value }));
+                setErrors((p) => ({ ...p, confirmPassword: "" }));
+              }}
+              className={`w-full h-12 border rounded-xl px-4 pr-10
     ${errors.confirmPassword ? "border-red-500" : "border-gray-300"}
   `}
-/>
-{errors.confirmPassword && (
-  <p className="text-red-500 text-xs mt-1">
-    {errors.confirmPassword}
-  </p>
-)}
+            />
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.confirmPassword}
+              </p>
+            )}
 
             <button
               type="button"
