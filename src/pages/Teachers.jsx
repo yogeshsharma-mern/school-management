@@ -64,7 +64,7 @@ export default function StudentPage() {
         employeeId: "EMP-1001",
         name: "John Doe",
         email: "john.doe@school.com",
-        phone: "9876543210",
+        phone: "919876543210",
         dob: "03/15/1980",          // Use YYYY/MM/DD format
         gender: "Male",
         maritalStatus: "Married",   // Married / Single / Divorced / Widowed
@@ -89,7 +89,7 @@ export default function StudentPage() {
         netSalary: "82000",
         emergencyContactName: "Seema Sharma",
         emergencyContactRelation: "Spouse",
-        emergencyContactPhone: "9876543211",
+        emergencyContactPhone: "919876543211",
         emergencyContactAddress: "45 MG Road, Delhi",
 
       }
