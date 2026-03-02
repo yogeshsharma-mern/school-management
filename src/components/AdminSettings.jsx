@@ -232,7 +232,9 @@ const [academicYearFilter, setAcademicYearFilter] = useState(null);
   });
 
   console.log("academicsessionyogesh",academicSessions);
-  const currentSession = academicSessions?.results?.filter((session)=>session.status==='active');
+const currentSession = academicSessions?.results?.find(
+  (session) => session.status === "active"
+);
   console.log("currentSession",currentSession);
   // console.log("academicSessions",academicSessions);
   const formatDate = (isoDate) => {
@@ -1139,17 +1141,29 @@ const [academicYearFilter, setAcademicYearFilter] = useState(null);
             ))}
           </select>
         </div>
-        {!studentData?.results ? (
-          <div className="h-[50vh] flex flex-col items-center justify-center text-center">
-            <Typography variant="h6" gutterBottom>
-              No School Data Found
-            </Typography>
-
-            <Typography variant="body2" color="text.secondary">
-              Please select an academic year or create school settings.
-            </Typography>
-          </div>
-        ) : (
+ {!currentSession ? (
+  // ❌ No Active Session at all
+  <div className="h-[50vh] flex flex-col items-center justify-center text-center">
+    <Typography variant="h6" gutterBottom>
+      No Active Academic Session Found
+    </Typography>
+    <Typography variant="body2" color="text.secondary">
+      Please create or activate an academic year first.
+    </Typography>
+  </div>
+):academicYearFilter &&
+  academicYearFilter !== currentSession.academicSession &&
+  !studentData?.results ? (
+  // 🟡 User selected another year and no data found
+  <div className="h-[50vh] flex flex-col items-center justify-center text-center">
+    <Typography variant="h6" gutterBottom>
+      No School Data Found
+    </Typography>
+    <Typography variant="body2" color="text.secondary">
+      No settings found for selected academic year.
+    </Typography>
+  </div>
+) : (
           <form onSubmit={handleSubmit}>
             {/* Basic Info + Status */}
             <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
