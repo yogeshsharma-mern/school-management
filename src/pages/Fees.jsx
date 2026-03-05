@@ -761,7 +761,7 @@ export default function FeesStructure() {
     queryFn: () => apiGet(apiPath.getAcademicSessions),
   });
   // console.log("academicSessionyogesh",academicSessions);
-// const currentAcademicYear ="hello";
+  // const currentAcademicYear ="hello";
   const academicYearOptions =
     academicSessions?.results?.map((session) => ({
       value: session._id, // ✅ backend expects this
@@ -1018,6 +1018,7 @@ export default function FeesStructure() {
                         options={availableOptions}
                         value={head.type ? { value: head.type, label: head.type } : null}
                         placeholder="Select Fee Type"
+                        disabled
                         onChange={(opt) => handleFeeHeadChange(index, "type", opt?.value || "")}
                         isDisabled={isMandatory}
                         className="text-black"
@@ -1028,9 +1029,9 @@ export default function FeesStructure() {
                       type="number"
                       placeholder="Enter 6-digit amount"
                       value={head.amount}
+                      disabled
                       onChange={(e) => {
                         const value = e.target.value;
-
                         // ✅ Allow only up to 6 digits
                         if (value.length > 6) {
                           toast.error("Fee amount cannot exceed 6 digits");
