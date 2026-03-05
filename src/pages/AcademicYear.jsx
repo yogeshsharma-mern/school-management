@@ -107,7 +107,7 @@ export default function AcademicYear() {
         queryKey: ['academicSessions'],
         queryFn: () => apiGet(apiPath.getAcademicSessions)
     });
-
+console.log("academicSessions",academicSessions);
     // Create mutation
     const createMutation = useMutation({
         mutationFn: (newData) => apiPost(apiPath.createAcademicSession, newData),
@@ -360,7 +360,7 @@ export default function AcademicYear() {
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">Current Session</p>
                                     <p className="text-lg font-semibold text-gray-900 mt-2">
-                                        {academicSessions?.results?.find(item => item.isCurrent)?.academicSession || 'Not set'}
+                                        {academicSessions?.results?.find(item => item.status==="active") || 'Not set'}
                                     </p>
                                 </div>
                                 <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">

@@ -31,6 +31,7 @@ const AdminProfile = lazy(() => import("./pages/AdminProfile"));
 const CreateTeacher = lazy(() => import("./pages/CreateTeacher"));
 const TeacherDetails = lazy(() => import("./pages/TeacherDetails.jsx"));
 const AdminSettings = lazy(() => import("./components/AdminSettings.jsx"));
+const SchoolSetting = lazy(()=>import("./pages/SchoolSettings/SchoolSettings.jsx"));
 const ChangePassword = lazy(() => import("./components/ChangePasswoord.jsx"));
 const EditTeacher = lazy(() => import("./pages/EditTeacher.jsx"));
 const ResetPassword = lazy(() => import("./components/ResetPassword.jsx"));
