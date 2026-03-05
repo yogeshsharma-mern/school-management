@@ -97,7 +97,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://api.example.com";
 export default function SchoolSettings() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
-const [academicYearFilter, setAcademicYearFilter] = useState(null);
+  const [academicYearFilter, setAcademicYearFilter] = useState(null);
   // console.log(
   //   "academicYearFilter",academicYearFilter
   // );
@@ -156,7 +156,13 @@ const [academicYearFilter, setAcademicYearFilter] = useState(null);
       }
     ], // array of URLs
     schoolLogo: null,
-    marks: []
+    marks: [
+      {
+        className: "",
+        halfYearlyMarks: "",
+        finalYearMarks: "",
+      }
+    ]
   });
   // console.log("schooldata", schoolData);
   const [locationData, setLocationData] = useState({
@@ -217,9 +223,9 @@ const [academicYearFilter, setAcademicYearFilter] = useState(null);
   const { data: studentData, isLoading } = useQuery({
     queryKey: ["school-settings", academicYearFilter],
     queryFn: () => apiGet(apiPath.SchoolSettings, { currentSession: academicYearFilter }),
-    enabled:academicYearFilter !==null,
-    staleTime:0, // only fetch if id exists
-     cacheTime: 0,
+    enabled: academicYearFilter !== null,
+    staleTime: 0, // only fetch if id exists
+    cacheTime: 0,
   });
   // console.log("first", studentData);
   const { data: cordinatesData, isLoading: cordiLoading } = useQuery({
@@ -231,11 +237,11 @@ const [academicYearFilter, setAcademicYearFilter] = useState(null);
     queryFn: () => apiGet(apiPath.getAcademicSessions)
   });
 
-  console.log("academicsessionyogesh",academicSessions);
-const currentSession = academicSessions?.results?.find(
-  (session) => session.status === "active"
-);
-  console.log("currentSession",currentSession);
+  // console.log("academicsessionyogesh", academicSessions);
+  const currentSession = academicSessions?.results?.find(
+    (session) => session.status === "active"
+  );
+  console.log("currentSession", currentSession);
   // console.log("academicSessions",academicSessions);
   const formatDate = (isoDate) => {
     if (!isoDate) return "";
@@ -281,17 +287,17 @@ const currentSession = academicSessions?.results?.find(
     }
   }, [cordinatesData]);
   useEffect(() => {
-  if (!academicSessions?.results?.length) return;
+    if (!academicSessions?.results?.length) return;
 
-  const active = academicSessions.results.find(
-    (session) => session.status === "active"
-  );
+    const active = academicSessions.results.find(
+      (session) => session.status === "active"
+    );
 
-  // ✅ Only set if filter is null (first load only)
-  if (active && academicYearFilter === null) {
-    setAcademicYearFilter(active.academicSession);
-  }
-}, [academicSessions]);
+    // ✅ Only set if filter is null (first load only)
+    if (active && academicYearFilter === null) {
+      setAcademicYearFilter(active.academicSession);
+    }
+  }, [academicSessions]);
   useEffect(() => {
     if (!studentData?.results) return;
     const s = studentData.results;
@@ -1141,29 +1147,29 @@ const currentSession = academicSessions?.results?.find(
             ))}
           </select>
         </div>
- {!currentSession ? (
-  // ❌ No Active Session at all
-  <div className="h-[50vh] flex flex-col items-center justify-center text-center">
-    <Typography variant="h6" gutterBottom>
-      No Active Academic Session Found
-    </Typography>
-    <Typography variant="body2" color="text.secondary">
-      Please create or activate an academic year first.
-    </Typography>
-  </div>
-):academicYearFilter &&
-  academicYearFilter !== currentSession.academicSession &&
-  !studentData?.results ? (
-  // 🟡 User selected another year and no data found
-  <div className="h-[50vh] flex flex-col items-center justify-center text-center">
-    <Typography variant="h6" gutterBottom>
-      No School Data Found
-    </Typography>
-    <Typography variant="body2" color="text.secondary">
-      No settings found for selected academic year.
-    </Typography>
-  </div>
-) : (
+        {!currentSession ? (
+          // ❌ No Active Session at all
+          <div className="h-[50vh] flex flex-col items-center justify-center text-center">
+            <Typography variant="h6" gutterBottom>
+              No Active Academic Session Found
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Please create or activate an academic year first.
+            </Typography>
+          </div>
+        ) : academicYearFilter &&
+          academicYearFilter !== currentSession.academicSession &&
+          !studentData?.results ? (
+          // 🟡 User selected another year and no data found
+          <div className="h-[50vh] flex flex-col items-center justify-center text-center">
+            <Typography variant="h6" gutterBottom>
+              No School Data Found
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              No settings found for selected academic year.
+            </Typography>
+          </div>
+        ) : (
           <form onSubmit={handleSubmit}>
             {/* Basic Info + Status */}
             <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
