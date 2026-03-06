@@ -1,4 +1,6 @@
-import React from 'react'
+import React from 'react';
+import { Box, Button, Card, CardContent, Grid, TextField, Typography } from '@mui/material';
+
 
 export default function FAQSection({schoolData,handleChange}) {
     return (

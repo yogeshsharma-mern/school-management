@@ -1,6 +1,8 @@
-import React from 'react'
+import React from 'react';
+import { Box, Button, Card, CardContent, Grid, IconButton, TextField, Typography } from '@mui/material';
 
-export default function SocialLinks({ schoolData, handleSocialChange }) {
+
+export default function SocialLinks({ schoolData, handleSocialChange, getSocialLogoPreview, urlErrors, addSocial }) {
     return (
         <div className="overflow-auto">
             <div className="overflow-auto">

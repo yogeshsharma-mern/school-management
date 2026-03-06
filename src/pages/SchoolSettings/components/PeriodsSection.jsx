@@ -1,6 +1,7 @@
-import React from 'react'
+import React from 'react';
+import { Card, CardContent, Checkbox, FormControlLabel, Grid, TextField, Typography } from '@mui/material';
 
-export default function PeriodsSection({ schoolData, handleChange }) {
+export default function PeriodsSection({ schoolData, handleChange,runPeriodsValidation,getUsedMinutes,getSchoolTotalMinutes,getTimingStatus }) {
     return (
         <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
             <CardContent>

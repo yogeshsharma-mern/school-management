@@ -1,6 +1,8 @@
-import React from 'react'
+import React from 'react';
+import { Box, Button, Card, CardContent, Grid, TextField, Typography } from '@mui/material';
 
-export default function BannerSection({schoolData,handleChange}) {
+
+export default function BannerSection({schoolData,handleChange,getImagePreview}) {
   return (
   <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 3 }}>
               <CardContent>

@@ -1,4 +1,5 @@
-import React from 'react'
+import React from 'react';
+import { Card, CardContent, Grid, TextField, Typography } from '@mui/material';
 
 export default function SchoolTiming({schoolData,handleChange}) {
   return (

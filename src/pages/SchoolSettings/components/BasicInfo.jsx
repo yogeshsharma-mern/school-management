@@ -1,3 +1,4 @@
+import { Card, CardContent, Grid, TextField } from '@mui/material';
 import React from 'react'
 
 export default function BasicInfo({schoolData,handleChange}) {

@@ -52,6 +52,7 @@ export default function StudentPage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [academicYear, setAcademicYear] = useState(null);
   const [selectedStudents, setSelectedStudents] = useState([]);
+
   // console.log("selectedstudetns", selectedStudents);
 
   // console.log("classid", classId);
@@ -60,6 +61,8 @@ export default function StudentPage() {
   const [columnFilters, setColumnFilters] = useState([]);
   const [viewModal, setViewModal] = useState(false);
   const [viewData, setViewData] = useState([]);
+  const [academicSessionId,setAcademicSessionId]=useState("");
+  console.log("academicsessionid",academicSessionId);
   const [classFilter, setClassFilter] = useState(""); // ✅ filter state
   const [academicYearFilter, setAcademicYearFilter] = useState("");
   const [errors, setErrors] = useState({});
@@ -206,6 +209,7 @@ export default function StudentPage() {
     formData.append("csvfile", selectedFile);
     formData.append("feeStructureId", feesData?.results?._id);
     formData.append("academicYear", academicYear);
+    formData.append("academicSessionId",academicSessionId);
 
     importMutation.mutate(formData);
   };
@@ -253,6 +257,7 @@ export default function StudentPage() {
     queryKey: ['academicSessions'],
     queryFn: () => apiGet(apiPath.getAcademicSessions)
   });
+
   const formatDate = (isoDate) => {
     if (!isoDate) return "";
     return new Date(isoDate).toISOString().slice(0, 10);
@@ -260,6 +265,7 @@ export default function StudentPage() {
   const academicYearOptionss = academicSessions?.results?.map(session => ({
     value: `${formatDate(session.startDate)}-${formatDate(session.endDate)}`,
     label: session.academicSession,   // what user sees
+     id: session._id // ✅ important
   }));
   // console.log("academicyearoptionss", academicYearOptionss);
   // ✅ Fetch students
@@ -510,6 +516,9 @@ export default function StudentPage() {
       studentIds: selectedStudents,
       classId: classId,
       feeStructureId: feesData.results._id,
+       academicSessionId: academicSessionId
+   
+
     };
 
     // console.log("Payload", payload);
@@ -737,7 +746,9 @@ export default function StudentPage() {
                           opt => opt.value === academicYear
                         )}
                         onChange={(selected) => {
+                          console.log("selected",selected)
                           setAcademicYear((selected.value));
+                          setAcademicSessionId(selected.id); 
                         }}
                       />
 

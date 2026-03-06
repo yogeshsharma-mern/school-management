@@ -107,6 +107,7 @@ export default function CreateStudentPage() {
     emergencyContact: { name: "", relation: "", phone: "", address: "" },
     classId: "",
     academicYear: "",
+    academicSessionId:"",
     physicalDisability: false,
     disabilityDetails: "",
     documents: {
@@ -205,6 +206,7 @@ export default function CreateStudentPage() {
         zip: s.address?.zip || "",
         country: s.address?.country || "", // This should be country code like "IN"
       },
+      academicSessionId:s?.feeStructures[0].acadmicSessionId,
       guardian: s.guardian || prev.guardian,
       emergencyContact: s.emergencyContact || prev.emergencyContact,
       parents: s.parentDetails?.length ? s.parentDetails : prev.parents,
@@ -774,7 +776,7 @@ export default function CreateStudentPage() {
       // 🔹 Add simple fields
       [
         "name", "dob", "gender", "bloodGroup", "email", "password", "phone",
-        "classId", "academicYear", "physicalDisability", "disabilityDetails",
+        "classId", "academicYear", "physicalDisability", "disabilityDetails","academicSessionId"
       ].forEach((key) => {
         formDataToSend.append(key, student[key]);
       });

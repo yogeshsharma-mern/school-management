@@ -119,6 +119,7 @@ export default function CreateStudentPage() {
     emergencyContact: { name: "", relation: "", phone: "", address: "" },
     classId: "",
     academicYear: "",
+    academicSessionId:"",
     physicalDisability: false,
     disabilityDetails: "",
     documents: {
@@ -214,6 +215,7 @@ export default function CreateStudentPage() {
   const academicYearOptions = academicSessions?.results?.map(session => ({
     value: `${formatDate(session.startDate)}-${formatDate(session.endDate)}`,
     label: session.academicSession,   // what user sees
+    academicSessionId: session._id,  
   }));
   console.log("currentSession", academicYearOptions);
   const formatAcademicSession = (session) => {
@@ -685,6 +687,7 @@ export default function CreateStudentPage() {
         "academicYear",
         "physicalDisability",
         "disabilityDetails",
+        "academicSessionId"
       ].forEach((key) => {
         formDataObj.append(key, student[key]);
       });
@@ -1652,6 +1655,7 @@ export default function CreateStudentPage() {
                         setStudent(prev => ({
                           ...prev,
                           academicYear: selected?.value || "",
+                              academicSessionId: selected?.academicSessionId || ""
                         }));
                       }}
                     />
